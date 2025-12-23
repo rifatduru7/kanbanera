@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, Mail, Eye, EyeOff } from 'lucide-react';
 import { useRegister } from '../../hooks/useAuth';
 
 export default function RegisterPage() {

@@ -6,8 +6,8 @@ type Theme = 'light' | 'dark' | 'system';
 
 export function ProfilePage() {
     const { user } = useAuthStore();
-    const [firstName, setFirstName] = useState(user?.fullName?.split(' ')[0] || 'Alex');
-    const [lastName, setLastName] = useState(user?.fullName?.split(' ').slice(1).join(' ') || 'Morgan');
+    const [firstName, setFirstName] = useState(user?.name?.split(' ')[0] || 'Alex');
+    const [lastName, setLastName] = useState(user?.name?.split(' ').slice(1).join(' ') || 'Morgan');
     const [theme, setTheme] = useState<Theme>('dark');
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [pushNotifications, setPushNotifications] = useState(true);
@@ -196,8 +196,8 @@ export function ProfilePage() {
                                                         key={option.value}
                                                         onClick={() => setTheme(option.value as Theme)}
                                                         className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${isActive
-                                                                ? 'border-primary bg-primary/10 text-primary'
-                                                                : 'border-border bg-surface text-text-muted hover:bg-surface-hover hover:text-white'
+                                                            ? 'border-primary bg-primary/10 text-primary'
+                                                            : 'border-border bg-surface text-text-muted hover:bg-surface-hover hover:text-white'
                                                             }`}
                                                     >
                                                         <Icon className="size-4" />
