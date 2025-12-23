@@ -25,7 +25,7 @@ const TEMPLATES = [
     { value: 'personal', label: 'Personal Goals' },
 ];
 
-export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps) {
+export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: CreateProjectModalProps & { onProjectCreated?: () => void }) {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [selectedColor, setSelectedColor] = useState(PROJECT_COLORS[0].value);
@@ -46,6 +46,7 @@ export function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps)
                     setSelectedColor(PROJECT_COLORS[0].value);
                     setTemplate('blank');
                     onClose();
+                    if (onProjectCreated) onProjectCreated();
                 },
             }
         );

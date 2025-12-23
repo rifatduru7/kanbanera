@@ -4,18 +4,19 @@ import { Header } from '../../components/layout/Header';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { SearchModal, useSearchModal } from '../../components/ui/SearchModal';
 import { FeaturesTourModal, useFeaturesTour } from '../../components/onboarding/FeaturesTourModal';
+import { OnboardingComplete } from '../../components/onboarding/OnboardingComplete';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';
-import { Outlet } from 'react-router-dom';
-
+import { Outlet, useNavigate } from 'react-router-dom';
 
 export function DashboardLayout() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [lastSynced, setLastSynced] = useState<Date | null>(new Date());
     const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+    const [isOneboardingSuccessOpen, setIsOnboardingSuccessOpen] = useState(false);
 
     const searchModal = useSearchModal();
     const featuresTour = useFeaturesTour();
-
+    const navigate = useNavigate();
 
     // Check if we should show features tour on mount
     useEffect(() => {
@@ -29,8 +30,11 @@ export function DashboardLayout() {
 
     const handleTourComplete = () => {
         featuresTour.complete();
-        // Optionally open create project modal after tour
         setIsCreateProjectOpen(true);
+    };
+
+    const handleProjectCreated = () => {
+        setIsOnboardingSuccessOpen(true);
     };
 
     return (
@@ -80,10 +84,22 @@ export function DashboardLayout() {
                 />
             )}
 
+            {/* Onboarding Complete Modal */}
+            {isOneboardingSuccessOpen && (
+                <OnboardingComplete
+                    onGoToDashboard={() => {
+                        setIsOnboardingSuccessOpen(false);
+                        navigate('/dashboard');
+                    }}
+                    onClose={() => setIsOnboardingSuccessOpen(false)}
+                />
+            )}
+
             {/* Create Project Modal */}
             <CreateProjectModal
                 isOpen={isCreateProjectOpen}
                 onClose={() => setIsCreateProjectOpen(false)}
+                onProjectCreated={handleProjectCreated}
             />
         </div>
     );

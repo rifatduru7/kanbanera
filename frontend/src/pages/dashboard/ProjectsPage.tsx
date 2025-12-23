@@ -7,11 +7,13 @@ import { CreateProjectModal } from '../../components/project/CreateProjectModal'
 import { PageLoader } from '../../components/ui/Loading';
 import { ErrorDisplay } from '../../components/ui/Error';
 import { FirstProjectPrompt } from '../../components/onboarding/FirstProjectPrompt';
+import { OnboardingComplete } from '../../components/onboarding/OnboardingComplete';
 
 export function ProjectsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isOnboardingSuccessOpen, setIsOnboardingSuccessOpen] = useState(false);
 
     const navigate = useNavigate();
     const { data, isLoading, isError, refetch } = useProjects();
@@ -157,10 +159,22 @@ export function ProjectsPage() {
                 </div>
             </div>
 
+            {/* Onboarding Success Modal */}
+            {isOnboardingSuccessOpen && (
+                <OnboardingComplete
+                    onGoToDashboard={() => {
+                        setIsOnboardingSuccessOpen(false);
+                        navigate('/dashboard');
+                    }}
+                    onClose={() => setIsOnboardingSuccessOpen(false)}
+                />
+            )}
+
             {/* Create Project Modal */}
             <CreateProjectModal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
+                onProjectCreated={() => setIsOnboardingSuccessOpen(true)}
             />
         </div>
     );
