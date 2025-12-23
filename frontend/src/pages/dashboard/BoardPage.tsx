@@ -1,166 +1,133 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Board } from '../../components/kanban/Board';
 import { TaskModal } from '../../components/kanban/TaskModal';
-import { Filter } from 'lucide-react';
+import { Filter, Loader2, AlertCircle, FolderKanban, ChevronDown } from 'lucide-react';
+import { useProjects, useProject, useMoveTask, useCreateTask, useAddSubtask, useToggleSubtask, useAddComment } from '../../hooks/useKanbanData';
+import { tasksApi } from '../../lib/api/client';
 import type { Column, Task } from '../../types/kanban';
 import type { TaskDetail } from '../../types/task-detail';
 
-// Mock data for demonstration
-const mockColumns: Column[] = [
-    {
-        id: 'col-1',
-        name: 'To Do',
-        position: 0,
-        color: '#6366f1',
-        tasks: [
-            {
-                id: 'task-1',
-                title: 'Design R2 storage bucket structure for user uploads',
-                description: 'Plan the folder hierarchy and access patterns for R2',
-                priority: 'medium',
-                columnId: 'col-1',
-                position: 0,
-                labels: ['Backend'],
-                assigneeName: 'Alex Morgan',
-                commentCount: 2,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            },
-            {
-                id: 'task-2',
-                title: 'Implement JWT rotation logic',
-                priority: 'high',
-                columnId: 'col-1',
-                position: 1,
-                labels: ['Auth'],
-                attachmentCount: 1,
-                assigneeName: 'Sarah J',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            },
-        ],
-    },
-    {
-        id: 'col-2',
-        name: 'In Progress',
-        position: 1,
-        color: '#1392ec',
-        tasks: [
-            {
-                id: 'task-3',
-                title: 'Integrate Kanban drag-and-drop library',
-                description: 'Use @dnd-kit for smooth drag and drop experience',
-                priority: 'high',
-                columnId: 'col-2',
-                position: 0,
-                labels: ['Frontend'],
-                dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-                subtaskCount: 5,
-                subtaskCompleted: 3,
-                assigneeName: 'John Doe',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            },
-        ],
-    },
-    {
-        id: 'col-3',
-        name: 'Review',
-        position: 2,
-        color: '#8b5cf6',
-        tasks: [
-            {
-                id: 'task-4',
-                title: 'Finalize glassmorphism icon set',
-                priority: 'medium',
-                columnId: 'col-3',
-                position: 0,
-                labels: ['Design'],
-                assigneeName: 'Jane Smith',
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-            },
-        ],
-    },
-    {
-        id: 'col-4',
-        name: 'Done',
-        position: 3,
-        color: '#22c55e',
-        tasks: [],
-    },
-];
-
-// Helper to create mock task detail from basic task
-function createMockTaskDetail(task: Task, columnName: string): TaskDetail {
-    return {
-        ...task,
-        status: columnName,
-        projectId: 'project-1',
-        projectName: 'Cloud Migration',
-        subtasks: [
-            { id: 'sub-1', taskId: task.id, title: 'Design Token Payload Structure', isCompleted: true, position: 0, createdAt: new Date().toISOString() },
-            { id: 'sub-2', taskId: task.id, title: 'Generate RS256 Key Pair', isCompleted: true, position: 1, createdAt: new Date().toISOString() },
-            { id: 'sub-3', taskId: task.id, title: 'Implement Worker Signing Logic', isCompleted: false, position: 2, createdAt: new Date().toISOString() },
-            { id: 'sub-4', taskId: task.id, title: 'Unit Test Verification Middleware', isCompleted: false, position: 3, createdAt: new Date().toISOString() },
-        ],
-        comments: [
-            {
-                id: 'comment-1',
-                taskId: task.id,
-                userId: 'user-2',
-                userName: 'Sarah Jenkins',
-                content: 'Make sure to use the RS256 algorithm for signing. We need asymmetric keys for the public verification endpoint.',
-                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            },
-            {
-                id: 'comment-2',
-                taskId: task.id,
-                userId: 'user-1',
-                userName: 'You',
-                content: "Got it. I've already generated the keys and stored them in Worker Secrets.",
-                createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
-            },
-        ],
-        attachments: [
-            {
-                id: 'att-1',
-                taskId: task.id,
-                fileName: 'auth_schema_v1.png',
-                fileSize: 2.4 * 1024 * 1024,
-                mimeType: 'image/png',
-                createdAt: new Date().toISOString(),
-            },
-            {
-                id: 'att-2',
-                taskId: task.id,
-                fileName: 'specs.pdf',
-                fileSize: 120 * 1024,
-                mimeType: 'application/pdf',
-                createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-            },
-        ],
-    };
-}
-
 export function BoardPage() {
-    const [columns] = useState<Column[]>(mockColumns);
+    // Selected project state
+    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+    const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<TaskDetail | null>(null);
 
+    // Fetch projects list
+    const { data: projectsData, isLoading: isLoadingProjects } = useProjects();
+    const projects = projectsData?.projects || [];
+
+    // Auto-select first project if none selected
+    if (!selectedProjectId && projects.length > 0) {
+        setSelectedProjectId(projects[0].id);
+    }
+
+    // Fetch board data for selected project
+    const { data: projectData, isLoading: isLoadingBoard, error: boardError } = useProject(selectedProjectId || '');
+
+    // API mutations
+    const moveTask = useMoveTask(selectedProjectId || '');
+    const createTask = useCreateTask(selectedProjectId || '');
+    const addSubtask = useAddSubtask(selectedProjectId || '');
+    const toggleSubtask = useToggleSubtask(selectedProjectId || '');
+    const addComment = useAddComment(selectedProjectId || '');
+
+    // Transform API columns to Board component format
+    const columns: Column[] = useMemo(() => {
+        if (!projectData?.columns) return [];
+
+        return projectData.columns.map((col: any) => ({
+            id: col.id,
+            name: col.name,
+            position: col.position,
+            color: col.color || '#6366f1',
+            tasks: (col.tasks || []).map((task: any) => ({
+                id: task.id,
+                title: task.title,
+                description: task.description,
+                priority: task.priority || 'medium',
+                columnId: col.id,
+                position: task.position,
+                labels: task.labels ? (typeof task.labels === 'string' ? JSON.parse(task.labels) : task.labels) : [],
+                dueDate: task.due_date,
+                assigneeName: task.assignee_name,
+                subtaskCount: task.subtask_count || 0,
+                subtaskCompleted: task.subtask_completed || 0,
+                commentCount: task.comment_count || 0,
+                attachmentCount: task.attachment_count || 0,
+                createdAt: task.created_at,
+                updatedAt: task.updated_at,
+            })),
+        })).sort((a: Column, b: Column) => a.position - b.position);
+    }, [projectData]);
+
+    const selectedProject = projects.find(p => p.id === selectedProjectId);
+
+    // Handlers
     const handleTaskMove = (taskId: string, toColumnId: string, newPosition: number) => {
-        console.log('Task moved:', { taskId, toColumnId, newPosition });
-        // TODO: Call API to persist the move
+        moveTask.mutate({ taskId, columnId: toColumnId, position: newPosition });
     };
 
-    const handleTaskClick = (task: Task) => {
-        const column = columns.find(c => c.id === task.columnId);
-        const taskDetail = createMockTaskDetail(task, column?.name || 'Unknown');
-        setSelectedTask(taskDetail);
+    const handleTaskClick = async (task: Task) => {
+        try {
+            const response = await tasksApi.getTask(task.id);
+            if (response.success && response.data) {
+                const taskData = response.data.task;
+                const column = columns.find(c => c.id === task.columnId);
+                const taskDetail: TaskDetail = {
+                    id: taskData.id,
+                    title: taskData.title,
+                    description: taskData.description,
+                    priority: taskData.priority,
+                    status: column?.name || 'Unknown',
+                    columnId: task.columnId,
+                    projectId: selectedProjectId || '',
+                    projectName: selectedProject?.name || 'Project',
+                    assigneeId: taskData.assignee_id,
+                    assigneeName: taskData.assignee_name,
+                    dueDate: taskData.due_date,
+                    labels: taskData.labels ? (typeof taskData.labels === 'string' ? JSON.parse(taskData.labels) : taskData.labels) : [],
+                    subtasks: (taskData.subtasks || []).map((s: any) => ({
+                        id: s.id,
+                        taskId: taskData.id,
+                        title: s.title,
+                        isCompleted: s.is_completed,
+                        position: s.position,
+                        createdAt: s.created_at,
+                    })),
+                    comments: (taskData.comments || []).map((c: any) => ({
+                        id: c.id,
+                        taskId: taskData.id,
+                        userId: c.user_id,
+                        userName: c.full_name || 'User',
+                        content: c.content,
+                        createdAt: c.created_at,
+                    })),
+                    attachments: (taskData.attachments || []).map((a: any) => ({
+                        id: a.id,
+                        taskId: taskData.id,
+                        fileName: a.file_name,
+                        fileSize: a.file_size,
+                        mimeType: a.mime_type,
+                        downloadUrl: a.url,
+                        thumbnailUrl: a.thumbnail_url,
+                        createdAt: a.created_at,
+                    })),
+                    createdAt: taskData.created_at,
+                    updatedAt: taskData.updated_at,
+                };
+                setSelectedTask(taskDetail);
+            }
+        } catch (error) {
+            console.error('Failed to load task details:', error);
+        }
     };
 
     const handleAddTask = (columnId: string) => {
-        console.log('Add task to column:', columnId);
-        // TODO: Open create task modal
+        const title = prompt('Enter task title:');
+        if (title) {
+            createTask.mutate({ column_id: columnId, title });
+        }
     };
 
     const handleCloseModal = () => {
@@ -169,23 +136,49 @@ export function BoardPage() {
 
     const handleUpdateTask = (updates: Partial<TaskDetail>) => {
         console.log('Update task:', updates);
-        // TODO: Call API to update task
+        // TODO: Implement task update
     };
 
     const handleAddSubtask = (title: string) => {
-        console.log('Add subtask:', title);
-        // TODO: Call API to add subtask
+        if (selectedTask) {
+            addSubtask.mutate({ taskId: selectedTask.id, title });
+        }
     };
 
     const handleToggleSubtask = (subtaskId: string, completed: boolean) => {
-        console.log('Toggle subtask:', { subtaskId, completed });
-        // TODO: Call API to toggle subtask
+        if (selectedTask) {
+            toggleSubtask.mutate({ taskId: selectedTask.id, subtaskId, isCompleted: completed });
+        }
     };
 
     const handleAddComment = (content: string) => {
-        console.log('Add comment:', content);
-        // TODO: Call API to add comment
+        if (selectedTask) {
+            addComment.mutate({ taskId: selectedTask.id, content });
+        }
     };
+
+    // Loading state
+    if (isLoadingProjects) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="size-8 text-primary animate-spin" />
+            </div>
+        );
+    }
+
+    // No projects state
+    if (projects.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 text-center">
+                <FolderKanban className="size-12 text-text-muted mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">No Projects Yet</h3>
+                <p className="text-text-muted mb-4">Create your first project to get started</p>
+                <a href="/projects" className="btn-primary px-4 py-2 rounded-lg">
+                    Go to Projects
+                </a>
+            </div>
+        );
+    }
 
     return (
         <div className="flex flex-col gap-8 h-full">
@@ -197,33 +190,47 @@ export function BoardPage() {
                             Home
                         </a>
                         <span className="text-slate-600">/</span>
-                        <a href="#" className="text-slate-400 hover:text-primary transition-colors">
-                            Sprints
-                        </a>
-                        <span className="text-slate-600">/</span>
-                        <span className="text-primary font-medium">Sprint 4 Board</span>
+                        <span className="text-primary font-medium">Board</span>
                     </nav>
-                    <h2 className="text-white text-3xl md:text-4xl font-bold leading-tight tracking-tight">
-                        Sprint 4 Board
-                    </h2>
+
+                    {/* Project Selector */}
+                    <div className="relative">
+                        <button
+                            onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+                            className="flex items-center gap-3 text-white text-3xl md:text-4xl font-bold leading-tight tracking-tight hover:text-primary transition-colors"
+                        >
+                            {selectedProject?.name || 'Select Project'}
+                            <ChevronDown className={`size-6 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {isProjectDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-2 w-64 bg-surface border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                                {projects.map((project: any) => (
+                                    <button
+                                        key={project.id}
+                                        onClick={() => {
+                                            setSelectedProjectId(project.id);
+                                            setIsProjectDropdownOpen(false);
+                                        }}
+                                        className={`w-full text-left px-4 py-3 hover:bg-white/5 transition-colors ${project.id === selectedProjectId ? 'bg-primary/10 text-primary' : 'text-white'
+                                            }`}
+                                    >
+                                        <p className="font-medium">{project.name}</p>
+                                        <p className="text-xs text-text-muted truncate">{project.description || 'No description'}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     <p className="text-slate-400 text-sm max-w-2xl">
-                        Manage tasks for the cloud migration initiative. Focus on database schema validation and API gateway setup.
+                        {selectedProject?.description || 'Manage tasks and track progress'}
                     </p>
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-3">
-                    {/* Team Avatars */}
-                    <div className="flex -space-x-3">
-                        {['AM', 'SJ', 'JD', '+2'].map((initials, i) => (
-                            <div
-                                key={i}
-                                className="size-8 rounded-full border-2 border-background-dark bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-bold text-white"
-                            >
-                                {initials}
-                            </div>
-                        ))}
-                    </div>
+                    {isLoadingBoard && <Loader2 className="size-5 text-primary animate-spin" />}
 
                     {/* Filter Button */}
                     <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 text-sm font-medium transition-all">
@@ -233,13 +240,32 @@ export function BoardPage() {
                 </div>
             </div>
 
+            {/* Error State */}
+            {boardError && (
+                <div className="flex items-center justify-center py-12 text-red-400">
+                    <AlertCircle className="size-5 mr-2" />
+                    Failed to load board
+                </div>
+            )}
+
             {/* Kanban Board */}
-            <Board
-                columns={columns}
-                onTaskMove={handleTaskMove}
-                onTaskClick={handleTaskClick}
-                onAddTask={handleAddTask}
-            />
+            {!boardError && columns.length > 0 && (
+                <Board
+                    columns={columns}
+                    onTaskMove={handleTaskMove}
+                    onTaskClick={handleTaskClick}
+                    onAddTask={handleAddTask}
+                />
+            )}
+
+            {/* Empty Board */}
+            {!boardError && !isLoadingBoard && columns.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <FolderKanban className="size-12 text-text-muted mb-4" />
+                    <h3 className="text-xl font-semibold text-white mb-2">No Columns Yet</h3>
+                    <p className="text-text-muted">Add columns to organize your tasks</p>
+                </div>
+            )}
 
             {/* Task Modal */}
             {selectedTask && (
@@ -256,4 +282,3 @@ export function BoardPage() {
         </div>
     );
 }
-
