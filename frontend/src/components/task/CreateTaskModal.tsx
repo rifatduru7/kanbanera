@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { useProjects, useCreateTask } from '../../hooks/useKanbanData';
+import { useProjects, useProject, useCreateTask } from '../../hooks/useKanbanData';
 
 interface CreateTaskModalProps {
     isOpen: boolean;
@@ -27,17 +27,25 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
     const { data: projectsData, isLoading: isLoadingProjects } = useProjects();
     const projects = projectsData?.projects || [];
 
-    // Get columns for selected project
-    const selectedProject = projects.find((p: any) => p.id === selectedProjectId);
-    const columns = selectedProject?.columns || [];
+    // Fetch project details with columns when a project is selected
+    const { data: projectData, isLoading: isLoadingProject } = useProject(selectedProjectId);
+    const columns = projectData?.columns || [];
 
-    // Auto-select first project and column
-    if (!selectedProjectId && projects.length > 0) {
-        setSelectedProjectId(projects[0].id);
-    }
-    if (selectedProjectId && !selectedColumnId && columns.length > 0) {
-        setSelectedColumnId(columns[0].id);
-    }
+    // Auto-select first project when loaded
+    useEffect(() => {
+        if (!selectedProjectId && projects.length > 0) {
+            setSelectedProjectId(projects[0].id);
+        }
+    }, [projects, selectedProjectId]);
+
+    // Auto-select first column when project data is loaded
+    useEffect(() => {
+        if (columns.length > 0) {
+            setSelectedColumnId(columns[0].id);
+        } else {
+            setSelectedColumnId('');
+        }
+    }, [columns]);
 
     const createTask = useCreateTask(selectedProjectId);
 
@@ -134,9 +142,11 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                                 onChange={(e) => setSelectedColumnId(e.target.value)}
                                 className="w-full rounded-lg bg-background/50 border border-border text-white focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors appearance-none cursor-pointer"
                                 required
-                                disabled={!selectedProjectId}
+                                disabled={!selectedProjectId || isLoadingProject}
                             >
-                                <option value="">Select column</option>
+                                <option value="">
+                                    {isLoadingProject ? 'Loading columns...' : 'Select column'}
+                                </option>
                                 {columns.map((col: any) => (
                                     <option key={col.id} value={col.id}>
                                         {col.name}

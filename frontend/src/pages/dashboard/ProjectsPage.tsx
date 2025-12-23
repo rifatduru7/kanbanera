@@ -6,6 +6,7 @@ import { ProjectCard } from '../../components/project/ProjectCard';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';
 import { PageLoader } from '../../components/ui/Loading';
 import { ErrorDisplay } from '../../components/ui/Error';
+import { FirstProjectPrompt } from '../../components/onboarding/FirstProjectPrompt';
 
 export function ProjectsPage() {
     const [searchQuery, setSearchQuery] = useState('');
@@ -75,8 +76,8 @@ export function ProjectsPage() {
                                 <button
                                     onClick={() => setViewMode('grid')}
                                     className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
-                                            ? 'bg-background shadow-sm text-primary'
-                                            : 'text-text-muted hover:text-white'
+                                        ? 'bg-background shadow-sm text-primary'
+                                        : 'text-text-muted hover:text-white'
                                         }`}
                                 >
                                     <LayoutGrid className="size-5" />
@@ -84,8 +85,8 @@ export function ProjectsPage() {
                                 <button
                                     onClick={() => setViewMode('list')}
                                     className={`p-2 rounded-lg transition-all ${viewMode === 'list'
-                                            ? 'bg-background shadow-sm text-primary'
-                                            : 'text-text-muted hover:text-white'
+                                        ? 'bg-background shadow-sm text-primary'
+                                        : 'text-text-muted hover:text-white'
                                         }`}
                                 >
                                     <List className="size-5" />
@@ -115,34 +116,27 @@ export function ProjectsPage() {
                 <div className="max-w-7xl mx-auto">
                     {filteredProjects.length === 0 ? (
                         /* Empty State */
-                        <div className="flex flex-col items-center justify-center py-20 text-center">
-                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                                <FolderOpen className="size-10 text-text-muted" />
+                        searchQuery ? (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                                    <Search className="size-10 text-text-muted" />
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-2">No projects found</h3>
+                                <p className="text-text-muted mb-6 max-w-md">
+                                    Try adjusting your search or filters
+                                </p>
                             </div>
-                            <h3 className="text-xl font-bold text-white mb-2">
-                                {searchQuery ? 'No projects found' : 'No projects yet'}
-                            </h3>
-                            <p className="text-text-muted mb-6 max-w-md">
-                                {searchQuery
-                                    ? 'Try adjusting your search or filters'
-                                    : 'Create your first project to get started organizing your tasks'}
-                            </p>
-                            {!searchQuery && (
-                                <button
-                                    onClick={() => setIsCreateModalOpen(true)}
-                                    className="btn-primary flex items-center gap-2 px-6 py-3 rounded-xl font-bold"
-                                >
-                                    <Plus className="size-5" />
-                                    Create Project
-                                </button>
-                            )}
-                        </div>
+                        ) : (
+                            <FirstProjectPrompt
+                                onCreateProject={() => setIsCreateModalOpen(true)}
+                            />
+                        )
                     ) : (
                         /* Projects Grid */
                         <div
                             className={`grid gap-6 ${viewMode === 'grid'
-                                    ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-                                    : 'grid-cols-1'
+                                ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                                : 'grid-cols-1'
                                 }`}
                         >
                             {filteredProjects.map((project) => (

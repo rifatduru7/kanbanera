@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { SearchModal, useSearchModal } from '../../components/ui/SearchModal';
-import { WelcomeModal, useWelcomeModal } from '../../components/onboarding/WelcomeModal';
+import { FeaturesTourModal, useFeaturesTour } from '../../components/onboarding/FeaturesTourModal';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';
 import { Outlet } from 'react-router-dom';
-import { useAuthStore } from '../../stores/authStore';
+
 
 export function DashboardLayout() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -14,15 +14,22 @@ export function DashboardLayout() {
     const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
 
     const searchModal = useSearchModal();
-    const { isWelcomeOpen, closeWelcome } = useWelcomeModal();
-    const { user } = useAuthStore();
+    const featuresTour = useFeaturesTour();
+
+
+    // Check if we should show features tour on mount
+    useEffect(() => {
+        featuresTour.checkAndShow();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleRefresh = async () => {
         setLastSynced(new Date());
     };
 
-    const handleWelcomeCreateProject = () => {
-        closeWelcome();
+    const handleTourComplete = () => {
+        featuresTour.complete();
+        // Optionally open create project modal after tour
         setIsCreateProjectOpen(true);
     };
 
@@ -65,12 +72,11 @@ export function DashboardLayout() {
             {/* Global Search Modal (Cmd+K) */}
             <SearchModal isOpen={searchModal.isOpen} onClose={searchModal.close} />
 
-            {/* Welcome Modal for new users */}
-            {isWelcomeOpen && (
-                <WelcomeModal
-                    userName={user?.name?.split(' ')[0]}
-                    onClose={closeWelcome}
-                    onCreateProject={handleWelcomeCreateProject}
+            {/* Features Tour Modal for new users */}
+            {featuresTour.isOpen && (
+                <FeaturesTourModal
+                    onComplete={handleTourComplete}
+                    onSkip={featuresTour.skip}
                 />
             )}
 
@@ -82,3 +88,4 @@ export function DashboardLayout() {
         </div>
     );
 }
+
