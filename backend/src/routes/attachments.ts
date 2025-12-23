@@ -1,303 +1,224 @@
 import { Hono } from 'hono';
-import type { Env, Task, Attachment } from '../types';
+import type { Env, Attachment } from '../types';
 import { authMiddleware } from '../middleware/auth';
 
-export const attachmentRoutes = new Hono<{ Bindings: Env }>();
+const attachments = new Hono<{ Bindings: Env }>();
 
-// All routes require authentication
-attachmentRoutes.use('*', authMiddleware);
+// Apply auth middleware to all routes
+attachments.use('*', authMiddleware);
 
-// POST /api/attachments/presign - Get presigned URL for upload
-attachmentRoutes.post('/presign', async (c) => {
+// Helper to generate request for Backblaze B2
+async function signRequest(
+    _method: string,
+    path: string,
+    env: Env,
+    contentType?: string,
+    contentLength?: number
+): Promise<{ url: string; headers: Record<string, string> }> {
+    const date = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
+
+    const url = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}${path}`;
+
+    // For simplicity, use basic auth with B2 (works for most operations)
+    const authString = btoa(`${env.B2_KEY_ID}:${env.B2_APP_KEY}`);
+
+    const headers: Record<string, string> = {
+        'Authorization': `Basic ${authString}`,
+        'x-amz-date': date,
+    };
+
+    if (contentType) {
+        headers['Content-Type'] = contentType;
+    }
+    if (contentLength !== undefined) {
+        headers['Content-Length'] = contentLength.toString();
+    }
+
+    return { url, headers };
+}
+
+// GET /api/attachments/task/:taskId - Get all attachments for a task
+attachments.get('/task/:taskId', async (c) => {
+    const { taskId } = c.req.param();
+    const env = c.env;
+
+    try {
+        const attachmentsList = await env.DB.prepare(`
+            SELECT a.*, u.full_name as uploader_name
+            FROM attachments a
+            LEFT JOIN users u ON a.user_id = u.id
+            WHERE a.task_id = ?
+            ORDER BY a.created_at DESC
+        `).bind(taskId).all<Attachment & { uploader_name: string }>();
+
+        // Generate download URLs
+        const attachmentsWithUrls = attachmentsList.results.map((att) => ({
+            ...att,
+            download_url: `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${att.r2_key}`,
+        }));
+
+        return c.json({
+            success: true,
+            data: { attachments: attachmentsWithUrls },
+        });
+    } catch (error) {
+        console.error('Get attachments error:', error);
+        return c.json({ success: false, error: 'Failed to fetch attachments' }, 500);
+    }
+});
+
+// POST /api/attachments/task/:taskId - Upload a new attachment
+attachments.post('/task/:taskId', async (c) => {
+    const { taskId } = c.req.param();
+    const env = c.env;
     const userId = c.get('userId');
 
     try {
-        const body = await c.req.json();
-        const { task_id, file_name, content_type } = body;
-
-        if (!task_id || !file_name) {
-            return c.json(
-                { success: false, error: 'Validation Error', message: 'task_id and file_name are required' },
-                400
-            );
-        }
-
-        // Check task access
-        const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
-       JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
-        )
-            .bind(task_id, userId, userId)
-            .first<Task>();
+        // Check if task exists
+        const task = await env.DB.prepare(
+            'SELECT id, project_id FROM tasks WHERE id = ?'
+        ).bind(taskId).first();
 
         if (!task) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'Task not found or access denied' },
-                404
-            );
+            return c.json({ success: false, error: 'Task not found' }, 404);
         }
 
-        // Generate unique R2 key
-        const attachmentId = crypto.randomUUID();
-        const ext = file_name.split('.').pop() || '';
-        const r2Key = `attachments/${task.project_id}/${task_id}/${attachmentId}${ext ? '.' + ext : ''}`;
+        // Parse multipart form data
+        const formData = await c.req.formData();
+        const file = formData.get('file') as File | null;
 
-        // For R2, we need to create a presigned URL
-        // Note: In a real implementation, you'd use the S3-compatible API
-        // For now, we'll return the key for direct upload via Worker
+        if (!file) {
+            return c.json({ success: false, error: 'No file provided' }, 400);
+        }
+
+        // Generate unique key for the file
+        const fileId = crypto.randomUUID();
+        const fileExt = file.name.split('.').pop() || '';
+        const r2Key = `attachments/${taskId}/${fileId}.${fileExt}`;
+
+        // Upload to Backblaze B2
+        const fileBuffer = await file.arrayBuffer();
+        const { url, headers } = await signRequest(
+            'PUT',
+            `/${r2Key}`,
+            env,
+            file.type,
+            fileBuffer.byteLength
+        );
+
+        const uploadResponse = await fetch(url, {
+            method: 'PUT',
+            headers,
+            body: fileBuffer,
+        });
+
+        if (!uploadResponse.ok) {
+            console.error('B2 upload failed:', await uploadResponse.text());
+            return c.json({ success: false, error: 'Failed to upload file to storage' }, 500);
+        }
+
+        // Save to database
+        const attachmentId = crypto.randomUUID();
+        await env.DB.prepare(`
+            INSERT INTO attachments (id, task_id, user_id, file_name, r2_key, file_size, mime_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+            attachmentId,
+            taskId,
+            userId,
+            file.name,
+            r2Key,
+            file.size,
+            file.type
+        ).run();
+
+        // Get the created attachment
+        const attachment = await env.DB.prepare(
+            'SELECT * FROM attachments WHERE id = ?'
+        ).bind(attachmentId).first<Attachment>();
+
+        // Log activity
+        await env.DB.prepare(`
+            INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
+            VALUES (?, ?, ?, ?, 'attachment_added', ?)
+        `).bind(
+            crypto.randomUUID(),
+            task.project_id as string,
+            taskId,
+            userId,
+            JSON.stringify({ file_name: file.name })
+        ).run();
 
         return c.json({
             success: true,
             data: {
-                attachment_id: attachmentId,
-                r2_key: r2Key,
-                upload_url: `/api/attachments/upload`,
-                file_name,
-                content_type: content_type || 'application/octet-stream',
+                attachment: {
+                    ...attachment,
+                    download_url: `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${r2Key}`,
+                },
             },
-        });
-    } catch (error) {
-        console.error('Presign error:', error);
-        return c.json(
-            { success: false, error: 'Server Error', message: 'Failed to generate upload URL' },
-            500
-        );
-    }
-});
-
-// POST /api/attachments/upload - Upload file (alternative to presigned URL)
-attachmentRoutes.post('/upload', async (c) => {
-    const userId = c.get('userId');
-
-    try {
-        const formData = await c.req.formData();
-        const file = formData.get('file') as File | null;
-        const taskId = formData.get('task_id') as string | null;
-
-        if (!file || !taskId) {
-            return c.json(
-                { success: false, error: 'Validation Error', message: 'file and task_id are required' },
-                400
-            );
-        }
-
-        // Check task access
-        const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
-       JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
-        )
-            .bind(taskId, userId, userId)
-            .first<Task>();
-
-        if (!task) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'Task not found or access denied' },
-                404
-            );
-        }
-
-        // Generate R2 key
-        const attachmentId = crypto.randomUUID();
-        const ext = file.name.split('.').pop() || '';
-        const r2Key = `attachments/${task.project_id}/${taskId}/${attachmentId}${ext ? '.' + ext : ''}`;
-
-        // Upload to R2
-        await c.env.STORAGE.put(r2Key, await file.arrayBuffer(), {
-            httpMetadata: {
-                contentType: file.type || 'application/octet-stream',
-            },
-        });
-
-        // Save metadata to D1
-        await c.env.DB.prepare(
-            `INSERT INTO attachments (id, task_id, user_id, file_name, r2_key, file_size, mime_type)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-            .bind(attachmentId, taskId, userId, file.name, r2Key, file.size, file.type || null)
-            .run();
-
-        // Log activity
-        await c.env.DB.prepare(
-            `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
-       VALUES (?, ?, ?, ?, 'attachment_added', ?)`
-        )
-            .bind(crypto.randomUUID(), task.project_id, taskId, userId, JSON.stringify({ file_name: file.name }))
-            .run();
-
-        const attachment = await c.env.DB.prepare('SELECT * FROM attachments WHERE id = ?')
-            .bind(attachmentId)
-            .first<Attachment>();
-
-        return c.json({
-            success: true,
-            data: { attachment },
+            message: 'File uploaded successfully',
         }, 201);
     } catch (error) {
         console.error('Upload error:', error);
-        return c.json(
-            { success: false, error: 'Server Error', message: 'Failed to upload file' },
-            500
-        );
+        return c.json({ success: false, error: 'Failed to upload file' }, 500);
     }
 });
 
-// POST /api/attachments/confirm - Confirm upload (for presigned URL flow)
-attachmentRoutes.post('/confirm', async (c) => {
-    const userId = c.get('userId');
+// GET /api/attachments/:id/download - Get download URL for attachment
+attachments.get('/:id/download', async (c) => {
+    const { id } = c.req.param();
+    const env = c.env;
 
     try {
-        const body = await c.req.json();
-        const { task_id, attachment_id, r2_key, file_name, file_size, mime_type } = body;
+        const attachment = await env.DB.prepare(
+            'SELECT * FROM attachments WHERE id = ?'
+        ).bind(id).first<Attachment>();
 
-        if (!task_id || !attachment_id || !r2_key || !file_name) {
-            return c.json(
-                { success: false, error: 'Validation Error', message: 'Missing required fields' },
-                400
-            );
+        if (!attachment) {
+            return c.json({ success: false, error: 'Attachment not found' }, 404);
         }
 
-        // Check task access
-        const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
-       JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
-        )
-            .bind(task_id, userId, userId)
-            .first<Task>();
-
-        if (!task) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'Task not found or access denied' },
-                404
-            );
-        }
-
-        // Verify file exists in R2
-        const object = await c.env.STORAGE.head(r2_key);
-        if (!object) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'File not found in storage' },
-                404
-            );
-        }
-
-        // Save metadata to D1
-        await c.env.DB.prepare(
-            `INSERT INTO attachments (id, task_id, user_id, file_name, r2_key, file_size, mime_type)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`
-        )
-            .bind(attachment_id, task_id, userId, file_name, r2_key, file_size || object.size, mime_type || null)
-            .run();
-
-        // Log activity
-        await c.env.DB.prepare(
-            `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
-       VALUES (?, ?, ?, ?, 'attachment_added', ?)`
-        )
-            .bind(crypto.randomUUID(), task.project_id, task_id, userId, JSON.stringify({ file_name }))
-            .run();
-
-        const attachment = await c.env.DB.prepare('SELECT * FROM attachments WHERE id = ?')
-            .bind(attachment_id)
-            .first<Attachment>();
+        // For public bucket, return direct URL
+        // For private bucket, you would generate a signed URL here
+        const downloadUrl = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${attachment.r2_key}`;
 
         return c.json({
             success: true,
-            data: { attachment },
-        }, 201);
+            data: { download_url: downloadUrl },
+        });
     } catch (error) {
-        console.error('Confirm upload error:', error);
-        return c.json(
-            { success: false, error: 'Server Error', message: 'Failed to confirm upload' },
-            500
-        );
+        console.error('Download URL error:', error);
+        return c.json({ success: false, error: 'Failed to generate download URL' }, 500);
     }
 });
 
-// GET /api/attachments/:id/download - Get download URL
-attachmentRoutes.get('/:id/download', async (c) => {
+// DELETE /api/attachments/:id - Delete an attachment
+attachments.delete('/:id', async (c) => {
+    const { id } = c.req.param();
+    const env = c.env;
     const userId = c.get('userId');
-    const attachmentId = c.req.param('id');
 
     try {
-        // Get attachment with access check
-        const attachment = await c.env.DB.prepare(
-            `SELECT a.* FROM attachments a
-       JOIN tasks t ON a.task_id = t.id
-       JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE a.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
-        )
-            .bind(attachmentId, userId, userId)
-            .first<Attachment>();
+        const attachment = await env.DB.prepare(
+            'SELECT * FROM attachments WHERE id = ?'
+        ).bind(id).first<Attachment>();
 
         if (!attachment) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'Attachment not found or access denied' },
-                404
-            );
+            return c.json({ success: false, error: 'Attachment not found' }, 404);
         }
 
-        // Get file from R2
-        const object = await c.env.STORAGE.get(attachment.r2_key);
-
-        if (!object) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'File not found in storage' },
-                404
-            );
+        // Check permission (owner or admin)
+        if (attachment.user_id !== userId) {
+            return c.json({ success: false, error: 'Not authorized to delete this attachment' }, 403);
         }
 
-        // Return file
-        const headers = new Headers();
-        headers.set('Content-Type', attachment.mime_type || 'application/octet-stream');
-        headers.set('Content-Disposition', `attachment; filename="${attachment.file_name}"`);
-        if (attachment.file_size) {
-            headers.set('Content-Length', attachment.file_size.toString());
-        }
+        // Delete from B2
+        const { url, headers } = await signRequest('DELETE', `/${attachment.r2_key}`, env);
+        await fetch(url, { method: 'DELETE', headers });
 
-        return new Response(object.body as ReadableStream, { headers });
-    } catch (error) {
-        console.error('Download error:', error);
-        return c.json(
-            { success: false, error: 'Server Error', message: 'Failed to download file' },
-            500
-        );
-    }
-});
-
-// DELETE /api/attachments/:id - Delete attachment
-attachmentRoutes.delete('/:id', async (c) => {
-    const userId = c.get('userId');
-    const attachmentId = c.req.param('id');
-
-    try {
-        // Get attachment (only uploader can delete)
-        const attachment = await c.env.DB.prepare(
-            'SELECT * FROM attachments WHERE id = ? AND user_id = ?'
-        )
-            .bind(attachmentId, userId)
-            .first<Attachment>();
-
-        if (!attachment) {
-            return c.json(
-                { success: false, error: 'Not Found', message: 'Attachment not found or not owner' },
-                404
-            );
-        }
-
-        // Delete from R2
-        await c.env.STORAGE.delete(attachment.r2_key);
-
-        // Delete from D1
-        await c.env.DB.prepare('DELETE FROM attachments WHERE id = ?')
-            .bind(attachmentId)
-            .run();
+        // Delete from database
+        await env.DB.prepare('DELETE FROM attachments WHERE id = ?').bind(id).run();
 
         return c.json({
             success: true,
@@ -305,9 +226,8 @@ attachmentRoutes.delete('/:id', async (c) => {
         });
     } catch (error) {
         console.error('Delete attachment error:', error);
-        return c.json(
-            { success: false, error: 'Server Error', message: 'Failed to delete attachment' },
-            500
-        );
+        return c.json({ success: false, error: 'Failed to delete attachment' }, 500);
     }
 });
+
+export default attachments;

@@ -1,12 +1,16 @@
-import type { D1Database, R2Bucket } from '@cloudflare/workers-types';
+import type { D1Database } from '@cloudflare/workers-types';
 
 // Cloudflare Worker Bindings
 export interface Env {
     DB: D1Database;
-    STORAGE: R2Bucket;
     JWT_SECRET: string;
     JWT_REFRESH_SECRET: string;
     CORS_ORIGIN: string;
+    // Backblaze B2 Settings
+    B2_BUCKET_NAME: string;
+    B2_ENDPOINT: string;
+    B2_KEY_ID: string;
+    B2_APP_KEY: string;
 }
 
 // User Types

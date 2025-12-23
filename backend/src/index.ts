@@ -9,7 +9,7 @@ import { projectRoutes } from './routes/projects';
 import { columnRoutes } from './routes/columns';
 import { taskRoutes } from './routes/tasks';
 import { userRoutes } from './routes/users';
-import { attachmentRoutes } from './routes/attachments';
+import attachmentRoutes from './routes/attachments';
 
 const app = new Hono<{ Bindings: Env }>();
 

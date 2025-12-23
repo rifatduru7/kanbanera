@@ -6,14 +6,16 @@ compatibility_date = "2024-01-01"
 [[d1_databases]]
 binding = "DB"
 database_name = "era-kanban-db"
-database_id = "YOUR_DATABASE_ID_HERE"
-
-# R2 Storage
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "era-kanban-files"
+database_id = "63f30b95-5941-4ee7-a258-ee434598ead3"
 
 [vars]
 JWT_SECRET = "development_secret_change_in_production"
 JWT_REFRESH_SECRET = "refresh_secret_change_in_production"
-CORS_ORIGIN = "http://localhost:5173"
+CORS_ORIGIN = "https://era-kanban.pages.dev"
+# Backblaze B2 Settings (set these in Cloudflare Dashboard > Workers > Settings > Variables)
+B2_BUCKET_NAME = "erakanban"
+B2_ENDPOINT = "https://s3.us-west-004.backblazeb2.com"
+B2_KEY_ID = "00563b2e6d059d60000000001"
+B2_APP_KEY = "K005scot8IAnqG/2Syj4S55YSdTEcOg"
+
+
