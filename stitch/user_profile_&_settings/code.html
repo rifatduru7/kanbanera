@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile &amp; Settings - Era Bulut</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                        "card-dark": "#182632", // Slightly lighter than background-dark for cards
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(24, 38, 50, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        /* Custom Scrollbar for Webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #101a22; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233948; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #325167; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen flex flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-[#233948]/50 glass-panel">
+<div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex h-16 items-center justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[32px]">cloud_circle</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight dark:text-white text-slate-900">Era Bulut</h2>
+</div>
+<nav class="hidden md:flex flex-1 justify-center gap-8">
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Projects</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Tasks</a>
+<a class="text-primary text-sm font-medium" href="#">Settings</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#233948] transition-colors text-slate-400 hover:text-white">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+</button>
+<button class="flex items-center justify-center w-10 h-10 rounded-xl hover:bg-[#233948] transition-colors text-slate-400 hover:text-white">
+<span class="material-symbols-outlined text-[24px]">chat_bubble</span>
+</button>
+<div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-[#233948]" data-alt="User profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD0r4B9hgPwTkGzGmYJNpo2VIOLDkZdIbuF7_mGzcTulgBesxaJtoFgcwfnuGbxdtEEkbcHg9qU9lELs7hK63-q2mCTrSXZRWriZKPfEY58j326CLReh0M73qrBuqU71MvxpzbME00SW8HSGFTX93R_iXLJnwYFWyDYQxvgxWTJIbYjIJbZJ9ttHcTZ4gGiNfpwpof3jCvitWHhx8PUQc5WH8X_xULh7hMkaXOvVlYYoz12YEXx6kL7rogAQUAQErf1IBSSJW1O-28');"></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Layout -->
+<div class="flex-1 w-full max-w-[1440px] mx-auto p-4 sm:px-6 lg:px-8 py-8">
+<div class="flex flex-col lg:flex-row gap-8">
+<!-- Left Sidebar Navigation -->
+<aside class="w-full lg:w-64 flex-shrink-0">
+<div class="sticky top-24 space-y-8">
+<div class="px-2">
+<h1 class="text-xl font-bold dark:text-white text-slate-900">Settings</h1>
+<p class="text-slate-500 text-sm mt-1">Manage your account preferences</p>
+</div>
+<nav class="space-y-1">
+<!-- Active Item -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 text-primary transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">person</span>
+<span class="font-medium text-sm">Profile Information</span>
+</a>
+<!-- Inactive Items -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#233948]/50 text-slate-400 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">verified_user</span>
+<span class="font-medium text-sm">Account Security</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#233948]/50 text-slate-400 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">tune</span>
+<span class="font-medium text-sm">Preferences</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#233948]/50 text-slate-400 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">notifications</span>
+<span class="font-medium text-sm">Notifications</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#233948]/50 text-slate-400 hover:text-white transition-all group mt-4" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:scale-110 transition-transform">credit_card</span>
+<span class="font-medium text-sm">Billing &amp; Plans</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Right Content Area -->
+<main class="flex-1 min-w-0">
+<!-- Profile Header Card -->
+<section class="glass-panel rounded-2xl p-6 mb-6">
+<div class="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+<div class="relative group cursor-pointer">
+<div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-cover bg-center border-4 border-[#233948] shadow-xl" data-alt="Large user profile avatar showing a smiling person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBuAHvN0lWKSD4N5FIZKnzBE6U53sYUC92o_3c-Ieg3X-8oME1m0FQvns9Ktu_C-V3PYfu2UfcUzGdi9RIsRUdz6HZS_mXcz71ooTiAd_kWVsPSf0FnkF2ZDM__Afy-gU_DACy_NHcPI4ENB8gEQgrBX0FJbbKTR8ehC-VaHgbG91Sbi-KRMPUGDqsVhB7pb2Max5HAiCMR0k_CZvNfmd1__Ia6pCLM6wXOpjqZBk5CEpIeAVE6YgY3U1xf-R4W1XCNK7nxeo1LO2k');"></div>
+<div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl">photo_camera</span>
+</div>
+</div>
+<div class="flex-1 text-center sm:text-left">
+<h2 class="text-2xl font-bold dark:text-white text-slate-900">Alex Doe</h2>
+<p class="text-primary font-medium">Senior Project Manager</p>
+<p class="text-slate-400 text-sm mt-2 max-w-md mx-auto sm:mx-0">Managing cloud infrastructure projects and leading the Era Bulut migration team.</p>
+<div class="mt-4 flex flex-wrap justify-center sm:justify-start gap-3">
+<button class="inline-flex items-center justify-center h-10 px-5 rounded-lg bg-[#233948] hover:bg-[#2f4b60] text-white text-sm font-medium transition-colors border border-white/5">
+                                    Change Avatar
+                                </button>
+<button class="inline-flex items-center justify-center h-10 px-5 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 text-sm font-medium transition-colors">
+                                    Delete Avatar
+                                </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Personal Information Form -->
+<section class="glass-panel rounded-2xl p-6 mb-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-semibold dark:text-white text-slate-900">Personal Details</h3>
+<button class="text-primary text-sm font-medium hover:text-primary/80">Edit Details</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-400">Full Name</label>
+<input class="w-full bg-[#101a22]/50 border border-[#233948] focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 text-white placeholder-slate-500 outline-none transition-all" placeholder="Enter full name" type="text" value="Alex Doe"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-400">Public Username</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">@</span>
+<input class="w-full bg-[#101a22]/50 border border-[#233948] focus:border-primary focus:ring-1 focus:ring-primary rounded-xl pl-8 pr-4 py-3 text-white placeholder-slate-500 outline-none transition-all" placeholder="username" type="text" value="alex_era"/>
+</div>
+</div>
+<div class="col-span-1 md:col-span-2 space-y-2">
+<label class="block text-sm font-medium text-slate-400">Bio</label>
+<textarea class="w-full bg-[#101a22]/50 border border-[#233948] focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 text-white placeholder-slate-500 outline-none transition-all resize-none" placeholder="Tell us a little about yourself..." rows="3"></textarea>
+<p class="text-xs text-slate-500 text-right">0/240 characters</p>
+</div>
+</div>
+</section>
+<!-- Account Security -->
+<section class="glass-panel rounded-2xl p-6 mb-6">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">shield</span>
+<h3 class="text-lg font-semibold dark:text-white text-slate-900">Account &amp; Security</h3>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-400">Email Address</label>
+<div class="flex gap-3">
+<input class="flex-1 bg-[#101a22]/30 border border-[#233948] rounded-xl px-4 py-3 text-slate-400 cursor-not-allowed" disabled="" type="email" value="alex.doe@erabulut.com"/>
+<span class="inline-flex items-center px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-xs font-medium border border-emerald-500/20 h-auto">
+<span class="material-symbols-outlined text-[14px] mr-1">check_circle</span> Verified
+                                </span>
+</div>
+</div>
+<div class="border-t border-[#233948]/50 my-2"></div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-400">New Password</label>
+<input class="w-full bg-[#101a22]/50 border border-[#233948] focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 text-white placeholder-slate-500 outline-none transition-all" placeholder="••••••••" type="password"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-400">Confirm Password</label>
+<input class="w-full bg-[#101a22]/50 border border-[#233948] focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-4 py-3 text-white placeholder-slate-500 outline-none transition-all" placeholder="••••••••" type="password"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Preferences / Toggles -->
+<section class="glass-panel rounded-2xl p-6 mb-8">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">toggle_on</span>
+<h3 class="text-lg font-semibold dark:text-white text-slate-900">Preferences</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 rounded-xl bg-[#101a22]/30 border border-[#233948]/50">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-[#233948]">
+<span class="material-symbols-outlined text-slate-300">dark_mode</span>
+</div>
+<div>
+<p class="text-sm font-medium text-white">Dark Mode</p>
+<p class="text-xs text-slate-400">Use system preference by default</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="flex items-center justify-between p-4 rounded-xl bg-[#101a22]/30 border border-[#233948]/50">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-[#233948]">
+<span class="material-symbols-outlined text-slate-300">mail</span>
+</div>
+<div>
+<p class="text-sm font-medium text-white">Email Notifications</p>
+<p class="text-xs text-slate-400">Receive weekly project digests</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Action Bar -->
+<div class="sticky bottom-6 z-40 flex items-center justify-end gap-4 p-4 rounded-xl glass-panel shadow-2xl">
+<button class="px-6 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-[#233948] transition-colors">
+                        Cancel
+                    </button>
+<button class="px-6 py-2.5 rounded-lg text-sm font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">save</span>
+                        Save Changes
+                    </button>
+</div>
+</main>
+</div>
+</div>
+</body></html>

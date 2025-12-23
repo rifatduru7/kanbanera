@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Era Kanban Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#0f172a", // Slightly deeper dark for better contrast with glass
+                        "surface-dark": "#1e293b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "2xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-header {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden antialiased selection:bg-primary/30 selection:text-white">
+<div class="flex h-screen w-full relative group/design-root">
+<aside class="w-72 flex-shrink-0 flex flex-col justify-between glass-panel border-r-0 border-r-white/5 relative z-20">
+<div class="p-6 flex items-center gap-3">
+<div class="relative flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-white text-[24px]">cloud_circle</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-lg font-bold leading-none tracking-tight">Era Kanban</h1>
+<p class="text-slate-400 text-xs font-medium mt-1">Workspace</p>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 px-4 py-2 overflow-y-auto">
+<p class="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-1">Menu</p>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">folder_open</span>
+<span class="text-sm font-medium">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/10 shadow-[0_0_15px_rgba(19,146,236,0.1)] transition-all" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">view_kanban</span>
+<span class="text-sm font-bold">Kanban Board</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="my-2 border-t border-white/5 mx-3"></div>
+<p class="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-1 mt-2">Team</p>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">group</span>
+<span class="text-sm font-medium">Members</span>
+</a>
+</nav>
+<div class="p-4 mt-auto">
+<div class="glass-panel !bg-white/5 !border-white/5 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
+<div class="size-9 rounded-full bg-center bg-cover border border-white/10" data-alt="User profile avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuALSJ0VNY247bgDtAXzQ6lu6Y2QYhFHWK0rui1Ye2ebwsMqfOcqLAf4KDKIiNNcEo0MJEJA1GsT-OE4uAM6APN4NQIy1u9PVjobaKH5TSLEqhBn5G18GT_NhQIwUms3AZD7ezFKWQdVgSHBwqNGqODChFl-4BRyIFTMEHA9_O9MjuGs3YavdC9KUm4uBaNYVP87nqSUbkl8MneJVP902my88E-WyKvRvxBZMl2jKHjfgmaWVpdIUEcrcZvE7q1E_wzg3VavhP6pNMM');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-white truncate">Alex Morgan</p>
+<p class="text-xs text-slate-400 truncate">Pro Plan</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-lg">expand_more</span>
+</div>
+</div>
+</aside>
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-[url('https://placeholder.pics/svg/1920x1080/0f172a/1e293b')] bg-cover bg-fixed" data-alt="Abstract dark subtle gradient background">
+<div class="absolute inset-0 bg-background-dark/95 pointer-events-none z-0"></div>
+<header class="glass-header h-16 shrink-0 flex items-center justify-between px-6 z-10 sticky top-0 w-full">
+<div class="flex items-center gap-4">
+<button class="text-slate-400 hover:text-white lg:hidden">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="hidden md:flex items-center gap-2 text-sm">
+<span class="text-slate-500 font-medium">Projects</span>
+<span class="material-symbols-outlined text-slate-600 text-xs">chevron_right</span>
+<span class="text-slate-300 font-medium">Cloud Migration</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 uppercase tracking-wide">Active</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors shadow-sm cursor-default">
+<span class="material-symbols-outlined text-emerald-400 text-[18px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-xs text-slate-300 font-medium">Synced just now</span>
+</div>
+<button class="flex items-center justify-center size-9 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-all" title="Notifications">
+<div class="relative">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+<span class="absolute top-0 right-0 size-2 bg-red-500 rounded-full border-2 border-[#0f172a]"></span>
+</div>
+</button>
+<button class="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold transition-all shadow-lg shadow-primary/25">
+<span class="material-symbols-outlined text-[18px] animate-spin-slow" style="animation-duration: 3s;">refresh</span>
+<span class="hidden sm:inline">Refresh</span>
+</button>
+</div>
+</header>
+<div class="flex-1 overflow-y-auto p-6 md:p-8 z-0 relative">
+<div class="max-w-7xl mx-auto flex flex-col gap-8">
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div class="flex flex-col gap-2">
+<nav aria-label="Breadcrumb" class="flex gap-2 text-sm mb-1">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">Home</a>
+<span class="text-slate-600">/</span>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#">Sprints</a>
+<span class="text-slate-600">/</span>
+<span class="text-primary font-medium">Sprint 4 Board</span>
+</nav>
+<h2 class="text-white text-3xl md:text-4xl font-bold leading-tight tracking-tight">Sprint 4 Board</h2>
+<p class="text-slate-400 text-sm max-w-2xl">Manage tasks for the cloud migration initiative. Focus on database schema validation and API gateway setup.</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex -space-x-3">
+<div class="size-8 rounded-full border-2 border-background-dark bg-cover bg-center" data-alt="Team member avatar 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDL0KKiZH-aEvf8J8VJAb5TJde9Db6gpS1NGjIDXOvGWuH53uFLjSMHt_pZ1qeIPOJa5opzh7b55Oempb1d36elckaNHpjt2GYXz-vxMTqQMrYlOZmAd9wpuHTo08bNG4ujs7nQsMPoOCuhbcoKvbyKT7ukBvdeWpT97UEM6c72vb9wvHyhJAf5yepTmdr_YwFnbTgrskJ2vsGh5XuwmXeJa5ABSvt1YcCW5U0rSNJXbZs7mt-fpN16MO8bSsJeasblquYJ-Rz_dso');"></div>
+<div class="size-8 rounded-full border-2 border-background-dark bg-cover bg-center" data-alt="Team member avatar 2" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDmImRwM2NgrVlmHp_iTcRQNf69owKsChcWddpjmdKBO8EtZGSlgQDBgFRK3aiGJtIAaZw6GiLqPXiR1EAgGAPz6uwXKKCCVIzYAPIsTYyzfLPaep_ZzuD_RgiUd6WHlxQXZ-EvoGd59v_rXK5YwFb0diacfOhmqn-BVr0bEcuyyR2RPEh6Y6gFr0vt75sSpqcu_VqA_M-J6sQusvmHhnLkDzFdztWMSAM24rxsLr_0TZEvfByetelq72I86sA1AsVsWabr3EyQN3g');"></div>
+<div class="size-8 rounded-full border-2 border-background-dark bg-cover bg-center" data-alt="Team member avatar 3" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBf9o0WGWdxTyFiLTGPqOIFYKDJboJsHPDghyhD7ylLMRXSu-dsjrCAPPkUTA1PdmAvYv9hHuWz2C0r1J3iJY9PYIaP35p8bL-NzVk7pPijXqWhXcWXzccWtOgEjReNXzvFfV7a6ZGkAGeEh5dbnx5sDtnAosA8-F_Xd0Pshx67cJLnJs51VCndmdmacPnN7PQBDeaY57rnhpZrvmUniUmivdc0ANOOP6TTM-Mvz09NrbOGDPOusIDhyheBgrPDyDqm4HjSiAACmUI');"></div>
+<div class="size-8 rounded-full border-2 border-background-dark bg-slate-700 flex items-center justify-center text-[10px] font-bold text-white">+2</div>
+</div>
+<button class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-slate-200 text-sm font-medium transition-all">
+<span class="material-symbols-outlined text-[18px]">filter_list</span>
+                                Filter
+                            </button>
+</div>
+</div>
+<div class="flex-1 overflow-x-auto pb-4">
+<div class="flex gap-6 min-w-[1000px]">
+<div class="w-80 flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-slate-400"></div>
+<h3 class="text-slate-200 font-semibold text-sm">To Do</h3>
+<span class="px-2 py-0.5 rounded-full bg-white/5 text-slate-400 text-xs font-medium">3</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<div class="glass-panel p-4 rounded-xl flex flex-col gap-3 group hover:border-primary/50 transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<span class="px-2 py-1 rounded bg-blue-500/20 text-blue-400 text-[10px] font-bold uppercase">Backend</span>
+<button class="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-[16px]">more_horiz</span>
+</button>
+</div>
+<p class="text-slate-200 text-sm font-medium leading-snug">Design R2 storage bucket structure for user uploads</p>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[14px]">chat_bubble</span>
+<span>2</span>
+</div>
+<div class="size-6 rounded-full bg-cover bg-center border border-white/10" data-alt="Assignee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDuSe2yGYlH2WnwmEQlTR8dhMe4cQ1ajB-zMWry62gcsDRhw-uIJzZ4DmUuFxYXWeGzx6Y1bOeiWkB2R23jvAMAZCCsy_tEyxG3epv-5kvFc9ueJiqKWDxienJnGgI3u6KkkHBoz4dcFOBH359TKpHxcKLj7dy2rzkERfToihP78Wxk6u_7ENtRDaxp6ZYEFDhoWwiOlvn9ketAII2a7ydCLVX-h4ynVxgFm-cDgK2MvsW5FNocJgBJ6BcYCILMVwijv-WmQUHOq60');"></div>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-xl flex flex-col gap-3 group hover:border-primary/50 transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<span class="px-2 py-1 rounded bg-purple-500/20 text-purple-400 text-[10px] font-bold uppercase">Auth</span>
+</div>
+<p class="text-slate-200 text-sm font-medium leading-snug">Implement JWT rotation logic</p>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[14px]">attach_file</span>
+<span>1</span>
+</div>
+<div class="size-6 rounded-full bg-cover bg-center border border-white/10" data-alt="Assignee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAnis6uP3kIXWeYuhDa1U2_5DH5TjHChWCEZ4r35dnY-zw3xVLN3s5kUkwYpJ-XhQYRwsjOXx3vmg-JEiKMiNlwxpc-Nok4EYlsU8KKgavSwShY3yPmo612-59QVGc0S-Hx1skFxr9uCx70-lCZ_Yt9Jpmo-2QrBZbeFkTrNL7nmcKTP5yFJr12F8MJYwg8gGcLdcs0QYz8hXUVJkBGXYHoYoHBoYrSGdvZ-UKh1Q5Z0FWoA8h9bu7-Lsl8QuyZfWZTF9De2nhaQF0');"></div>
+</div>
+</div>
+</div>
+<div class="w-80 flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-primary animate-pulse"></div>
+<h3 class="text-slate-200 font-semibold text-sm">In Progress</h3>
+<span class="px-2 py-0.5 rounded-full bg-primary/20 text-primary text-xs font-medium">2</span>
+</div>
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+<div class="glass-panel p-4 rounded-xl flex flex-col gap-3 group border-primary/30 hover:border-primary transition-colors cursor-pointer shadow-[0_4px_20px_-10px_rgba(19,146,236,0.3)]">
+<div class="w-full h-24 rounded-lg bg-cover bg-center mb-1" data-alt="Abstract code visualization for dashboard card" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCPolMh6pa3qrd8MQIOqiPIYhkABxdXjO64NwfCRKjQNXr9R3eEzPvZd3hVvPPO3whUB2TDu0SlSyD_MXGjtFEXuTllRM97mPcjvtmRGfA_WzWHwzDrYobM7z-CU-LYyZwytLyAkAPnWHQ_7BhvpQVrmYSUvOEkLCRS7BZcbZyrKZ7G9s5jaElXAGoOARdmFknWTBrkhuBl8MvGNiojiX9v1Pem4hPtCOJEfYX6QyYf4qrtXceTuKw0z31hbGUskg9cfDAMtebhByo');"></div>
+<div class="flex justify-between items-start">
+<span class="px-2 py-1 rounded bg-orange-500/20 text-orange-400 text-[10px] font-bold uppercase">Frontend</span>
+</div>
+<p class="text-white text-sm font-medium leading-snug">Integrate Kanban drag-and-drop library</p>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-1.5 text-primary text-xs font-medium">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span>2d left</span>
+</div>
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-background-dark bg-cover bg-center" data-alt="Assignee 1" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAcPQbui0sAljyIXT9V3jUi1tyhWBsQFyc84NSLtz-iGdUnszauK4u7H86kv0qwAu-42OhSqlMr-DMdwMPEofYK8byhpp_0_x9ZQ8-juCJLReZa1OSu4834ZtV2sp06LAKjFC8bIfKVwl6XhiWkqmUEasOYHyacNG6OGgcvoY3doDnVKOalBhjp_T0xEfWrCqfnCaZsw41IWlS7u2gg3o23ff4etD6BFuYNLEhjv6tIDF33SFZ26RZ4LTRWOYkt355b4d1h_CpZKMw');"></div>
+<div class="size-6 rounded-full border border-background-dark bg-cover bg-center" data-alt="Assignee 2" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB7htFadhDl6du_sRkcJsNyB0hAjoYb5XyMNYGtBVukVnQl5lSre-nAxd_fHlSNqljVjBjtEL8LP5rSAfU0t824ELpZy0CP7tzBD7DdMgUVwwsktkvZpNZZEMTz9tr1g0g6drWvMoDSlDRN8o3XwBDe1YDXnZHIST3KCgay0rJiXXHXjEarKYsGUhSVgvZqNQch1_vltmTxo2SNdl3ECBNeYGR38UyM46p0PhkFm4PVcmQnT_5dYEGSRQwnS-RNPiRDRVEluwzdvyY');"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="w-80 flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-yellow-500"></div>
+<h3 class="text-slate-200 font-semibold text-sm">Review</h3>
+<span class="px-2 py-0.5 rounded-full bg-white/5 text-slate-400 text-xs font-medium">1</span>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-xl flex flex-col gap-3 group hover:border-primary/50 transition-colors cursor-pointer">
+<div class="flex justify-between items-start">
+<span class="px-2 py-1 rounded bg-pink-500/20 text-pink-400 text-[10px] font-bold uppercase">Design</span>
+</div>
+<p class="text-slate-200 text-sm font-medium leading-snug">Finalize glassmorphism icon set</p>
+<div class="flex items-center justify-between mt-1">
+<div class="flex items-center gap-1.5 text-slate-400 text-xs">
+<span class="material-symbols-outlined text-[14px]">visibility</span>
+</div>
+<div class="size-6 rounded-full bg-cover bg-center border border-white/10" data-alt="Assignee avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAN822rDbUQTtqIC1fYSyPlkQYyT9cXqTJUuTek9TECoGZlYQeIdV5EjPdMPyCYdh8vF1F0wWTe7V7sQxcvWRqIFZawQdsveGK4WJ6kK_m7seMElhwX7SjZAu_R83NJeDSA_aTKSsRcQLVavs6XL5mwun69ZlbEmnXdW8gpQOQJ1-Bq2D-A7-j2ri9o2Fd4xr_ldojW7Jaf208Yph8jAGvKvJAJudj_ag729VWJKmxG5h16wfp8CFfAQy4v7xNqGxMzbkbeJeM-mH0');"></div>
+</div>
+</div>
+</div>
+<div class="w-80 flex flex-col gap-4">
+<div class="flex items-center justify-between px-1">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-emerald-500"></div>
+<h3 class="text-slate-200 font-semibold text-sm">Done</h3>
+<span class="px-2 py-0.5 rounded-full bg-white/5 text-slate-400 text-xs font-medium">12</span>
+</div>
+</div>
+<div class="p-8 border-2 border-dashed border-white/5 rounded-xl flex items-center justify-center text-slate-500 text-sm">
+                                    Archive empty
+                                </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

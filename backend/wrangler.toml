@@ -1,0 +1,19 @@
+name = "era-kanban"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "era-kanban-db"
+database_id = "YOUR_DATABASE_ID_HERE"
+
+# R2 Storage
+[[r2_buckets]]
+binding = "STORAGE"
+bucket_name = "era-kanban-files"
+
+[vars]
+JWT_SECRET = "development_secret_change_in_production"
+JWT_REFRESH_SECRET = "refresh_secret_change_in_production"
+CORS_ORIGIN = "http://localhost:5173"

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kanban Column Display</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14b8a2",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar for the column */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(20, 184, 162, 0.2);
+            border-radius: 20px;
+        }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+            background-color: rgba(20, 184, 162, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b19] dark:text-[#f0f2f2] min-h-screen flex flex-col overflow-hidden">
+<!-- Background Decoration to emphasize glassmorphism -->
+<div class="fixed inset-0 z-0 pointer-events-none">
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[100px]"></div>
+</div>
+<div class="relative z-10 flex flex-1 flex-col h-full p-8 items-center justify-center">
+<!-- Kanban Column Component -->
+<!-- Glassmorphism Container -->
+<div class="flex flex-col w-full max-w-[320px] max-h-[85vh] bg-white/60 dark:bg-black/20 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-xl shadow-xl overflow-hidden">
+<!-- Column Header -->
+<div class="flex items-center justify-between p-4 pb-2 shrink-0">
+<div class="flex items-center gap-2">
+<h2 class="text-base font-bold tracking-tight text-gray-800 dark:text-gray-100">To Do</h2>
+<span class="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs font-bold text-primary bg-primary/10 rounded-full">3</span>
+</div>
+<button class="text-gray-500 hover:text-primary transition-colors rounded-full p-1 hover:bg-gray-100 dark:hover:bg-white/10">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</div>
+<!-- Task List Area -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-3 flex flex-col gap-3">
+<!-- Task Card 1: With Cover Image -->
+<div class="group relative flex flex-col bg-white dark:bg-[#1a2c29] rounded-lg shadow-sm hover:shadow-md border border-transparent hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing">
+<!-- Image Cover -->
+<div class="h-24 w-full rounded-t-lg bg-cover bg-center relative" data-alt="Code on a computer screen representing backend development" style='background-image: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuAH6WVjV4NsvxA8OS_PNnYCJrw75HGcA6ltcVHLUYo0v0qlWOiI7Il7bpz0K8nBy6UK6UlqHIXAcEjNS4Kp5w2vqOT77Aw-GRYp75ytDuhf22cmMAKp5IHZTXb37fNNdyAzw6IkQWIlCtL2YHXwDorhIV1TgY8dBJ-aHG8kL2Edm7o8PSw5GYJJ1Ilp7-lY99e0YdBF5IkXlA7WI0LbINgx9_9dkbmtWk-xQDfr30jBmnVMXnE6w4R4m1V6rGpiST3ynecRQw1yOms");'>
+<div class="absolute bottom-2 left-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-white/20 backdrop-blur-sm text-white border border-white/20">Backend</span>
+</div>
+</div>
+<div class="p-3">
+<h3 class="text-sm font-semibold leading-snug mb-2 text-gray-800 dark:text-gray-100">Setup Cloudflare Workers</h3>
+<div class="flex items-center justify-between mt-3">
+<div class="flex -space-x-2">
+<img alt="Team member portrait" class="w-6 h-6 rounded-full border-2 border-white dark:border-[#1a2c29]" data-alt="User avatar 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5p4Dai3nYC8ghIsD6eTklHcdYFtlXrGJFMzUOWS0iSmR1XkZ_ck8kZcfus3QVosHzHmkY6XBjKtAjfm2JAemF9LX0BwuCC_MtjRas4jAl3VpdMikjkKKOguSf8Bn5L2IzwjmhlGSWLViLbMMGgHCTb0xhnrH9T5CqvH7d2Tf98QuCNANN2LYhrthLaorH-jSKT7osfF8ezrSC8Gka5s1dL1ZOokDmOGoGpL0noVaItKh70rXlzKzJGTdV0G6sPffTb5IS9-AS1Wc"/>
+</div>
+<div class="flex items-center gap-3 text-gray-400">
+<span class="material-symbols-outlined text-[16px]">notes</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Task Card 2: Text Only with Priority -->
+<div class="group relative flex flex-col bg-white dark:bg-[#1a2c29] rounded-lg shadow-sm hover:shadow-md border border-transparent hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing p-3">
+<div class="flex flex-wrap gap-1.5 mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">Frontend</span>
+<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300">High</span>
+</div>
+<h3 class="text-sm font-semibold leading-snug mb-3 text-gray-800 dark:text-gray-100">Design R2 upload UI</h3>
+<div class="flex items-center justify-between">
+<div class="flex -space-x-2">
+<img alt="Team member portrait" class="w-6 h-6 rounded-full border-2 border-white dark:border-[#1a2c29]" data-alt="User avatar 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNxh6toR5qQaAT4_OLnA1wK-KueoWhjVqkxEonEsCXgWszhO9GqCljfpEuTPawmjmfgMPTKVlszICXdzDp0leB29us-sQFDfp4aVX6RUeEjnjA7K04QqjYHAqSLYN8C-lSgBDdqOgfVLgvzKAlKW30y_6RDgG-kIpJ7FnYmh4NpzwomzdjnusXvSDRQ0SQGWejH73173AazsIJ44vx_zpuI4JJrAEXYAFyBG8OslV5gY8J0916Sh9lrpF8xvX2WwN6Bh8b0b2RmNY"/>
+<img alt="Team member portrait" class="w-6 h-6 rounded-full border-2 border-white dark:border-[#1a2c29]" data-alt="User avatar 3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVwXi6lGb82xB21oyGS6OSTCe2W5VGgI5upniVn11k1H9pxo_ureIrceNISB8Ixl6hGdXy_jnfHCUyDoHH9ffamQXVWHNNplGic_-UnxIpkjBMs-umEDyiPMFuj5nbNd5FHjhX05gU-gdnbuVRhQNGO0w1k7QbnINKxTBww2FBqpcMffMOq0QrBox40QuFJAI0yTBvdH_hGdInRDgZ4fpJQamNYpu6d7rnc9FERxecl_vUTSECh3Lu6f9PsgaKedCN75Qv3pSCKlU"/>
+</div>
+<div class="flex items-center gap-1 text-gray-400 dark:text-gray-500">
+<span class="flex items-center gap-0.5 text-xs">
+<span class="material-symbols-outlined text-[14px]">attach_file</span>
+                                2
+                            </span>
+</div>
+</div>
+</div>
+<!-- Task Card 3 -->
+<div class="group relative flex flex-col bg-white dark:bg-[#1a2c29] rounded-lg shadow-sm hover:shadow-md border border-transparent hover:border-primary/30 transition-all cursor-grab active:cursor-grabbing p-3">
+<div class="flex flex-wrap gap-1.5 mb-2">
+<span class="px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">Security</span>
+</div>
+<h3 class="text-sm font-semibold leading-snug mb-3 text-gray-800 dark:text-gray-100">JWT Auth Implementation</h3>
+<p class="text-xs text-gray-500 line-clamp-2 mb-3">Ensure token expiration is handled correctly on the edge worker.</p>
+<div class="flex items-center justify-between">
+<div class="w-6 h-6 rounded-full bg-gray-100 dark:bg-white/10 flex items-center justify-center text-[10px] font-bold text-gray-500">
+                            +1
+                        </div>
+<div class="flex items-center gap-1 text-gray-400 dark:text-gray-500">
+<span class="flex items-center gap-0.5 text-xs">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+                                Oct 24
+                            </span>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Task Footer -->
+<div class="p-3 pt-2 shrink-0">
+<button class="flex w-full cursor-pointer items-center justify-start rounded-lg py-2 px-3 text-gray-600 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-white/10 hover:text-primary transition-all group/btn">
+<span class="material-symbols-outlined text-[20px] mr-2 text-gray-400 group-hover/btn:text-primary transition-colors">add</span>
+<span class="text-sm font-medium">Add new task</span>
+</button>
+</div>
+</div>
+</div>
+</body></html>

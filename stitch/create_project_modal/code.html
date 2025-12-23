@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Project Modal - Era Bulut</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14b8a2",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                        "surface-dark": "#1a322f", // From example
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem", 
+                        "lg": "1rem", 
+                        "xl": "1.5rem", 
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Glassmorphism utilities */
+        .glass-panel {
+            background: rgba(17, 33, 31, 0.85); /* background-dark with opacity */
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-input {
+            background: rgba(26, 50, 47, 0.6); /* surface-dark with opacity */
+            border: 1px solid rgba(52, 101, 94, 0.5);
+            transition: all 0.2s ease;
+        }
+        
+        .glass-input:focus {
+            background: rgba(26, 50, 47, 0.9);
+            border-color: #14b8a2; /* primary */
+            box-shadow: 0 0 0 2px rgba(20, 184, 162, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-slate-900 dark:text-white overflow-hidden relative">
+<!-- Background Content (Dashboard Simulation to show context) -->
+<div class="absolute inset-0 z-0 flex flex-col opacity-40 pointer-events-none filter blur-[2px]">
+<!-- Top Nav -->
+<header class="h-16 border-b border-white/10 flex items-center justify-between px-8 bg-[#11211f]">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">dataset</span>
+</div>
+<span class="font-bold text-lg tracking-tight">KanbanCloud</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-8 h-8 rounded-full bg-surface-dark border border-white/10"></div>
+</div>
+</header>
+<!-- Main Content Grid -->
+<main class="flex-1 p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Dummy Project Cards -->
+<div class="h-48 rounded-xl bg-surface-dark border border-white/5 p-6 flex flex-col justify-between">
+<div class="w-1/2 h-6 bg-white/10 rounded"></div>
+<div class="w-full h-2 bg-white/5 rounded mt-4"></div>
+<div class="w-2/3 h-2 bg-white/5 rounded mt-2"></div>
+</div>
+<div class="h-48 rounded-xl bg-surface-dark border border-white/5 p-6 flex flex-col justify-between">
+<div class="w-1/2 h-6 bg-white/10 rounded"></div>
+<div class="w-full h-2 bg-white/5 rounded mt-4"></div>
+<div class="w-2/3 h-2 bg-white/5 rounded mt-2"></div>
+</div>
+<div class="h-48 rounded-xl bg-surface-dark border border-white/5 p-6 flex flex-col justify-between">
+<div class="w-1/2 h-6 bg-white/10 rounded"></div>
+<div class="w-full h-2 bg-white/5 rounded mt-4"></div>
+<div class="w-2/3 h-2 bg-white/5 rounded mt-2"></div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="relative z-50 flex min-h-screen items-center justify-center p-4">
+<!-- Backdrop -->
+<div aria-hidden="true" class="absolute inset-0 bg-[#0b1614]/80 backdrop-blur-sm transition-opacity"></div>
+<!-- Modal Panel -->
+<div class="relative w-full max-w-[600px] transform overflow-hidden rounded-xl glass-panel shadow-glass transition-all">
+<!-- Close Button (Absolute) -->
+<button class="absolute right-5 top-5 text-gray-400 hover:text-white transition-colors focus:outline-none">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+<!-- Modal Content -->
+<div class="flex flex-col p-8 sm:p-10">
+<!-- Header Section -->
+<div class="mb-8">
+<h2 class="font-display text-3xl font-bold tracking-tight text-white mb-2">New Project</h2>
+<p class="text-gray-400 text-base font-normal leading-relaxed">
+                        Start a new Kanban board for your team to organize tasks and boost productivity.
+                    </p>
+</div>
+<!-- Form Section -->
+<div class="space-y-6">
+<!-- Project Name Input -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-gray-200" for="project-name">
+                            Project Name
+                        </label>
+<div class="relative">
+<input class="glass-input w-full rounded-xl py-3.5 px-4 text-base text-white placeholder-gray-500 focus:outline-none focus:ring-0" id="project-name" placeholder="e.g., Q3 Marketing Campaign" type="text"/>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</div>
+</div>
+</div>
+<!-- Description Textarea -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-gray-200" for="description">
+                            Description
+                        </label>
+<textarea class="glass-input w-full rounded-xl py-3.5 px-4 text-base text-white placeholder-gray-500 min-h-[140px] resize-none focus:outline-none focus:ring-0" id="description" placeholder="Briefly describe the goals of this project..."></textarea>
+<p class="text-xs text-gray-500 text-right">0/300 characters</p>
+</div>
+<!-- Additional Options (Optional for flair) -->
+<div class="flex items-center gap-3 py-2">
+<button class="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>Add Cover Image</span>
+</button>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="mt-10 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+<button class="group flex items-center justify-center rounded-xl px-6 py-3 text-sm font-bold text-gray-300 transition-all hover:bg-white/5 hover:text-white border border-transparent hover:border-white/10">
+                        Cancel
+                    </button>
+<button class="relative flex items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-8 py-3 text-sm font-bold text-[#11211f] shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-primary/40 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-[#11211f]">
+<span class="material-symbols-outlined text-[20px]">rocket_launch</span>
+<span>Create Project</span>
+</button>
+</div>
+</div>
+<!-- Decorative Gradient Blob at bottom (optional visual flair for glassmorphism) -->
+<div class="absolute -bottom-24 -right-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+<div class="absolute -top-24 -left-24 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"></div>
+</div>
+</div>
+</body></html>

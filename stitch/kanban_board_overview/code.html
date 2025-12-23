@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Era Bulut - Kanban Board Overview</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14b8a2",
+                        "background-light": "#f8fcfb",
+                        "background-dark": "#11211f",
+                        "surface-glass": "rgba(255, 255, 255, 0.4)",
+                        "surface-dark": "#1e2e2c",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for horizontal scrolling */
+        .kanban-scroll::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        .kanban-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .kanban-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(20, 184, 162, 0.2);
+            border-radius: 20px;
+        }
+        .kanban-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(20, 184, 162, 0.5);
+        }
+        
+        /* Glassmorphism utility */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .dark .glass-panel {
+            background: rgba(30, 46, 44, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b19] dark:text-[#f8fcfb] overflow-hidden h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 hidden md:flex flex-col border-r border-[#e7f3f1] dark:border-[#2a3b39] bg-white/50 dark:bg-[#11211f]/50 backdrop-blur-sm h-full shrink-0 z-20">
+<div class="flex flex-col h-full p-4 justify-between">
+<div class="flex flex-col gap-6">
+<!-- Branding -->
+<div class="flex items-center gap-3 px-2">
+<div class="bg-primary/20 flex items-center justify-center rounded-xl size-10 text-primary">
+<span class="material-symbols-outlined">cloud</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">Era Bulut</h1>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#64748b] hover:bg-primary/10 hover:text-primary transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-primary/10 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined fill-1">view_kanban</span>
+<span class="text-sm font-medium">Kanban Board</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#64748b] hover:bg-primary/10 hover:text-primary transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">cloud</span>
+<span class="text-sm font-medium">R2 Storage</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[#64748b] hover:bg-primary/10 hover:text-primary transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+<!-- User -->
+<div class="flex items-center gap-3 p-2 rounded-xl hover:bg-white/50 dark:hover:bg-white/5 cursor-pointer">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-white shadow-sm" data-alt="User profile picture showing a smiling professional" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmBNPJjH00PNdnaaDIf99omFev_8ZXSd1x7584pOFSI-EeJVWoKXgGnTiaHxONyx0DFwlny6pBXfHHjGSm2njji1J_KUI_S8rkbCoNxA99P4VB2ymj8SFoMVGUnmjm8NYv0r519o99O-RL-WCFaCBEixcGJeN01gGb_vxCRcFe3oq48ExhqboYtKclnIpZW8iMqwSv65K2aax52Xih_HbXdZLTJWlVvdYVuU9WB-nKSsfP4GVPrzISsxXzTmI0Mn0zdMv7mSRh7zc");'></div>
+<div class="flex flex-col">
+<p class="text-sm font-medium leading-none">Sarah Chen</p>
+<p class="text-xs text-[#64748b] mt-1">Project Lead</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex flex-col flex-1 min-w-0 h-full relative">
+<!-- Top Navbar -->
+<header class="flex items-center justify-between border-b border-[#e7f3f1] dark:border-[#2a3b39] px-6 py-3 bg-white/30 dark:bg-[#11211f]/30 backdrop-blur-md z-10 sticky top-0">
+<div class="flex items-center gap-6">
+<!-- Mobile Menu Button -->
+<button class="md:hidden text-[#0e1b19] dark:text-white">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex flex-col gap-0.5">
+<h2 class="text-[#0e1b19] dark:text-white text-lg font-bold leading-tight">Project: Era Launch</h2>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<!-- Search -->
+<label class="hidden sm:flex flex-col min-w-40 h-10 w-64">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-[#4e978e] flex border-none bg-white dark:bg-[#1e2e2c] items-center justify-center pl-4 rounded-l-xl">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl rounded-l-none text-[#0e1b19] dark:text-white focus:outline-0 bg-white dark:bg-[#1e2e2c] h-full placeholder:text-[#94a3b8] px-3 text-sm font-normal" placeholder="Search tasks..."/>
+</div>
+</label>
+<!-- Actions -->
+<div class="flex gap-2">
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-white dark:bg-[#1e2e2c] text-[#0e1b19] dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 transition shadow-sm">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="flex items-center justify-center rounded-xl h-10 px-4 bg-primary hover:bg-primary/90 transition text-white text-sm font-bold tracking-wide shadow-lg shadow-primary/20">
+<span class="mr-1">+</span> <span class="hidden sm:inline">New Task</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Board Area -->
+<div class="flex flex-col flex-1 overflow-hidden">
+<!-- Breadcrumbs & Toolbar -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 px-6 py-4 shrink-0">
+<div class="flex flex-wrap gap-2 items-center">
+<!-- Breadcrumbs -->
+<div class="flex items-center text-sm mr-4 border-r border-gray-200 dark:border-gray-700 pr-4">
+<a class="text-[#64748b] hover:text-primary transition-colors" href="#">Dashboard</a>
+<span class="text-[#64748b] mx-2">/</span>
+<span class="text-[#0e1b19] dark:text-white font-medium">Era Launch</span>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto no-scrollbar">
+<button class="flex h-8 shrink-0 items-center gap-x-2 rounded-lg bg-white dark:bg-[#1e2e2c] border border-transparent hover:border-primary/30 px-3 transition-all shadow-sm">
+<span class="text-xs font-medium">Assignee</span>
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-8 shrink-0 items-center gap-x-2 rounded-lg bg-white dark:bg-[#1e2e2c] border border-transparent hover:border-primary/30 px-3 transition-all shadow-sm">
+<span class="text-xs font-medium">Due Date</span>
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-8 shrink-0 items-center gap-x-2 rounded-lg bg-white dark:bg-[#1e2e2c] border border-transparent hover:border-primary/30 px-3 transition-all shadow-sm">
+<span class="text-xs font-medium">Priority</span>
+<span class="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
+</button>
+</div>
+</div>
+<!-- View Controls -->
+<div class="flex items-center gap-2">
+<button class="p-2 text-[#64748b] hover:text-primary transition-colors" title="Refresh Board">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+</button>
+<div class="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-1"></div>
+<button class="p-2 text-[#64748b] hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+<div class="flex bg-gray-200 dark:bg-[#1e2e2c] p-1 rounded-lg gap-1">
+<button class="p-1.5 bg-white dark:bg-[#2d423f] rounded shadow-sm text-primary">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+<button class="p-1.5 text-[#64748b] hover:text-[#0e1b19] dark:hover:text-white rounded">
+<span class="material-symbols-outlined text-[20px]">view_list</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Kanban Board -->
+<div class="flex-1 overflow-x-auto overflow-y-hidden px-6 pb-6 kanban-scroll">
+<div class="flex h-full gap-6 min-w-max pb-2">
+<!-- Column: Backlog -->
+<div class="flex flex-col w-80 shrink-0">
+<div class="flex items-center justify-between mb-3 px-1">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-slate-400"></span>
+<h3 class="font-semibold text-[#0e1b19] dark:text-white text-sm">Backlog</h3>
+<span class="bg-gray-200 dark:bg-[#1e2e2c] text-gray-600 dark:text-gray-400 text-xs px-2 py-0.5 rounded-full font-medium">4</span>
+</div>
+<button class="text-gray-400 hover:text-gray-600"><span class="material-symbols-outlined text-[18px]">more_horiz</span></button>
+</div>
+<div class="flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-2">
+<!-- Card -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-primary/20 transition-all cursor-grab group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400">#1024</span>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-semibold">Low</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-3 leading-snug">Research Cloudflare Workers limitations</h4>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA5yg0DVkOG0mdmyiU8MvCh7O4ASq-334IgZKsSlnl6y1VCGHYn9nS3doCRIoIiaunNO23_Sjp-_BCPWNPoUbL_rTwCHhYQxt_JSPj9jay8sFMgxHfA2PmEGHARoBUlyGt5HAWpgGfSf6z1R8Rl3CIZFAt7l27iS6k4mjS9WJ180eRMEu_gWhb48UlpQuzYP7Q4Kfhwj_zY_CwCFRSijYkp0ommz3-ZAWtpAqRhPak9g2p3_21M7oOhmA54FSIHDUA8QaXbgqRO9mc');"></div>
+</div>
+<div class="flex gap-2 text-gray-400">
+<div class="flex items-center gap-0.5 text-xs">
+<span class="material-symbols-outlined text-[14px]">chat_bubble</span> 2
+                                        </div>
+</div>
+</div>
+</div>
+<!-- Card -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-primary/20 transition-all cursor-grab group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400">#1028</span>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-semibold">Low</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-3 leading-snug">Sketch initial database schema</h4>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover bg-gray-200 flex items-center justify-center text-[8px] font-bold text-gray-500">JP</div>
+</div>
+<div class="flex gap-2 text-gray-400">
+<div class="flex items-center gap-0.5 text-xs">
+<span class="material-symbols-outlined text-[14px]">attach_file</span> 1
+                                        </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: To Do -->
+<div class="flex flex-col w-80 shrink-0 glass-panel rounded-2xl p-2">
+<div class="flex items-center justify-between mb-3 px-2 pt-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-blue-400"></span>
+<h3 class="font-semibold text-[#0e1b19] dark:text-white text-sm">To Do</h3>
+<span class="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full font-medium">2</span>
+</div>
+<button class="text-gray-400 hover:text-gray-600"><span class="material-symbols-outlined text-[18px]">add</span></button>
+</div>
+<div class="flex flex-col gap-3 h-full overflow-y-auto custom-scrollbar px-1 pb-1">
+<!-- Card -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-primary/20 transition-all cursor-grab group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400">#1032</span>
+<div class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[10px] px-2 py-0.5 rounded-full font-semibold">Medium</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-2 leading-snug">Setup R2 Bucket policies</h4>
+<div class="flex flex-wrap gap-1 mb-3">
+<span class="text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-1.5 py-0.5 rounded">DevOps</span>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfygzZowSYBCKtvNhjpnJx9nwWEGHC96Ce5TjqWxG52l8ixf58rXbm4pnCxYXVE_ST5fleRrZfirletOD7kEbkQhkCTzFu9y8nX0A-YcqqbA_wQQsibLQCBGJFpH_SKdSQ48gAwz85C9DHVMGiw33YF-XLfza-myIZPaOQRqEB_8hc1FqJQKr2q5E2BrihaC93-uH-ieQcW_oYu2mbOEB6SjSrKc_oRmgOVOgvAW2dqXV6WAxFINmXtuU8PAjTiIsHLsfJJVDezc8');"></div>
+</div>
+<div class="flex gap-2 text-gray-400">
+<div class="flex items-center gap-0.5 text-xs text-orange-500">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 2d
+                                        </div>
+</div>
+</div>
+</div>
+<!-- Card -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-primary/20 transition-all cursor-grab group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400">#1011</span>
+<div class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-[10px] px-2 py-0.5 rounded-full font-semibold">High</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-2 leading-snug">Design System Integration</h4>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDkq1bxne4v43YGBbGsdSVylyhEJcuAOE7fkIKDfD4g8A8Dblktc2jRWBLt5uJdCU0gDZ-84YWbNAtVnYX0rPzIVIow8SbAcLdIL29E7sJerJyJ7qoKd1Gq9Bwy_gOFqthNFBOuzae2fNqJyLoaELTxFKUWwMmIqHjfwdbiAJ9TwfyO8CjPBwRg6u6fN8zypO-Mcsx0QC9w42LmADrcJRDGCashfQRvM6R9Vfz4o0SrsnY8cuWAOxBqw2F5Lv9v-vEG0NknJKG-9eM');"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: In Progress -->
+<div class="flex flex-col w-80 shrink-0 glass-panel rounded-2xl p-2 border-t-4 border-t-primary">
+<div class="flex items-center justify-between mb-3 px-2 pt-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary"></span>
+<h3 class="font-semibold text-[#0e1b19] dark:text-white text-sm">In Progress</h3>
+<span class="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full font-medium">2</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 h-full overflow-y-auto custom-scrollbar px-1 pb-1">
+<!-- Card: Active -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-md border border-primary/30 transition-all cursor-grab group relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
+<div class="flex justify-between items-start mb-2 pl-2">
+<span class="text-[10px] font-bold text-gray-400">#1005</span>
+<div class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-[10px] px-2 py-0.5 rounded-full font-semibold">High</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-2 leading-snug pl-2">Implement JWT Auth flow</h4>
+<div class="flex flex-wrap gap-1 mb-3 pl-2">
+<span class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">Backend</span>
+<span class="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded">Security</span>
+</div>
+<div class="flex items-center justify-between mt-auto pl-2">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAqujErrDe2IDYXYF3FQ0YRUcMNsIaW4tFXDd4-N8xRuTDkc1R-j889ej4UnVN9Rog2Gdz-L5wGZjvrhcp-RLbQ2WBU7JftKcvnR-vQX5xWkl0Wh3Y1eaeTJbOY3A2Rhx-SICkclWCqo4BNpTyqfjZCj9h1hmvRmFLroOVYF58GoCOT0JkJS97uw3bmXLG2qIw0SufCSUzql1LiEXqG3m6CkFOif-6k2WpxoNkPt_AvlwbtliM1Rhkj24aqx7VKyMVyKEwXkYJuPYk');"></div>
+</div>
+<div class="flex gap-2 text-gray-400">
+<div class="flex items-center gap-0.5 text-xs">
+<span class="material-symbols-outlined text-[14px]">description</span> 1
+                                        </div>
+</div>
+</div>
+</div>
+<!-- Card -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-primary/20 transition-all cursor-grab group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400">#1022</span>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-full font-semibold">Low</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-2 leading-snug">Configure Wrangler TOML</h4>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover bg-teal-100 flex items-center justify-center text-[8px] font-bold text-teal-700">SR</div>
+</div>
+<div class="flex gap-2 text-gray-400">
+<div class="flex items-center gap-0.5 text-xs">
+<span class="material-symbols-outlined text-[14px]">chat_bubble</span> 1
+                                        </div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Review -->
+<div class="flex flex-col w-80 shrink-0 glass-panel rounded-2xl p-2">
+<div class="flex items-center justify-between mb-3 px-2 pt-2">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-purple-400"></span>
+<h3 class="font-semibold text-[#0e1b19] dark:text-white text-sm">Review</h3>
+<span class="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 text-xs px-2 py-0.5 rounded-full font-medium">1</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 h-full overflow-y-auto custom-scrollbar px-1 pb-1">
+<!-- Card -->
+<div class="bg-white dark:bg-[#1e2e2c] p-4 rounded-xl shadow-sm hover:shadow-md border border-transparent hover:border-primary/20 transition-all cursor-grab group">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400">#1019</span>
+<div class="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-[10px] px-2 py-0.5 rounded-full font-semibold">Medium</div>
+</div>
+<h4 class="text-sm font-medium text-[#0e1b19] dark:text-white mb-2 leading-snug">Optimize Drag and Drop animations</h4>
+<div class="mb-3">
+<div class="h-1.5 w-full bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="h-full bg-purple-400 w-4/5 rounded-full"></div>
+</div>
+<p class="text-[10px] text-gray-400 mt-1 text-right">80%</p>
+</div>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDig9JuHBKyJ9QeT9QhersYHlvhk1VfLsmgjeGh2KCDdRxXYx75z5EZRSgZdRFH_1gulDFOFimYzAxhjyLY9yDW96s4QPZpDDp72skEKDSOwiaVGsoEsVRHoRC_Am0VJ1x6v0DD2HHkykOCR65KNoZ2vIJ4pheaIAV4I0vrA_KqDcFfUWudcbEMfi0_D_H_AcIHgnxCA4qUjuu_qvyV6a5iHOSEGg9y3fySW0GCYX369lcnDbaVIge_5uZVaL9jlAtKHwkWIZwf14w');"></div>
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBtX4bzEIXjgIytXGB6u5EAyO_kjOySNCF0ikORK9WjY3bo9_oFdvHlMMdxTiRp38kxUT9-i50bWSo3aZUvXunA8DzgfDG243zmrTOzgcYENYZo_n6VjiM3RlvnI9KTkxFI4McIbTIj-bksqMdOB2V_vLyPE-PbOfWn7iNvunyhZPrzXPyBj4I2JDk9a1_vwff56nSFsHb_xpKJ5nYZOtGEr22yaUUB4vyC_qejL7ac2Spe8MuJIfqYNCd4iqRX7z_OQup9VEg4Hdo');"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: Done -->
+<div class="flex flex-col w-80 shrink-0">
+<div class="flex items-center justify-between mb-3 px-1">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-green-500"></span>
+<h3 class="font-semibold text-[#0e1b19] dark:text-white text-sm">Done</h3>
+<span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs px-2 py-0.5 rounded-full font-medium">5</span>
+</div>
+</div>
+<div class="flex flex-col gap-3 h-full overflow-y-auto pr-1 pb-2">
+<!-- Card: Completed -->
+<div class="bg-white/60 dark:bg-[#1e2e2c]/60 p-4 rounded-xl shadow-sm border border-transparent transition-all opacity-80 hover:opacity-100">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400 line-through">#1001</span>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] px-2 py-0.5 rounded-full font-semibold">Done</div>
+</div>
+<h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 leading-snug line-through">Project Initialization</h4>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+</div>
+<p class="text-[10px] text-gray-400">Oct 24</p>
+</div>
+</div>
+<!-- Card: Completed -->
+<div class="bg-white/60 dark:bg-[#1e2e2c]/60 p-4 rounded-xl shadow-sm border border-transparent transition-all opacity-80 hover:opacity-100">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-bold text-gray-400 line-through">#1002</span>
+<div class="bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px] px-2 py-0.5 rounded-full font-semibold">Done</div>
+</div>
+<h4 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 leading-snug line-through">Repo Setup</h4>
+<div class="flex items-center justify-between mt-auto">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border-2 border-white dark:border-[#1e2e2c] bg-cover bg-primary text-white flex items-center justify-center text-[10px] font-bold">
+<span class="material-symbols-outlined text-[14px]">check</span>
+</div>
+</div>
+<p class="text-[10px] text-gray-400">Oct 24</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Column Placeholder -->
+<button class="flex flex-col w-12 shrink-0 items-center justify-start pt-12 h-full hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl transition-colors group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary transition-colors">add_circle</span>
+<span class="text-xs text-gray-400 group-hover:text-primary mt-2 font-medium vertical-text">Add Col</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Password Reset Confirmation - Era Bulut</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS Config -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                        "surface-dark": "#16222b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Glassmorphism utilities */
+        .glass-card {
+            background: rgba(22, 34, 43, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        .bg-grid-pattern {
+            background-image: linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col overflow-hidden relative text-slate-200">
+<!-- Background Decoration -->
+<div class="absolute inset-0 bg-grid-pattern z-0 pointer-events-none"></div>
+<!-- Ambient Glow Orbs -->
+<div class="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-primary/20 rounded-full blur-[120px] animate-pulse-slow z-0"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[30vw] h-[30vw] bg-primary/10 rounded-full blur-[100px] z-0"></div>
+<!-- Top Navigation -->
+<header class="relative z-10 flex items-center justify-between px-6 py-4 md:px-10 lg:px-40 border-b border-white/5 bg-background-dark/50 backdrop-blur-sm">
+<div class="flex items-center gap-3 text-white">
+<div class="size-8 flex items-center justify-center bg-primary/20 rounded-lg text-primary">
+<span class="material-symbols-outlined text-2xl">cloud_circle</span>
+</div>
+<h2 class="text-white text-lg font-bold tracking-tight">Era Bulut</h2>
+</div>
+<div>
+<!-- Header Right: Optional utility or language switch could go here -->
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="relative z-10 flex-1 flex flex-col items-center justify-center p-4">
+<!-- Glass Card Container -->
+<div class="glass-card w-full max-w-[480px] rounded-2xl p-8 md:p-10 flex flex-col items-center gap-8 animate-[fadeIn_0.5s_ease-out]">
+<!-- Icon/Visual -->
+<div class="relative flex items-center justify-center">
+<!-- Inner Glow -->
+<div class="absolute inset-0 bg-primary/30 blur-xl rounded-full"></div>
+<!-- Icon Container -->
+<div class="relative bg-gradient-to-br from-surface-dark to-background-dark border border-white/10 size-24 rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-5xl text-primary" style="font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;">mark_email_read</span>
+</div>
+<!-- Floating Elements decoration -->
+<div class="absolute -right-2 -top-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded-full border border-background-dark shadow-sm">
+                    Sent
+                </div>
+</div>
+<!-- Text Content -->
+<div class="text-center space-y-3">
+<h1 class="text-white text-2xl md:text-3xl font-bold tracking-tight">Check your mail</h1>
+<p class="text-slate-400 text-sm leading-relaxed max-w-sm mx-auto">
+                    We have sent password recovery instructions to your email. Please check your inbox and follow the link to reset your password.
+                </p>
+</div>
+<!-- Primary Action -->
+<div class="w-full flex flex-col gap-4">
+<button class="w-full flex items-center justify-center gap-2 h-12 px-6 bg-primary hover:bg-primary/90 transition-colors text-white text-sm font-semibold rounded-xl shadow-lg shadow-primary/20">
+<span>Return to Log in</span>
+<span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+<!-- Divider -->
+<div class="w-full h-px bg-white/10"></div>
+<!-- Meta Actions -->
+<div class="text-center space-y-4">
+<p class="text-slate-500 text-xs">
+                    Didn't receive the email? Check your spam folder or
+                </p>
+<button class="group flex items-center justify-center gap-2 mx-auto text-primary text-sm font-medium hover:text-white transition-colors bg-transparent px-4 py-2 rounded-lg hover:bg-white/5">
+<span class="material-symbols-outlined text-lg group-hover:rotate-180 transition-transform duration-500">refresh</span>
+<span>Click to resend</span>
+</button>
+</div>
+</div>
+<!-- Footer Info -->
+<div class="mt-8 text-center">
+<p class="text-slate-600 text-xs">
+                © 2024 Era Bulut Project Management. All rights reserved.
+             </p>
+</div>
+</main>
+</body></html>

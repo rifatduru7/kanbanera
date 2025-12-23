@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Era Bulut - Project Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14b8a2",
+                        "primary-dark": "#0f8c7b",
+                        "secondary": "#244742",
+                        "secondary-text": "#93c8c1",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                        "card-dark": "#1a2c29", // Slightly lighter than bg-dark
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(145deg, rgba(36, 71, 66, 0.4) 0%, rgba(17, 33, 31, 0.4) 100%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for webkit */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #11211f; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #244742; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #14b8a2; 
+        }
+        
+        .glass-card {
+            background: rgba(36, 71, 66, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(147, 200, 193, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-card:hover {
+            background: rgba(36, 71, 66, 0.4);
+            border-color: rgba(20, 184, 162, 0.3);
+            box-shadow: 0 10px 40px -10px rgba(20, 184, 162, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display min-h-screen flex flex-col overflow-x-hidden selection:bg-primary selection:text-white">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 w-full border-b border-[#244742] bg-[#11211f]/80 backdrop-blur-md">
+<div class="px-4 md:px-8 lg:px-10 py-3 flex items-center justify-between">
+<div class="flex items-center gap-4 text-white cursor-pointer group">
+<div class="size-8 text-primary group-hover:rotate-12 transition-transform duration-300">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M24 45.8096C19.6865 45.8096 15.4698 44.5305 11.8832 42.134C8.29667 39.7376 5.50128 36.3314 3.85056 32.3462C2.19985 28.361 1.76794 23.9758 2.60947 19.7452C3.451 15.5145 5.52816 11.6284 8.57829 8.5783C11.6284 5.52817 15.5145 3.45101 19.7452 2.60948C23.9758 1.76795 28.361 2.19986 32.3462 3.85057C36.3314 5.50129 39.7376 8.29668 42.134 11.8833C44.5305 15.4698 45.8096 19.6865 45.8096 24L24 24L24 45.8096Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-white text-xl font-bold tracking-tight">Era Bulut</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex gap-2">
+<button class="flex items-center justify-center rounded-xl size-10 bg-[#244742] text-white hover:bg-primary/20 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<button class="relative flex items-center justify-center rounded-xl size-10 bg-[#244742] text-white hover:bg-primary/20 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2.5 size-2 bg-primary rounded-full border border-[#11211f]"></span>
+</button>
+</div>
+<div class="h-8 w-px bg-[#244742] mx-2 hidden sm:block"></div>
+<div class="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+<div class="text-right hidden md:block">
+<p class="text-sm font-bold text-white leading-none">Alex M.</p>
+<p class="text-xs text-secondary-text mt-1">Pro Plan</p>
+</div>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-[#244742]" data-alt="User profile avatar showing a smiling person" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBlS7aq645gkhSPkgPM3DDmy81aDIX5hdCgPkdfFf2y8eaS0qvyekcOr6IC7YYjLsMLUSn1QxmLMt6Wnwyl-HPjNgHds-N0ErkaUVPlCt6QtJD_GH25ZQ-PhCohoGxARgivk8X4DgfJEByLKlMlcfD_yRNx7Ud3wEBY1tS6Mlllgq3_A0gEOWCOX19c77xsRCrR1UM9WsbF-HTkdcWEDckGw1gOC3djJ9SnUJ3OyDlyES8jNUwjVHW4l9MWePmst9Db_s8pgrFERvU");'></div>
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 w-full max-w-[1440px] mx-auto px-4 md:px-8 lg:px-10 py-8">
+<!-- Welcome Heading -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div class="flex flex-col gap-2">
+<h1 class="text-white text-3xl md:text-4xl font-black tracking-tight">Welcome back, Alex</h1>
+<p class="text-secondary-text text-base md:text-lg">You have <span class="text-primary font-bold">8 active projects</span> and 2 pending reviews.</p>
+</div>
+<button class="flex items-center justify-center rounded-xl h-12 px-6 bg-primary hover:bg-primary-dark text-[#11211f] gap-2 font-bold shadow-lg shadow-primary/20 transition-all hover:scale-105 active:scale-95">
+<span class="material-symbols-outlined">add</span>
+<span>Create Project</span>
+</button>
+</div>
+<!-- Filters & Search Toolbar -->
+<div class="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center mb-8">
+<!-- Search -->
+<div class="w-full lg:w-96">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-secondary-text group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-3 rounded-xl bg-[#244742]/50 border border-transparent focus:border-primary/50 text-white placeholder-secondary-text focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search projects, tags, or team..." type="text"/>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2 overflow-x-auto pb-2 lg:pb-0 w-full lg:w-auto scrollbar-hide">
+<button class="whitespace-nowrap h-10 px-5 rounded-xl bg-primary text-[#11211f] text-sm font-bold transition-transform hover:scale-105">
+                    All Projects
+                </button>
+<button class="whitespace-nowrap h-10 px-5 rounded-xl bg-[#244742] text-secondary-text hover:text-white hover:bg-[#2f5c56] text-sm font-medium transition-colors">
+                    In Progress
+                </button>
+<button class="whitespace-nowrap h-10 px-5 rounded-xl bg-[#244742] text-secondary-text hover:text-white hover:bg-[#2f5c56] text-sm font-medium transition-colors">
+                    Completed
+                </button>
+<button class="whitespace-nowrap h-10 px-5 rounded-xl bg-[#244742] text-secondary-text hover:text-white hover:bg-[#2f5c56] text-sm font-medium transition-colors">
+                    Archived
+                </button>
+</div>
+</div>
+<!-- Project Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+<!-- Add New Project Card (Dashed) -->
+<div class="group h-full min-h-[220px] rounded-xl border-2 border-dashed border-[#244742] hover:border-primary bg-transparent flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-[#244742]/20">
+<div class="size-14 rounded-full bg-[#244742] group-hover:bg-primary group-hover:text-[#11211f] text-secondary-text flex items-center justify-center mb-4 transition-colors">
+<span class="material-symbols-outlined text-3xl">add</span>
+</div>
+<h3 class="text-white font-bold text-lg">Create New Project</h3>
+<p class="text-secondary-text text-sm mt-1">Start from scratch or a template</p>
+</div>
+<!-- Project Card 1 -->
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between group cursor-pointer h-full min-h-[220px]">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+                            Development
+                        </div>
+<button class="text-secondary-text hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-white text-xl font-bold mb-2 group-hover:text-primary transition-colors">SaaS Dashboard Refactor</h3>
+<p class="text-secondary-text text-sm line-clamp-2">Complete overhaul of the analytics dashboard with React and Tailwind CSS integration.</p>
+</div>
+<div class="mt-6 pt-6 border-t border-[#244742]">
+<div class="flex justify-between items-center mb-3">
+<span class="text-xs text-secondary-text font-medium">Progress</span>
+<span class="text-xs text-white font-bold">75%</span>
+</div>
+<div class="w-full bg-[#11211f] rounded-full h-1.5 mb-4">
+<div class="bg-primary h-1.5 rounded-full transition-all duration-1000" style="width: 75%"></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCpJdmxaZZ_EivgeRUXLiaxJZ4q6YFe81xtyyTcXdFO7NkviMnqPgzUwrS3f-fXnIYVbiTBsOo3N8_euq8f0jz7c9YBojN55uliuyD_2MIo_vffIa20W3r14PIi2GnQYvFUkYbKWDlDbY2N6uJcyfY9UHB8I0-y3qvhWW04tr9liNQ0RvlsN4DDgYtJ1Nic0P4yBrNI8xrexIk69CESTJipIqslAHTgJPTnsL7XCZ_rif7gZ-pVnFqpNC79u678wFGu_KZ-RJgnEZE");'></div>
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCy1x1eFhfhQ5IT_9liVDMjdH8YGajMKrErp1ecb7Xtx3hlZc7JoyozkbRTdM64tQOFXC8FktF5Elk1pKDSebvKDsbvWbIcTGvI7eB23tzXbYi9DZlbbCtlwGVmwymqI9b4knGgMpsFnkF2VqCuMltyq7fEcqPWZbe2USN2R0jR387AQnleO5qa-edBMzJ-PRHC_VdzzvPXlvIRqq2_ILvkxdndhZgmXFQ_OGLPrZU2BnXGvVJn2r44SlAy_ZJBa_eW84aZiLbR7XY");'></div>
+</div>
+<div class="flex items-center gap-1 text-secondary-text text-xs">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>Due Oct 24</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 2 -->
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between group cursor-pointer h-full min-h-[220px]">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-purple-500/20 text-purple-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+                            Marketing
+                        </div>
+<button class="text-secondary-text hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-white text-xl font-bold mb-2 group-hover:text-primary transition-colors">Q4 Brand Campaign</h3>
+<p class="text-secondary-text text-sm line-clamp-2">Asset creation for social media, email newsletters, and paid ad creatives for the holiday season.</p>
+</div>
+<div class="mt-6 pt-6 border-t border-[#244742]">
+<div class="flex justify-between items-center mb-3">
+<span class="text-xs text-secondary-text font-medium">Progress</span>
+<span class="text-xs text-white font-bold">32%</span>
+</div>
+<div class="w-full bg-[#11211f] rounded-full h-1.5 mb-4">
+<div class="bg-purple-400 h-1.5 rounded-full transition-all duration-1000" style="width: 32%"></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDvKg7hpNAQxMpop4Oti1_isO8YRy5tw5jqXHkSRxAC14ElJQ8XIv9FzEfoZyy_SrrL8kEwqRKzUCPJcBTUkiMUPrczdOK3-ysEDiUhH1Ts9KIaKDmM5QkEyVDmUVBhpLPIf_sjFuqdlmbd6dYVZyWhoZb1DjMHDrpopX8EEYCJwS1DgiifEDGu5Wp3i0F-Y1rSQ6gKHoO9E398u5Al9OZ65uan5QgSboYIiCA11yZXOtM16Y7Ad0qDSAykfEGTSQjGpmUISX4hIhk");'></div>
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center flex items-center justify-center bg-[#244742] text-xs font-bold text-white">
+                                +3
+                            </div>
+</div>
+<div class="flex items-center gap-1 text-secondary-text text-xs">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>Due Nov 12</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 3 -->
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between group cursor-pointer h-full min-h-[220px]">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-orange-500/20 text-orange-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+                            Design
+                        </div>
+<button class="text-secondary-text hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-white text-xl font-bold mb-2 group-hover:text-primary transition-colors">Mobile App UI Kit</h3>
+<p class="text-secondary-text text-sm line-clamp-2">Creating a unified design system for the iOS and Android applications.</p>
+</div>
+<div class="mt-6 pt-6 border-t border-[#244742]">
+<div class="flex justify-between items-center mb-3">
+<span class="text-xs text-secondary-text font-medium">Progress</span>
+<span class="text-xs text-white font-bold">90%</span>
+</div>
+<div class="w-full bg-[#11211f] rounded-full h-1.5 mb-4">
+<div class="bg-orange-400 h-1.5 rounded-full transition-all duration-1000" style="width: 90%"></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBbdsOK4RI1tsscEcXWAelbNmKMYTE7n-gLUKBcblleSdE6kJosmj6vZlLvOH6SL3NIfJ_HZ7y5bH4IkZ0UOZYPy7H0eGF-uHGNMd8lBi3D47ak2oLAGa8EAKhoNo6riWqw6Udgr7GDtStwwriXuY75okJ1ZEpXqGJ0L-lUGK5OMwREayv6B5kl3a1CFdbP1Q-R4wZ1MPgAsUpPULo0E5iSK1QMzvqiLcVCPZZsYSjlAFxOSy5s1t0ZH_Ko2NqrcaNx5PZkDRpYRsM");'></div>
+</div>
+<div class="flex items-center gap-1 text-orange-300 text-xs font-bold">
+<span class="material-symbols-outlined text-[16px]">priority_high</span>
+<span>Review</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 4 -->
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between group cursor-pointer h-full min-h-[220px]">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-emerald-500/20 text-emerald-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+                            Infrastructure
+                        </div>
+<button class="text-secondary-text hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-white text-xl font-bold mb-2 group-hover:text-primary transition-colors">Cloudflare Migration</h3>
+<p class="text-secondary-text text-sm line-clamp-2">Moving static assets to R2 and setting up workers for edge caching.</p>
+</div>
+<div class="mt-6 pt-6 border-t border-[#244742]">
+<div class="flex justify-between items-center mb-3">
+<span class="text-xs text-secondary-text font-medium">Progress</span>
+<span class="text-xs text-white font-bold">15%</span>
+</div>
+<div class="w-full bg-[#11211f] rounded-full h-1.5 mb-4">
+<div class="bg-emerald-400 h-1.5 rounded-full transition-all duration-1000" style="width: 15%"></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA82MY1TOyvy_uR7-Ud6v-aOFltfZGjMNqqZBVhkk1COamI_re0kqkZ0dBmhQwSnQtazcEA9ipKdvvCY6hf0pYAPo8OpzKwEmUd11m1389BZFaXyV-yGnQbzDHW4CV4rYZ8eQ893rJCSR_Qu3mYThAOP3IJbKkbE_AxfC_PlaALo8oKrcaKIXJdorJxcKPjyyUEF0Ll4Y9D-zqy2amblBXuIpZVRkrpluEtU35-GT5nUxsv0myo5Xvucqmy_fw7L8uGKQbxVPsvFGI");'></div>
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuALREnbkUymWvhRYvWAi1wLc4nqL2S-xJsJM_kooRaGk4UdK1CaUkwjqScMUOWJkcOi5z5_kDH-duuTQhzifSA7DhRvFcGASDyM2GTv81PVYYI20ccnbx5HEMKghubvIRGNcXDz_MpF8QzT4T5tSNG4Ao1u9LZaYLBYxsN9FojwiQqP-8-pl6OvHbkb7w28njKLq6ZShDDKpvYCzEh7Mk2NzmCQXxuaHFZpht8IGdsEfVT50Bt2pVvoBFrpHGLxcchiB3hp-NTExII");'></div>
+</div>
+<div class="flex items-center gap-1 text-secondary-text text-xs">
+<span class="material-symbols-outlined text-[16px]">calendar_today</span>
+<span>Due Dec 01</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Project Card 5 -->
+<div class="glass-card rounded-xl p-6 flex flex-col justify-between group cursor-pointer h-full min-h-[220px]">
+<div>
+<div class="flex justify-between items-start mb-4">
+<div class="bg-pink-500/20 text-pink-300 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider">
+                            Legal
+                        </div>
+<button class="text-secondary-text hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-white text-xl font-bold mb-2 group-hover:text-primary transition-colors">GDPR Compliance Update</h3>
+<p class="text-secondary-text text-sm line-clamp-2">Updating privacy policies and cookie consent banners for EU users.</p>
+</div>
+<div class="mt-6 pt-6 border-t border-[#244742]">
+<div class="flex justify-between items-center mb-3">
+<span class="text-xs text-secondary-text font-medium">Progress</span>
+<span class="text-xs text-white font-bold">100%</span>
+</div>
+<div class="w-full bg-[#11211f] rounded-full h-1.5 mb-4">
+<div class="bg-pink-400 h-1.5 rounded-full transition-all duration-1000" style="width: 100%"></div>
+</div>
+<div class="flex justify-between items-center">
+<div class="flex -space-x-2">
+<div class="size-8 rounded-full border-2 border-[#1a2c29] bg-cover bg-center" data-alt="Team member portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAC-rraG44S8mNto80o6J8XEKI__NF3kQwViI4ZyZT8nWT3_iGtBw5hmNB-PefuVdFIw7EX5uQjndlqIdU8hrcfwkrlQfWujDGuAKCBbkPAWDi-3f7UGEGbxQDF62DvhYWggW28m06K1A2nCOzwQZVwCT8ZSIb_GLn5sL6U0ngbq0s5-ygU_iqzE1wRck3DCKFzFW8Ye9VP95mwLS6h_VLLMrEF78Bjz8tKnvlmZidO7a3xr0JpYW7UGMzXZWdOX5rkiex6gBiNjZQ");'></div>
+</div>
+<div class="flex items-center gap-1 text-primary text-xs font-bold">
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+<span>Done</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

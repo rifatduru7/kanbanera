@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Kanban Task Card - Era Bulut</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#14b8a2",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for column feel */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Glassmorphism utility enhancements */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        
+        .dark .glass-panel {
+            background: rgba(17, 33, 31, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .dark .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display antialiased selection:bg-primary/30 text-slate-800 dark:text-slate-100 relative overflow-hidden">
+<!-- Ambient Background Pattern to emphasize Glassmorphism -->
+<div class="fixed inset-0 -z-10 h-full w-full">
+<div class="absolute h-full w-full bg-[radial-gradient(#14b8a2_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.15]"></div>
+<div class="absolute right-0 top-0 -z-10 h-[500px] w-[500px] rounded-full bg-primary/20 blur-[100px]"></div>
+<div class="absolute left-0 bottom-0 -z-10 h-[500px] w-[500px] rounded-full bg-blue-400/10 blur-[100px]"></div>
+</div>
+<div class="layout-container flex h-full grow flex-col items-center justify-center p-6 md:p-10">
+<!-- Kanban Column Container -->
+<div class="w-full max-w-[380px] flex flex-col glass-panel rounded-xl shadow-xl overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
+<!-- Column Header -->
+<div class="p-4 flex items-center justify-between border-b border-black/5 dark:border-white/5">
+<div class="flex items-center gap-2">
+<h2 class="text-sm font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">In Progress</h2>
+<span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary/20 text-xs font-bold text-primary">4</span>
+</div>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 20px;">add</span>
+</button>
+</div>
+<!-- Column Content (Draggable Area) -->
+<div class="flex flex-col gap-4 p-4 min-h-[400px] bg-slate-50/30 dark:bg-black/20">
+<!-- MAIN COMPONENT: Draggable Task Card -->
+<div class="group relative flex flex-col gap-3 glass-card rounded-xl p-4 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg border border-white/60 dark:border-white/5 cursor-grab active:cursor-grabbing ring-1 ring-black/5 dark:ring-white/5">
+<!-- Top Row: Priority & Menu -->
+<div class="flex w-full items-start justify-between">
+<!-- Chip Component -->
+<div class="flex h-6 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-primary/10 pl-2 pr-3 ring-1 ring-inset ring-primary/20">
+<span class="material-symbols-outlined text-primary" style="font-size: 16px;">flag</span>
+<p class="text-primary text-xs font-semibold leading-normal">High Priority</p>
+</div>
+<!-- More Options -->
+<button class="text-slate-400 hover:text-primary transition-colors opacity-0 group-hover:opacity-100">
+<span class="material-symbols-outlined" style="font-size: 20px;">more_horiz</span>
+</button>
+</div>
+<!-- TitleText Component -->
+<div class="flex flex-col gap-1">
+<h3 class="text-base font-bold leading-tight tracking-[-0.015em] text-slate-900 dark:text-slate-100">Implement JWT Auth for Cloudflare Workers</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">Secure the API endpoints using RS256 algorithm and ensure key rotation policies.</p>
+</div>
+<!-- Metadata Row (Due Date) -->
+<div class="flex items-center gap-2 mt-1">
+<div class="flex items-center gap-1.5 rounded text-xs font-medium text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5">
+<span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>
+<span>Due Oct 24</span>
+</div>
+</div>
+<!-- Divider -->
+<div class="h-px w-full bg-slate-200 dark:bg-slate-700/50 my-1"></div>
+<!-- Bottom Row: Reactions & Assignees -->
+<div class="flex items-center justify-between">
+<!-- ReactionBar Component -->
+<div class="flex items-center gap-3">
+<!-- Subtasks -->
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" title="Subtasks completed">
+<span class="material-symbols-outlined" style="font-size: 18px;">check_circle</span>
+<span class="text-xs font-bold">2/5</span>
+</div>
+<!-- Comments -->
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" title="Comments">
+<span class="material-symbols-outlined" style="font-size: 18px;">chat_bubble</span>
+<span class="text-xs font-bold">3</span>
+</div>
+<!-- Attachments (R2) -->
+<div class="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-primary transition-colors" title="Attachments">
+<span class="material-symbols-outlined" style="font-size: 18px;">attach_file</span>
+<span class="text-xs font-bold">1</span>
+</div>
+</div>
+<!-- AvatarGroup Component -->
+<div class="flex items-center pl-2">
+<div class="flex -space-x-2 overflow-hidden">
+<div class="relative inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-[#1e293b]">
+<img alt="Portrait of a woman with curly hair" class="h-full w-full rounded-full object-cover" data-alt="User avatar 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiPSKQT5U98ddyFapzTgKhh1xuqVQCOcUInACSYSHTr_DbcKlGEEmPl4M53NmLLLWPKpCG5t1UksSeBUuwqUWec2dI651_EzIRJBIgyg3AsloKAN9NCHYCF3FdJ5ZyEsMDAd_i04Ac4rcQRQQR_gGHxZMOUK4vzGXMeER9cAoUsulRO5MzCS1Ofy7l8Yn8O4rM8XUUZr7_pIPIAanlecyExxHjhRuxFvqqyBL-IoQZv_UFLaBKSZpVuyD47HaoJw4kK_7jWPCD--U"/>
+</div>
+<div class="relative inline-block h-7 w-7 rounded-full ring-2 ring-white dark:ring-[#1e293b] bg-primary/10 flex items-center justify-center">
+<img alt="Portrait of a man smiling" class="h-full w-full rounded-full object-cover" data-alt="User avatar 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbxEgAKQEBJHj4PT9tPodNrvllpS7NbBQqBUtlttdhZ_zj0a2IxgO7ttMM26RhtTE-IGC5Wvjh_rReszCfrLfQz2plyK68q8-3__wpRVHwHYQO8LbtN1zeYwp9evPFhg9jY9gRJZql8L4yse5LbwQqyD6_lXWfQrrBwJIqX_y5rsdDwPsPze9HuDVEprz4w31PLCrFzHwtxE6MnaIYnJeGVelGdz0M6XLMIkOwXckPgci6OiZ8soEoxLOFDfSahJ3Ai6m2uKVfLCc"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Hover Effect: Accent Line -->
+<div class="absolute left-0 top-4 h-[calc(100%-32px)] w-1 rounded-r bg-primary opacity-0 transition-opacity group-hover:opacity-100"></div>
+</div>
+<!-- END MAIN COMPONENT -->
+<!-- Secondary Card (Visual Context for Kanban Column) -->
+<div class="group relative flex flex-col gap-3 rounded-xl bg-white/40 dark:bg-slate-800/40 p-4 shadow-sm border border-white/30 dark:border-white/5 opacity-70 hover:opacity-100 transition-opacity">
+<div class="flex w-full items-start justify-between opacity-60">
+<div class="h-5 w-16 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+</div>
+<div class="flex flex-col gap-2">
+<div class="h-4 w-3/4 rounded bg-slate-300 dark:bg-slate-600 opacity-80"></div>
+<div class="h-4 w-1/2 rounded bg-slate-300 dark:bg-slate-600 opacity-60"></div>
+</div>
+<div class="mt-2 flex items-center justify-between opacity-50">
+<div class="flex gap-2">
+<div class="h-4 w-4 rounded bg-slate-400 dark:bg-slate-500"></div>
+<div class="h-4 w-4 rounded bg-slate-400 dark:bg-slate-500"></div>
+</div>
+<div class="h-6 w-6 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+</div>
+</div>
+</div>
+<!-- Column Footer -->
+<div class="p-3 bg-slate-50/50 dark:bg-black/30 border-t border-black/5 dark:border-white/5">
+<button class="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-medium text-slate-500 hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-700 dark:hover:text-slate-300 transition-all">
+<span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                    Add Task
+                </button>
+</div>
+</div>
+</div>
+</body></html>

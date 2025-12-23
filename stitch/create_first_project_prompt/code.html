@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Era Bulut - Create First Project</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "primary-hover": "#0e7ac7",
+                        "accent": "#0d9488", // Teal accent for background hints
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                        "surface-dark": "#16222b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01))',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .ambient-glow {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(19, 146, 236, 0.15) 0%, rgba(13, 148, 136, 0.05) 40%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ambient-glow-2 {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(13, 148, 136, 0.1) 0%, rgba(19, 146, 236, 0.05) 50%, rgba(0,0,0,0) 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased overflow-x-hidden min-h-screen flex flex-col">
+<!-- Ambient Background Effects -->
+<div class="fixed top-[-10%] left-[-10%] ambient-glow animate-pulse" style="animation-duration: 8s;"></div>
+<div class="fixed bottom-[-10%] right-[-10%] ambient-glow-2 animate-pulse" style="animation-duration: 12s;"></div>
+<!-- Navigation -->
+<header class="relative z-20 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-[#111b22]/80 backdrop-blur-md px-6 py-4 lg:px-10">
+<div class="flex items-center gap-3">
+<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">cloud_queue</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">Era Bulut</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="hidden md:flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span>Support</span>
+</button>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold leading-none">Alex Morgan</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Free Tier</p>
+</div>
+<div class="h-10 w-10 rounded-full bg-cover bg-center ring-2 ring-white dark:ring-slate-700 shadow-sm" data-alt="User profile picture of a smiling person" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDw5tfRlX6gZlVPhXwL6KSVCgiL9hECWhEiICjZ4jsBt91nhK0br2oFfVZ8mLxQyHnFnhRbAadIUVTKWlXHkODl16Xt6JW4epwEz89GR74geVebDiRXHFbQdTQvdgBwXmMCSKwYjysfyLkfLJED7nrwjy2muWT1Q-EW77MPPS2L1GNgO8UvcsNNaida4O14_GcdROqtZWjPJa51VrKOgHwiBQ1K1671avGi5T9NmIYQXoqakCgFDwDVqTYA2fpU8zIe16P7y5fc3yc');">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="relative z-10 flex flex-1 flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+<div class="w-full max-w-lg">
+<!-- Glassmorphism Card -->
+<div class="glass-card relative overflow-hidden rounded-2xl p-8 sm:p-12 text-center transition-all duration-300 hover:shadow-[0_8px_40px_rgba(0,0,0,0.2)] hover:border-white/10 group">
+<!-- Decorative Top Gradient Line -->
+<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-50"></div>
+<!-- Hero Icon/Illustration -->
+<div class="mb-8 flex justify-center">
+<div class="relative">
+<div class="absolute inset-0 animate-ping rounded-full bg-primary/20 opacity-75 duration-[3000ms]"></div>
+<div class="relative flex h-24 w-24 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 shadow-2xl shadow-primary/10">
+<span class="material-symbols-outlined text-5xl text-primary bg-clip-text bg-gradient-to-br from-primary to-accent">dashboard_customize</span>
+</div>
+<!-- Floating particles decoration -->
+<div class="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-accent/20 backdrop-blur-sm border border-accent/30 flex items-center justify-center animate-bounce" style="animation-delay: 0.5s;">
+<span class="material-symbols-outlined text-xs text-accent">add</span>
+</div>
+<div class="absolute bottom-0 -left-4 h-8 w-8 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center animate-bounce" style="animation-duration: 3s;">
+<span class="material-symbols-outlined text-sm text-primary">auto_awesome</span>
+</div>
+</div>
+</div>
+<!-- Text Content -->
+<h2 class="mb-3 text-2xl font-bold tracking-tight text-white sm:text-3xl">Let's get organized</h2>
+<p class="mb-10 text-base text-slate-400 leading-relaxed max-w-sm mx-auto">
+                    You don't have any projects yet. Create your first Kanban board to start tracking tasks efficiently.
+                </p>
+<!-- Actions -->
+<div class="flex flex-col gap-4 items-center">
+<!-- Primary CTA -->
+<button class="group/btn relative flex w-full max-w-xs items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary-hover hover:shadow-primary/40 active:scale-[0.98]">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>Create First Project</span>
+</button>
+<!-- Secondary Link -->
+<button class="mt-2 text-sm font-medium text-slate-500 hover:text-slate-300 transition-colors py-2 px-4 rounded-lg hover:bg-white/5">
+                        Skip setup and go to dashboard
+                    </button>
+</div>
+</div>
+<!-- Helpful Tips / Context below card -->
+<div class="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-3 text-center">
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 text-primary ring-1 ring-slate-700/50">
+<span class="material-symbols-outlined text-xl">security</span>
+</div>
+<p class="text-xs font-medium text-slate-400">Secure JWT Auth</p>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 text-accent ring-1 ring-slate-700/50">
+<span class="material-symbols-outlined text-xl">drag_indicator</span>
+</div>
+<p class="text-xs font-medium text-slate-400">Drag &amp; Drop Boards</p>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-800/50 text-primary ring-1 ring-slate-700/50">
+<span class="material-symbols-outlined text-xl">cloud_upload</span>
+</div>
+<p class="text-xs font-medium text-slate-400">R2 File Storage</p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

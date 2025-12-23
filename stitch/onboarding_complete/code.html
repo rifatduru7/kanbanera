@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding Complete - Era Bulut</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111b22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        .glow-effect {
+            box-shadow: 0 0 50px -10px rgba(19, 146, 236, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased overflow-x-hidden min-h-screen flex flex-col">
+<!-- Background Elements for Atmosphere -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px] animate-float"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px] animate-float" style="animation-delay: -3s;"></div>
+</div>
+<!-- Main Layout -->
+<div class="relative z-10 flex flex-col min-h-screen w-full">
+<!-- Header -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-[#233948] px-6 py-4 lg:px-10">
+<div class="flex items-center gap-3 text-slate-900 dark:text-white">
+<div class="size-8 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">cloud_circle</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Era Bulut</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm">
+<span class="w-2 h-2 rounded-full bg-green-500"></span>
+<span>System Operational</span>
+</div>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-2 hidden sm:block"></div>
+<button class="flex items-center gap-2 cursor-pointer text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="hidden sm:inline">Log Out</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col items-center justify-center px-4 py-10 sm:px-6">
+<div class="w-full max-w-4xl flex flex-col items-center gap-8">
+<!-- Success Glass Card -->
+<div class="glass-card w-full max-w-2xl rounded-2xl p-8 sm:p-12 text-center relative overflow-hidden group">
+<!-- Decorative subtle grid background inside card -->
+<div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
+<div class="relative z-10 flex flex-col items-center">
+<!-- Animated Icon -->
+<div class="mb-8 relative">
+<div class="absolute inset-0 bg-primary/30 blur-[40px] rounded-full"></div>
+<div class="relative bg-gradient-to-br from-[#1392ec] to-teal-500 rounded-full p-6 glow-effect shadow-2xl transform transition-transform duration-500 hover:scale-105">
+<span class="material-symbols-outlined text-white text-6xl">check_circle</span>
+</div>
+</div>
+<h1 class="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white mb-6">
+                            You're all set!
+                        </h1>
+<p class="text-slate-600 dark:text-slate-300 text-lg leading-relaxed max-w-lg mb-10">
+                            Your serverless workspace is provisioned and ready. We've set up your first Kanban board and secured your environment with Cloudflare R2 storage.
+                        </p>
+<div class="flex flex-col sm:flex-row gap-4 w-full justify-center items-center mb-8">
+<button class="flex w-full sm:w-auto min-w-[200px] h-14 items-center justify-center rounded-xl bg-primary hover:bg-primary/90 text-white text-base font-bold shadow-lg shadow-primary/25 transition-all transform hover:-translate-y-0.5 active:translate-y-0 gap-2">
+<span>Go to Dashboard</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="flex w-full sm:w-auto min-w-[200px] h-14 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/80 text-slate-900 dark:text-white text-base font-semibold backdrop-blur-sm transition-all">
+<span>Invite Team</span>
+</button>
+</div>
+<!-- Quick Tip Section -->
+<div class="bg-slate-100/50 dark:bg-slate-800/40 rounded-lg p-4 flex items-start gap-3 text-left w-full max-w-md border border-slate-200 dark:border-slate-700/50">
+<span class="material-symbols-outlined text-primary mt-0.5">lightbulb</span>
+<div>
+<p class="text-sm font-semibold text-slate-900 dark:text-white mb-1">Quick Tip</p>
+<p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
+                                    You can drag and drop tasks immediately on your new Kanban board to start organizing your workflow.
+                                </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Links -->
+<footer class="flex flex-wrap items-center justify-center gap-6 sm:gap-8 text-sm font-medium text-slate-500 dark:text-slate-400">
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-lg">description</span>
+                        Documentation
+                    </a>
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-lg">help</span>
+                        Support
+                    </a>
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-lg">security</span>
+                        Privacy Policy
+                    </a>
+</footer>
+<p class="text-xs text-slate-400 dark:text-slate-600 mt-4">
+                    © 2024 Era Bulut Project Management. Optimized for Cloudflare.
+                </p>
+</div>
+</main>
+</div>
+</body></html>

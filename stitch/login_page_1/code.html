@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Login - ProjectEra</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                        "surface-dark": "#192833",
+                        "border-dark": "#233948",
+                        "text-secondary": "#92b2c9"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Glassmorphism Utilities */
+        .glass-card {
+            background: rgba(25, 40, 51, 0.4);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .glass-input {
+            background: rgba(16, 26, 34, 0.6) !important;
+            border-color: rgba(50, 81, 103, 0.5) !important;
+        }
+        
+        .glass-input:focus {
+            border-color: #1392ec !important;
+            background: rgba(16, 26, 34, 0.9) !important;
+        }
+        
+        /* Mesh Gradient Background Animation placeholder */
+        .mesh-bg {
+            background-color: #101a22;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(19, 146, 236, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(20, 184, 166, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(19, 146, 236, 0.15) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(20, 184, 166, 0.1) 0px, transparent 50%);
+        }
+    </style>
+</head>
+<body class="font-display antialiased text-white selection:bg-primary/30">
+<div class="relative min-h-screen w-full flex items-center justify-center overflow-hidden mesh-bg bg-background-light dark:bg-background-dark transition-colors duration-300">
+<!-- Decorative abstract shapes behind the card -->
+<div class="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] mix-blend-screen pointer-events-none"></div>
+<div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[100px] mix-blend-screen pointer-events-none"></div>
+<!-- Main Layout Container -->
+<div class="layout-container flex w-full flex-col p-4 sm:p-6 z-10">
+<!-- Glass Card -->
+<div class="glass-card mx-auto flex w-full max-w-[480px] flex-col overflow-hidden rounded-2xl p-8 sm:p-10">
+<!-- Logo & Header -->
+<div class="flex flex-col items-center pb-6">
+<div class="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 text-primary">
+<svg class="h-8 w-8" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M24 18.4228L42 11.475V34.3663C42 34.7796 41.7457 35.1504 41.3601 35.2992L24 42V18.4228Z" fill="currentColor" fill-rule="evenodd"></path>
+<path clip-rule="evenodd" d="M24 8.18819L33.4123 11.574L24 15.2071L14.5877 11.574L24 8.18819ZM9 15.8487L21 20.4805V37.6263L9 32.9945V15.8487ZM27 37.6263V20.4805L39 15.8487V32.9945L27 37.6263ZM25.354 2.29885C24.4788 1.98402 23.5212 1.98402 22.646 2.29885L4.98454 8.65208C3.7939 9.08038 3 10.2097 3 11.475V34.3663C3 36.0196 4.01719 37.5026 5.55962 38.098L22.9197 44.7987C23.6149 45.0671 24.3851 45.0671 25.0803 44.7987L42.4404 38.098C43.9828 37.5026 45 36.0196 45 34.3663V11.475C45 10.2097 44.2061 9.08038 43.0155 8.65208L25.354 2.29885Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h1 class="text-center text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
+<p class="text-center text-text-secondary">Log in to manage your serverless projects.</p>
+</div>
+<!-- Form Section -->
+<form class="flex flex-col gap-5 w-full" onsubmit="event.preventDefault();">
+<!-- Email Field -->
+<label class="flex flex-col gap-2">
+<span class="text-sm font-medium text-white/90">Email</span>
+<input class="glass-input form-input h-12 w-full rounded-xl border px-4 py-2 text-white placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all" placeholder="name@example.com" type="email"/>
+</label>
+<!-- Password Field -->
+<label class="flex flex-col gap-2">
+<div class="flex items-center justify-between">
+<span class="text-sm font-medium text-white/90">Password</span>
+<a class="text-xs font-medium text-primary hover:text-primary/80 transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative flex w-full items-center">
+<input class="glass-input form-input h-12 w-full rounded-xl border border-r-0 px-4 py-2 text-white placeholder-text-secondary focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all pr-12" placeholder="Enter your password" type="password"/>
+<button class="absolute right-0 top-0 bottom-0 px-4 flex items-center justify-center text-text-secondary hover:text-white transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</label>
+<!-- Submit Button -->
+<button class="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-primary hover:bg-primary/90 transition-all text-sm font-bold text-white shadow-lg shadow-primary/25">
+                        Log In
+                    </button>
+<!-- Divider -->
+<div class="relative my-2">
+<div class="absolute inset-0 flex items-center">
+<div class="w-full border-t border-white/10"></div>
+</div>
+<div class="relative flex justify-center text-xs uppercase">
+<span class="bg-[#16212b] px-2 text-text-secondary rounded-full">Or continue with</span>
+</div>
+</div>
+<!-- Social/Alternative Login (Optional based on modern patterns) -->
+<div class="grid grid-cols-2 gap-3">
+<button class="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-white text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]">code</span>
+<span>GitHub</span>
+</button>
+<button class="flex h-10 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-colors text-white text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]">mail</span>
+<span>Google</span>
+</button>
+</div>
+</form>
+<!-- Footer Links -->
+<div class="mt-8 text-center text-sm text-text-secondary">
+                    Don't have an account? 
+                    <a class="font-semibold text-primary hover:text-primary/80 transition-colors ml-1" href="#">Sign up</a>
+</div>
+</div>
+<!-- Bottom Footer -->
+<div class="mt-8 flex justify-center gap-6 text-xs text-text-secondary/60">
+<a class="hover:text-text-secondary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-text-secondary transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-text-secondary transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Welcome to Era Kanban</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "teal-accent": "#2dd4bf",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                    backgroundImage: {
+                        'glass-gradient': 'linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                        'teal-glow': 'radial-gradient(circle at center, rgba(45, 212, 191, 0.15) 0%, transparent 70%)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        .glass-nav {
+            background: rgba(16, 26, 34, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .text-gradient {
+            background: linear-gradient(to right, #ffffff, #2dd4bf);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white overflow-x-hidden selection:bg-teal-accent/30 selection:text-white">
+<!-- Ambient Background Effects -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-teal-accent/10 blur-[120px]"></div>
+<div class="absolute bottom-[10%] right-[-5%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px]"></div>
+</div>
+<!-- Navigation -->
+<header class="fixed top-0 w-full z-50 glass-nav">
+<div class="max-w-[1280px] mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-teal-accent" style="font-size: 28px;">cloud_circle</span>
+<h2 class="text-white text-lg font-bold tracking-tight">Era Kanban</h2>
+</div>
+<div class="flex gap-3">
+<a class="hidden sm:flex items-center justify-center px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors" href="#">
+                    Login
+                </a>
+<button class="bg-primary hover:bg-primary/90 text-white text-sm font-bold px-5 py-2 rounded-lg transition-all shadow-lg shadow-primary/20 flex items-center gap-2">
+<span>Get Started</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Wrapper -->
+<div class="relative z-10 pt-24 pb-20 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6">
+<!-- Hero Section -->
+<div class="w-full max-w-[1100px] mb-20">
+<div class="grid lg:grid-cols-2 gap-12 items-center">
+<!-- Left Content -->
+<div class="flex flex-col gap-6 text-center lg:text-left">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-accent/10 border border-teal-accent/20 w-fit mx-auto lg:mx-0">
+<span class="w-2 h-2 rounded-full bg-teal-accent animate-pulse"></span>
+<span class="text-xs font-medium text-teal-accent tracking-wide uppercase">New v2.0 Released</span>
+</div>
+<h1 class="text-5xl sm:text-6xl font-black leading-tight tracking-tight">
+                        Manage Projects at the <br/>
+<span class="text-gradient">Speed of Cloud</span>
+</h1>
+<p class="text-lg text-gray-400 font-normal leading-relaxed max-w-xl mx-auto lg:mx-0">
+                        The serverless, limitless workspace for your team. Optimized for Cloudflare Free Tier with a beautiful glassmorphic interface.
+                    </p>
+<div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+<button class="h-12 px-8 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2 group">
+                            Create Free Board
+                            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">bolt</span>
+</button>
+<button class="h-12 px-8 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium rounded-xl transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
+<span class="material-symbols-outlined text-gray-400">play_circle</span>
+                            Watch Demo
+                        </button>
+</div>
+<div class="pt-6 flex items-center justify-center lg:justify-start gap-6 text-sm text-gray-500">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span>No credit card required</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px]">check_circle</span>
+<span>Open Source</span>
+</div>
+</div>
+</div>
+<!-- Right Visual -->
+<div class="relative w-full aspect-square lg:aspect-[4/3] flex items-center justify-center">
+<!-- Background Glow for Visual -->
+<div class="absolute inset-0 bg-teal-glow blur-3xl opacity-40"></div>
+<!-- Main Glass Card Graphic -->
+<div class="relative w-full h-full glass-card rounded-2xl p-6 flex flex-col gap-4 transform rotate-1 hover:rotate-0 transition-all duration-500">
+<!-- Header Mockup -->
+<div class="flex items-center justify-between pb-4 border-b border-white/5">
+<div class="w-24 h-3 bg-white/10 rounded-full"></div>
+<div class="flex gap-2">
+<div class="w-8 h-8 rounded-full bg-white/5 border border-white/10"></div>
+<div class="w-8 h-8 rounded-full bg-teal-accent/20 border border-teal-accent/30 flex items-center justify-center text-xs font-bold text-teal-accent">JS</div>
+</div>
+</div>
+<!-- Kanban Columns Mockup -->
+<div class="flex gap-4 h-full overflow-hidden">
+<!-- Column 1 -->
+<div class="flex-1 bg-black/20 rounded-xl p-3 flex flex-col gap-3">
+<div class="w-20 h-2 bg-white/10 rounded-full mb-2"></div>
+<div class="w-full h-24 bg-white/5 border border-white/5 rounded-lg p-3">
+<div class="w-full h-2 bg-white/10 rounded-full mb-2"></div>
+<div class="w-2/3 h-2 bg-white/10 rounded-full"></div>
+</div>
+<div class="w-full h-20 bg-white/5 border border-white/5 rounded-lg p-3">
+<div class="w-3/4 h-2 bg-white/10 rounded-full"></div>
+</div>
+</div>
+<!-- Column 2 -->
+<div class="flex-1 bg-black/20 rounded-xl p-3 flex flex-col gap-3">
+<div class="w-24 h-2 bg-white/10 rounded-full mb-2"></div>
+<div class="w-full h-32 bg-primary/10 border border-primary/20 rounded-lg p-3 relative overflow-hidden">
+<div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+<div class="w-full h-2 bg-white/10 rounded-full mb-2"></div>
+<div class="w-1/2 h-2 bg-white/10 rounded-full mb-4"></div>
+<div class="flex gap-1 mt-auto">
+<div class="w-6 h-6 rounded-full bg-white/10"></div>
+</div>
+</div>
+</div>
+<!-- Column 3 (Hidden on mobile mostly) -->
+<div class="hidden sm:flex flex-1 bg-black/20 rounded-xl p-3 flex-col gap-3">
+<div class="w-16 h-2 bg-white/10 rounded-full mb-2"></div>
+<div class="w-full h-24 bg-white/5 border border-white/5 rounded-lg opacity-50"></div>
+</div>
+</div>
+</div>
+<!-- Floating Badge -->
+<div class="absolute -bottom-6 -left-6 glass-card px-5 py-3 rounded-xl flex items-center gap-3 animate-bounce" style="animation-duration: 3s;">
+<div class="p-2 bg-teal-accent/20 rounded-lg text-teal-accent">
+<span class="material-symbols-outlined text-[20px]">rocket_launch</span>
+</div>
+<div>
+<div class="text-xs text-gray-400">Deploy Speed</div>
+<div class="text-sm font-bold text-white"> &lt; 100ms</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Feature Section -->
+<div class="w-full max-w-[1100px]">
+<div class="text-center mb-12">
+<h3 class="text-2xl font-bold text-white mb-2">Built for Modern Efficiency</h3>
+<p class="text-gray-400">Experience the power of serverless architecture.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-6">
+<!-- Feature 1 -->
+<div class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-[28px]">cloud</span>
+</div>
+<h4 class="text-lg font-bold text-white mb-2">Serverless Architecture</h4>
+<p class="text-sm text-gray-400 leading-relaxed">
+                        Running on Cloudflare Workers for instant scalability and zero cold starts.
+                    </p>
+</div>
+<!-- Feature 2 -->
+<div class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-accent/20 to-teal-accent/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-teal-accent text-[28px]">hard_drive</span>
+</div>
+<h4 class="text-lg font-bold text-white mb-2">R2 Storage Integration</h4>
+<p class="text-sm text-gray-400 leading-relaxed">
+                        Secure, fast, and cost-effective file uploads directly to Cloudflare R2 buckets.
+                    </p>
+</div>
+<!-- Feature 3 -->
+<div class="glass-card p-6 rounded-2xl hover:bg-white/5 transition-colors group">
+<div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-500/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-purple-400 text-[28px]">drag_indicator</span>
+</div>
+<h4 class="text-lg font-bold text-white mb-2">Intuitive Drag &amp; Drop</h4>
+<p class="text-sm text-gray-400 leading-relaxed">
+                        Fluid Kanban management with a beautiful, responsive glassmorphism UI.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="relative z-10 w-full border-t border-white/5 bg-[#0d141c]">
+<div class="max-w-[1100px] mx-auto px-6 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-2 opacity-50 hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white" style="font-size: 20px;">cloud_circle</span>
+<span class="text-sm font-medium">Era Kanban</span>
+</div>
+<div class="flex flex-wrap justify-center gap-8 text-sm text-gray-400">
+<a class="hover:text-teal-accent transition-colors" href="#">Documentation</a>
+<a class="hover:text-teal-accent transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-teal-accent transition-colors" href="#">Terms of Service</a>
+<a class="hover:text-teal-accent transition-colors" href="#">GitHub</a>
+</div>
+<div class="text-xs text-gray-600">
+                © 2023 Era Kanban. Powered by Cloudflare Workers.
+            </div>
+</div>
+</footer>
+</body></html>

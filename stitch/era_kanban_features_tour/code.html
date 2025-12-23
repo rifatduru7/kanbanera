@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Era Kanban Features Tour</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1392ec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101a22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for glass panel if needed */
+        .glass-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .glass-panel::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .glass-panel::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased selection:bg-primary/30 selection:text-white">
+<div class="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden p-4 md:p-8">
+<!-- Abstract Background Effects -->
+<div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-primary/10 blur-[120px] pointer-events-none"></div>
+<div class="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-teal-500/10 blur-[120px] pointer-events-none"></div>
+<!-- Main Tour Card Container -->
+<div class="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-[#192833]/80 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col lg:flex-row animate-fade-in">
+<!-- Left Panel: Visual Hero -->
+<div class="relative w-full lg:w-1/2 bg-gradient-to-br from-white/5 to-transparent p-6 flex flex-col justify-center items-center min-h-[320px] lg:min-h-[600px] border-b lg:border-b-0 lg:border-r border-white/5">
+<div class="absolute inset-0 bg-[url('https://placeholder.pics/svg/800x800/192833/2A3B47-opacity=0.1')] bg-repeat opacity-20" data-alt="Subtle grid pattern background"></div>
+<!-- Hero Image Component -->
+<div class="relative w-full max-w-md aspect-square lg:aspect-[4/3] rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+<div class="absolute inset-0 bg-gradient-to-t from-[#192833] via-transparent to-transparent z-10 opacity-60"></div>
+<div class="w-full h-full bg-cover bg-center bg-no-repeat transition-transform duration-700 group-hover:scale-105" data-alt="Abstract representation of a digital kanban board workflow on a screen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAxQig1q3DRin9k8NQ-mtXKSFbghBbJurcbDBbpgrM9JmY3Te0gT9TWsh2M2Pk666EkYjEsGdlWh_-SquqGXM-SqSy3HStkbL3qjtFQ-G-9kpJakl6-9DnRXEKq96H3cJTntfHX9roOXWKXrt0s98-BHoH-LUyfW8DU0TTbj5r1jgjUYVdVoI7HCXKWBw09SCQINsr78QakjTHcuiDrl3Kx9LK_Drx0h6GkyKXerm7s_IXWOqC5jls56DTG2U60PuU0gGkxtiybjn0');">
+</div>
+<!-- Floating Badge -->
+<div class="absolute top-4 left-4 z-20 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-[18px]">bolt</span>
+<span class="text-xs font-semibold text-white tracking-wide">Cloudflare Edge Optimized</span>
+</div>
+</div>
+<div class="relative z-10 mt-8 text-center px-4">
+<p class="text-primary font-bold text-sm tracking-wider uppercase mb-2">Step 1 of 4</p>
+<h3 class="text-white text-2xl font-bold leading-tight">Effortless Management</h3>
+<p class="text-slate-400 text-sm mt-2 max-w-xs mx-auto">Designed for speed and simplicity without sacrificing power.</p>
+</div>
+</div>
+<!-- Right Panel: Content & Features -->
+<div class="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-between bg-[#192833]/40">
+<div class="flex flex-col gap-8">
+<div class="flex flex-col gap-3">
+<h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                            Meet <span class="text-primary">Era Kanban</span>
+</h1>
+<p class="text-slate-400 text-base leading-relaxed">
+                            A modern, serverless project management tool built for the Era Bulut ecosystem.
+                        </p>
+</div>
+<!-- Feature List / Highlight Section -->
+<div class="grid gap-4">
+<!-- Feature 1: Kanban -->
+<div class="group flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 cursor-default">
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">view_kanban</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-base font-bold">Drag-and-Drop Boards</h2>
+<p class="text-slate-400 text-sm leading-normal">Visualize workflows seamlessly. Move tasks between stages with a fluid, native-feel interface.</p>
+</div>
+</div>
+<!-- Feature 2: Dashboard -->
+<div class="group flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 cursor-default">
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-base font-bold">Project Hub</h2>
+<p class="text-slate-400 text-sm leading-normal">Monitor all your serverless projects from one centralized dashboard with real-time stats.</p>
+</div>
+</div>
+<!-- Feature 3: Security & R2 -->
+<div class="group flex items-start gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 cursor-default">
+<div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[24px]">verified_user</span>
+</div>
+<div class="flex flex-col gap-1">
+<h2 class="text-white text-base font-bold">Secure by Default</h2>
+<p class="text-slate-400 text-sm leading-normal">JWT Authentication and encrypted R2 file storage ensure your data stays private.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Navigation -->
+<div class="flex flex-col-reverse gap-6 sm:flex-row sm:items-center sm:justify-between pt-8 mt-4 border-t border-white/10">
+<!-- Pagination Indicators -->
+<div class="flex items-center justify-center gap-2">
+<div class="h-2 w-8 rounded-full bg-primary shadow-[0_0_10px_rgba(19,146,236,0.5)]"></div>
+<div class="h-2 w-2 rounded-full bg-white/20 hover:bg-white/40 cursor-pointer transition-colors"></div>
+<div class="h-2 w-2 rounded-full bg-white/20 hover:bg-white/40 cursor-pointer transition-colors"></div>
+<div class="h-2 w-2 rounded-full bg-white/20 hover:bg-white/40 cursor-pointer transition-colors"></div>
+</div>
+<!-- Action Buttons -->
+<div class="flex items-center justify-center gap-3">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-6 text-slate-400 hover:text-white hover:bg-white/5 transition-colors text-sm font-semibold">
+                            Skip
+                        </button>
+<button class="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-lg h-10 px-6 bg-primary hover:bg-primary/90 text-white text-sm font-bold shadow-lg shadow-primary/20 transition-all transform active:scale-95">
+<span>Next</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Background decorative branding text -->
+<div class="absolute bottom-4 text-white/5 text-[10vw] font-black leading-none pointer-events-none select-none tracking-tighter">
+            ERA KANBAN
+        </div>
+</div>
+</body></html>
