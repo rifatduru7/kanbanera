@@ -1,263 +1,187 @@
-# ERA KANBAN - Professional Serverless Project Management App
-## Master Implementation Plan (Cloudflare Free Tier Optimized)
+# ERA KANBAN - Project Documentation
 
-### 1. PROJECT OVERVIEW & ROLE
-**Role:** You are a Senior Full-Stack Developer and Cloudflare Ecosystem Expert.
-**Goal:** Build "ERA KANBAN," a high-performance, serverless Kanban application.
-**Critical Constraint:** The application must be strictly architected to run within **Cloudflare Free Tier** limits.
+## Overview
+Serverless Kanban project management application built on Cloudflare Workers.
 
-**Free Tier Rules (STRICT):**
-1.  **NO Polling Loop:** Do NOT use `setInterval` or continuous polling. It exhausts the 100k requests/day limit. Use "Revalidate on Focus" strategy.
-2.  **NO KV Rate Limiting:** Do NOT use Workers KV for request counting (limit is 1k writes/day). Rely on standard WAF protection.
-3.  **Storage Efficiency:** Use Presigned URLs for R2 uploads/downloads to bypass Worker CPU time.
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   Cloudflare Pages                          │
+│                   (Frontend - React)                        │
+│                   era-kanban.pages.dev                      │
+└─────────────────────────┬───────────────────────────────────┘
+                          │ HTTPS
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Cloudflare Workers                        │
+│                   (Backend - Hono API)                      │
+│                   era-kanban.rifatduru.workers.dev          │
+├─────────────────────────┬───────────────────────────────────┤
+│                         │                                   │
+│    ┌────────────────────┼────────────────────┐              │
+│    │                    │                    │              │
+│    ▼                    ▼                    ▼              │
+│ ┌──────────┐      ┌──────────┐        ┌──────────┐         │
+│ │   D1     │      │   B2     │        │   JWT    │         │
+│ │ Database │      │ Storage  │        │   Auth   │         │
+│ └──────────┘      └──────────┘        └──────────┘         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS 4 |
+| State | Zustand, TanStack Query |
+| UI | Lucide React, @dnd-kit |
+| Backend | Cloudflare Workers, Hono |
+| Database | Cloudflare D1 (SQLite) |
+| Storage | Backblaze B2 (S3-compatible) |
+| Auth | JWT (jose library) |
+
+## Folder Structure
+
+```
+kanbanera/
+├── backend/
+│   ├── src/
+│   │   ├── index.ts          # Main entry
+│   │   ├── types.ts          # TypeScript types
+│   │   ├── middleware/
+│   │   │   └── auth.ts       # JWT middleware
+│   │   └── routes/
+│   │       ├── auth.ts       # Auth endpoints
+│   │       ├── projects.ts   # Project CRUD
+│   │       ├── columns.ts    # Column CRUD
+│   │       ├── tasks.ts      # Task CRUD + subtasks/comments
+│   │       ├── users.ts      # User search/profile
+│   │       └── attachments.ts# File upload (B2)
+│   ├── schema.sql            # D1 schema
+│   ├── wrangler.toml         # Worker config
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── layout/       # Sidebar, Header
+│   │   │   ├── kanban/       # Board, Column, TaskCard, TaskModal
+│   │   │   └── ui/           # Loading, Error
+│   │   ├── pages/
+│   │   │   ├── auth/         # LoginPage
+│   │   │   └── dashboard/    # DashboardLayout, BoardPage
+│   │   ├── hooks/            # useAuth, useKanbanData
+│   │   ├── stores/           # authStore
+│   │   ├── lib/api/          # API client
+│   │   └── types/            # TypeScript types
+│   ├── vite.config.ts
+│   └── package.json
+│
+├── .agent/workflows/         # Development workflows
+├── README.md                 # User documentation
+├── STITCH_PROMPTS.md         # Design prompts
+└── ERA_KANBAN_PROMPT.md      # Original requirements
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Register new user
+- `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/logout` - Logout
+- `GET /api/auth/me` - Current user
+
+### Projects
+- `GET /api/projects` - List projects
+- `POST /api/projects` - Create project
+- `GET /api/projects/:id` - Get project with board data
+
+### Columns
+- `POST /api/projects/:id/columns` - Create column
+- `PUT /api/columns/:id` - Update column
+- `DELETE /api/columns/:id` - Delete column
+- `PUT /api/columns/reorder` - Reorder columns
+
+### Tasks
+- `POST /api/tasks` - Create task
+- `GET /api/tasks/:id` - Get task with details
+- `PUT /api/tasks/:id` - Update task
+- `PUT /api/tasks/:id/move` - Move task
+- `DELETE /api/tasks/:id` - Delete task
+
+### Subtasks & Comments
+- `POST /api/tasks/:id/subtasks` - Add subtask
+- `PUT /api/tasks/:id/subtasks/:sid/toggle` - Toggle subtask
+- `POST /api/tasks/:id/comments` - Add comment
+
+### Attachments
+- `GET /api/attachments/task/:id` - List attachments
+- `POST /api/attachments/task/:id` - Upload file
+- `DELETE /api/attachments/:id` - Delete file
+
+## Database Schema
+
+### Tables
+1. `users` - User accounts
+2. `projects` - Project containers
+3. `project_members` - Project membership (owner, admin, member, viewer)
+4. `columns` - Kanban columns with WIP limits
+5. `tasks` - Task cards with priority, due date, assignee
+6. `subtasks` - Checklist items
+7. `comments` - Task comments
+8. `attachments` - File metadata (B2 keys)
+9. `tags` - Project tags
+10. `task_tags` - Many-to-many relationship
+11. `activity_log` - Action history
+12. `sessions` - Refresh token tracking
+
+## Development Commands
+
+```bash
+# Start backend
+cd backend && npm run dev
+
+# Start frontend
+cd frontend && npm run dev
+
+# Build frontend
+cd frontend && npm run build
+
+# Deploy backend
+cd backend && wrangler deploy
+
+# Deploy frontend
+cd frontend && wrangler pages deploy dist --project-name era-kanban
+```
+
+## Environment Variables
+
+### Backend (wrangler.toml)
+```toml
+[vars]
+JWT_SECRET = "..."
+JWT_REFRESH_SECRET = "..."
+CORS_ORIGIN = "https://era-kanban.pages.dev"
+B2_BUCKET_NAME = "..."
+B2_ENDPOINT = "..."
+B2_KEY_ID = "..."
+B2_APP_KEY = "..."
+```
+
+### Frontend (.env.production)
+```
+VITE_API_URL=https://era-kanban.rifatduru.workers.dev
+```
+
+## Live URLs
+
+| Service | URL |
+|---------|-----|
+| Frontend | https://era-kanban.pages.dev |
+| Backend API | https://era-kanban.rifatduru.workers.dev |
 
 ---
 
-### 2. 🎨 DESIGN SYSTEM (Era Bulut Theme)
-The UI must strictly follow these design tokens.
-
-**Color Palette (Tailwind CSS Variables):**
-```css
-/* Add these to tailwind.config.js */
-colors: {
-  primary: {
-    50: '#f0fdfa',
-    100: '#ccfbf1',
-    200: '#99f6e4',
-    500: '#14b8a6',
-    600: '#0d9488', /* BRAND COLOR */
-    700: '#0f766e',
-    900: '#134e4a',
-  },
-  status: {
-    todo: '#6366f1',       /* Indigo */
-    progress: '#0d9488',   /* Teal */
-    review: '#8b5cf6',     /* Purple */
-    done: '#22c55e',       /* Green */
-  },
-  priority: {
-    low: '#22c55e',
-    medium: '#f59e0b',
-    high: '#f97316',
-    critical: '#ef4444',
-  }
-}
-UI Principles:
-
-Glassmorphism: Use backdrop-blur-md with semi-transparent white backgrounds (bg-white/80) for modals and sticky headers.
-
-Typography: Inter font family. Headings (600/700), Body (400/500).
-
-Interactions: Smooth transitions (transition-all duration-200). Drag & Drop items must have a "lifted" shadow effect.
-
-3. 🛠 TECHNOLOGY STACK
-Backend (Cloudflare Workers):
-
-Framework: Hono (Lightweight, ideal for Workers).
-
-Database: Cloudflare D1 (SQLite).
-
-Storage: Cloudflare R2 (S3 Compatible).
-
-Auth: jose library for JWT (Stateless).
-
-Frontend (React 18+):
-
-Build: Vite.
-
-State Management: TanStack Query (React Query) (CRITICAL for sync logic) + Zustand (Global UI state).
-
-Styling: Tailwind CSS 3.4.
-
-Kanban Logic: @dnd-kit/core (Sortable/Draggable).
-
-Icons: Lucide React.
-
-Forms: React Hook Form + Zod.
-
-4. 📊 DATABASE SCHEMA (D1)
-Use this exact schema. Ensure foreign keys and constraints are applied.
-
-SQL
-
--- Users
-CREATE TABLE users (
-  id TEXT PRIMARY KEY, -- Use crypto.randomUUID() in code
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  full_name TEXT NOT NULL,
-  avatar_url TEXT,
-  role TEXT DEFAULT 'member',
-  created_at TEXT DEFAULT (datetime('now'))
-);
-
--- Projects
-CREATE TABLE projects (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  owner_id TEXT NOT NULL REFERENCES users(id),
-  is_archived INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT (datetime('now'))
-);
-
--- Columns
-CREATE TABLE columns (
-  id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  name TEXT NOT NULL,
-  position INTEGER NOT NULL,
-  wip_limit INTEGER
-);
-
--- Tasks
-CREATE TABLE tasks (
-  id TEXT PRIMARY KEY,
-  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
-  column_id TEXT NOT NULL REFERENCES columns(id),
-  title TEXT NOT NULL,
-  description TEXT,
-  priority TEXT CHECK (priority IN ('low', 'medium', 'high', 'critical')),
-  position INTEGER NOT NULL,
-  assignee_id TEXT REFERENCES users(id),
-  due_date TEXT,
-  created_at TEXT DEFAULT (datetime('now')),
-  updated_at TEXT DEFAULT (datetime('now'))
-);
-
--- Subtasks
-CREATE TABLE subtasks (
-  id TEXT PRIMARY KEY,
-  task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-  title TEXT NOT NULL,
-  is_completed INTEGER DEFAULT 0,
-  position INTEGER NOT NULL
-);
-
--- Comments
-CREATE TABLE comments (
-  id TEXT PRIMARY KEY,
-  task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL REFERENCES users(id),
-  content TEXT NOT NULL,
-  created_at TEXT DEFAULT (datetime('now'))
-);
-
--- Attachments (Metadata for R2)
-CREATE TABLE attachments (
-  id TEXT PRIMARY KEY,
-  task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-  file_name TEXT NOT NULL,
-  r2_key TEXT NOT NULL,
-  file_size INTEGER,
-  created_at TEXT DEFAULT (datetime('now'))
-);
-5. 🔐 AUTHENTICATION & SECURITY
-JWT Strategy:
-
-Access Token: Short lifespan (15 mins). Sent in JSON body. Stored in memory/Zustand.
-
-Refresh Token: Long lifespan (7 days). Stored in HttpOnly, Secure Cookie.
-
-Endpoints:
-
-POST /api/auth/register
-
-POST /api/auth/login
-
-POST /api/auth/refresh (Checks cookie, issues new Access Token)
-
-POST /api/auth/logout
-
-6. 📡 API STRATEGY & SYNC (Free Tier Fix)
-The Problem: Polling every 5s kills Free Tier limits. The Solution:
-
-React Query Configuration:
-
-TypeScript
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: true, // Auto-sync when user returns to tab
-      staleTime: 1000 * 60 * 1,   // Data is fresh for 1 minute
-      retry: 1,
-    },
-  },
-});
-Manual Sync:
-
-Add a "Refresh" button in the Top Bar.
-
-Add a visual indicator: "Last synced: 2 mins ago".
-
-Optimistic Updates (Kanban):
-
-When moving a card:
-
-Update UI State immediately (Zustand/Cache).
-
-Fire PUT /api/tasks/:id/move.
-
-If API fails -> Rollback UI + Show Toast Error.
-
-If API success -> Do nothing (UI is already correct).
-
-7. 📂 FILE UPLOAD STRATEGY (R2)
-To save Worker CPU and RAM:
-
-Client: Request Upload URL -> POST /api/tasks/:id/attachment/presign
-
-Worker: Generate S3 Presigned PUT URL.
-
-Client: Upload file directly to R2 using that URL.
-
-Client: Confirm upload -> POST /api/tasks/:id/attachment/confirm (Saves metadata to D1).
-
-8. 🧩 FRONTEND COMPONENT STRUCTURE
-src/
-├── components/
-│   ├── layout/
-│   │   ├── Sidebar.tsx      # Navigation
-│   │   └── Topbar.tsx       # Search, Profile, Sync Status
-│   ├── kanban/
-│   │   ├── Board.tsx        # Main DndContext
-│   │   ├── Column.tsx       # Droppable
-│   │   ├── TaskCard.tsx     # Draggable, Glassmorphism style
-│   │   └── TaskModal.tsx    # Details, Subtasks, Comments
-│   └── ui/                  # Reusable (Button, Input, Avatar)
-├── hooks/
-│   ├── useKanbanData.ts     # React Query hooks
-│   └── useAuth.ts
-└── pages/
-    ├── Dashboard.tsx
-    ├── ProjectView.tsx
-    └── Login.tsx
-9. 🚀 DEPLOYMENT CONFIG (wrangler.toml)
-Ini, TOML
-
-name = "era-kanban"
-main = "src/index.ts"
-compatibility_date = "2024-01-01"
-
-[[d1_databases]]
-binding = "DB"
-database_name = "era-kanban-db"
-database_id = "YOUR_ID_HERE"
-
-[[r2_buckets]]
-binding = "STORAGE"
-bucket_name = "era-kanban-files"
-
-[vars]
-JWT_SECRET = "development_secret"
-📋 INSTRUCTIONS FOR AI
-Step 1: Generate the Hono Backend structure first. Include the D1 schema and Auth logic (Register/Login).
-
-Step 2: Generate the Frontend Scaffold (Vite + Tailwind). Setup the Era Bulut theme in tailwind.config.js.
-
-Step 3: Create the Kanban Board components using @dnd-kit. Focus heavily on the "Optimistic Update" logic in useKanbanData.ts to ensure the UI feels fast without polling.
-
-Step 4: Implement the Task Detail Modal with Subtasks and Comments.
-
-Start by generating the Backend API with Hono and the D1 Schema.
+*Last updated: December 2024*

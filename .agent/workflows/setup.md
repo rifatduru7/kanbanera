@@ -2,57 +2,71 @@
 description: Initial project setup for ERA KANBAN
 ---
 
-# ERA KANBAN Project Setup
-
-This workflow sets up the complete project structure.
+# Setup Workflow
 
 ## Prerequisites
-- Node.js 18+ installed
-- Cloudflare account with Wrangler CLI configured
+- Node.js 18+
+- Wrangler CLI: `npm install -g wrangler`
+- Cloudflare account logged in: `wrangler login`
 
-## Steps
+## Backend Setup
 
-### 1. Create Backend (Hono Worker)
 // turbo
+1. Install backend dependencies
 ```bash
-npm create hono@latest backend -- --template cloudflare-workers
+cd backend && npm install
 ```
 
-### 2. Install Backend Dependencies
-```bash
-cd backend && npm install jose @cloudflare/d1 && npm install -D wrangler
-```
-
-### 3. Create Frontend (Vite + React)
 // turbo
-```bash
-npm create vite@latest frontend -- --template react-ts
-```
-
-### 4. Install Frontend Dependencies
-```bash
-cd frontend && npm install @tanstack/react-query zustand @dnd-kit/core @dnd-kit/sortable lucide-react react-hook-form zod @hookform/resolvers
-```
-
-### 5. Install Tailwind CSS
-```bash
-cd frontend && npm install -D tailwindcss postcss autoprefixer && npx tailwindcss init -p
-```
-
-### 6. Configure Tailwind
-Add the Era Bulut theme colors to `tailwind.config.js`
-
-### 7. Create D1 Database
+2. Create D1 database (if not exists)
 ```bash
 wrangler d1 create era-kanban-db
 ```
 
-### 8. Create R2 Bucket
+3. Update `wrangler.toml` with database_id from step 2
+
+// turbo
+4. Apply database schema
 ```bash
-wrangler r2 bucket create era-kanban-files
+wrangler d1 execute era-kanban-db --local --file=schema.sql
 ```
 
-### 9. Apply Database Schema
+## Frontend Setup
+
+// turbo
+5. Install frontend dependencies
 ```bash
-wrangler d1 execute era-kanban-db --file=./schema.sql
+cd frontend && npm install
 ```
+
+// turbo
+6. Create .env.local file
+```bash
+echo "VITE_API_URL=http://localhost:8787" > .env.local
+```
+
+## Backblaze B2 Setup (Optional)
+
+7. Create B2 bucket at backblaze.com
+8. Create application key with read/write access
+9. Update `wrangler.toml` with B2 credentials:
+   - B2_BUCKET_NAME
+   - B2_ENDPOINT
+   - B2_KEY_ID
+   - B2_APP_KEY
+
+## Verification
+
+// turbo
+10. Run backend
+```bash
+cd backend && npm run dev
+```
+
+// turbo
+11. Run frontend (new terminal)
+```bash
+cd frontend && npm run dev
+```
+
+12. Open http://localhost:5173 and verify login page loads
