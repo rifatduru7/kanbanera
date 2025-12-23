@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoginPage } from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage';
+import ResetPasswordPage from './pages/auth/ResetPasswordPage';
 import { DashboardLayout } from './pages/dashboard/DashboardLayout';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { BoardPage } from './pages/dashboard/BoardPage';
@@ -29,6 +31,8 @@ function App() {
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Protected Routes */}
           <Route path="/" element={<DashboardLayout />}>
@@ -51,8 +55,7 @@ function App() {
   );
 }
 
-// Placeholder components - will be replaced with actual pages
-
+// Placeholder components
 function MembersPlaceholder() {
   return (
     <div className="text-center py-20">

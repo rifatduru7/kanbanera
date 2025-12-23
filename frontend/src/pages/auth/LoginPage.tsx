@@ -1,23 +1,39 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Kanban, Github, Mail } from 'lucide-react';
+import { Eye, EyeOff, Kanban, Github, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { authApi } from '../../lib/api/client';
+import { useAuthStore } from '../../stores/authStore';
 
 export function LoginPage() {
     const navigate = useNavigate();
+    const { setUser, setAccessToken } = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
+        setError('');
 
-        // TODO: Implement actual login with API
-        setTimeout(() => {
+        try {
+            const response = await authApi.login(email, password);
+
+            if (response.success && response.data) {
+                setUser(response.data.user);
+                setAccessToken(response.data.accessToken);
+                navigate('/dashboard');
+            } else {
+                setError(response.message || 'Login failed');
+            }
+        } catch (err: any) {
+            const errorMessage = err.response?.data?.message || err.message || 'Login failed. Please try again.';
+            setError(errorMessage);
+        } finally {
             setIsLoading(false);
-            navigate('/dashboard');
-        }, 1000);
+        }
     };
 
     return (
@@ -43,6 +59,14 @@ export function LoginPage() {
                         </p>
                     </div>
 
+                    {/* Error Message */}
+                    {error && (
+                        <div className="mb-4 flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                            <AlertCircle className="size-4 shrink-0" />
+                            <span>{error}</span>
+                        </div>
+                    )}
+
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5 w-full">
                         {/* Email Field */}
@@ -55,6 +79,7 @@ export function LoginPage() {
                                 className="glass-input h-12 w-full rounded-xl border px-4 py-2 text-white placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
                                 placeholder="name@example.com"
                                 required
+                                disabled={isLoading}
                             />
                         </label>
 
@@ -77,6 +102,7 @@ export function LoginPage() {
                                     className="glass-input h-12 w-full rounded-xl border px-4 py-2 text-white placeholder-text-muted focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all pr-12"
                                     placeholder="Enter your password"
                                     required
+                                    disabled={isLoading}
                                 />
                                 <button
                                     type="button"
@@ -96,8 +122,9 @@ export function LoginPage() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="mt-2 flex h-12 w-full items-center justify-center rounded-xl bg-primary hover:bg-primary/90 transition-all text-sm font-bold text-white shadow-lg shadow-primary/25 disabled:opacity-70"
+                            className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 transition-all text-sm font-bold text-white shadow-lg shadow-primary/25 disabled:opacity-70"
                         >
+                            {isLoading && <Loader2 className="size-4 animate-spin" />}
                             {isLoading ? 'Logging in...' : 'Log In'}
                         </button>
 
