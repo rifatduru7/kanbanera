@@ -3,16 +3,27 @@ import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
 import { BottomNav } from '../../components/layout/BottomNav';
 import { SearchModal, useSearchModal } from '../../components/ui/SearchModal';
+import { WelcomeModal, useWelcomeModal } from '../../components/onboarding/WelcomeModal';
+import { CreateProjectModal } from '../../components/project/CreateProjectModal';
 import { Outlet } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
 
 export function DashboardLayout() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [lastSynced, setLastSynced] = useState<Date | null>(new Date());
+    const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
+
     const searchModal = useSearchModal();
+    const { isWelcomeOpen, closeWelcome } = useWelcomeModal();
+    const { user } = useAuthStore();
 
     const handleRefresh = async () => {
-        // TODO: Implement actual data refresh
         setLastSynced(new Date());
+    };
+
+    const handleWelcomeCreateProject = () => {
+        closeWelcome();
+        setIsCreateProjectOpen(true);
     };
 
     return (
@@ -53,6 +64,21 @@ export function DashboardLayout() {
 
             {/* Global Search Modal (Cmd+K) */}
             <SearchModal isOpen={searchModal.isOpen} onClose={searchModal.close} />
+
+            {/* Welcome Modal for new users */}
+            {isWelcomeOpen && (
+                <WelcomeModal
+                    userName={user?.name?.split(' ')[0]}
+                    onClose={closeWelcome}
+                    onCreateProject={handleWelcomeCreateProject}
+                />
+            )}
+
+            {/* Create Project Modal */}
+            <CreateProjectModal
+                isOpen={isCreateProjectOpen}
+                onClose={() => setIsCreateProjectOpen(false)}
+            />
         </div>
     );
 }

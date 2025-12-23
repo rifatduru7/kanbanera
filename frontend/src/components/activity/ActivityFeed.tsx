@@ -1,4 +1,4 @@
-import { Plus, MessageSquare, Paperclip, ArrowRight, Check, UserPlus, Filter, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, MessageSquare, Paperclip, ArrowRight, Check, UserPlus, Filter, Loader2, AlertCircle, Clock } from 'lucide-react';
 import { useActivities, type Activity } from '../../hooks/useActivities';
 
 type ActivityType = 'task_created' | 'comment' | 'file_uploaded' | 'task_moved' | 'task_completed' | 'member_joined';
@@ -107,7 +107,11 @@ export function ActivityFeed({ title = 'Recent Activity', compact = false, limit
             {!isLoading && !error && (
                 <div className="overflow-y-auto p-6 flex-1 space-y-0">
                     {activities.length === 0 ? (
-                        <p className="text-text-muted text-sm text-center py-8">No activities yet</p>
+                        <div className="flex flex-col items-center justify-center py-8 text-center">
+                            <Clock className="size-12 text-text-muted/50 mb-3" />
+                            <p className="text-white font-medium mb-1">No recent activity</p>
+                            <p className="text-text-muted text-xs max-w-[200px]">When you or your team makes changes, they'll appear here.</p>
+                        </div>
                     ) : (
                         activities.map((activity, index) => {
                             const activityConfig = activityIcons[activity.type] || activityIcons.task_created;
