@@ -11,7 +11,7 @@ database_id = "63f30b95-5941-4ee7-a258-ee434598ead3"
 [vars]
 JWT_SECRET = "development_secret_change_in_production"
 JWT_REFRESH_SECRET = "refresh_secret_change_in_production"
-CORS_ORIGIN = "https://era-kanban.pages.dev"
+CORS_ORIGIN = "https://era.rifatduru.com.tr"
 # Backblaze B2 Settings (set these in Cloudflare Dashboard > Workers > Settings > Variables)
 B2_BUCKET_NAME = "erakanban"
 B2_ENDPOINT = "https://s3.us-west-004.backblazeb2.com"
