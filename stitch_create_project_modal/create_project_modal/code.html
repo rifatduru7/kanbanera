@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Create Project Modal - ERA KANBAN</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+            extend: {
+                colors: {
+                "primary": "#13b9a5",
+                "background-light": "#f6f8f8",
+                "background-dark": "#11211f",
+                },
+                fontFamily: {
+                "display": ["Inter", "sans-serif"]
+                },
+                borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                backgroundImage: {
+                    'glass-gradient': 'linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%)',
+                }
+            },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for textarea if needed */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+        textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        textarea::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark min-h-screen relative overflow-hidden flex flex-col">
+<!-- Simulated Background Content (To demonstrate transparency/blur) -->
+<div aria-hidden="true" class="absolute inset-0 z-0 flex bg-[#11211f]">
+<!-- Sidebar placeholder -->
+<div class="w-64 border-r border-white/5 bg-[#0d1817] hidden md:flex flex-col p-4 gap-4">
+<div class="h-8 w-32 bg-white/5 rounded-lg mb-4"></div>
+<div class="h-4 w-full bg-white/5 rounded"></div>
+<div class="h-4 w-3/4 bg-white/5 rounded"></div>
+<div class="h-4 w-5/6 bg-white/5 rounded"></div>
+</div>
+<!-- Main board placeholder -->
+<div class="flex-1 p-8 grid grid-cols-1 md:grid-cols-3 gap-6 opacity-40">
+<div class="flex flex-col gap-4">
+<div class="h-8 w-24 bg-white/10 rounded mb-2"></div>
+<div class="h-32 bg-[#1e293b] rounded-xl border border-white/5 shadow-lg"></div>
+<div class="h-40 bg-[#1e293b] rounded-xl border border-white/5 shadow-lg"></div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="h-8 w-24 bg-white/10 rounded mb-2"></div>
+<div class="h-48 bg-[#1e293b] rounded-xl border border-white/5 shadow-lg"></div>
+</div>
+<div class="flex flex-col gap-4">
+<div class="h-8 w-24 bg-white/10 rounded mb-2"></div>
+<div class="h-24 bg-[#1e293b] rounded-xl border border-white/5 shadow-lg"></div>
+<div class="h-24 bg-[#1e293b] rounded-xl border border-white/5 shadow-lg"></div>
+</div>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
+<!-- Modal Card -->
+<!-- Using #1e293b base with opacity for glassmorphism -->
+<div class="relative w-full max-w-[480px] flex flex-col rounded-xl border border-white/10 bg-[#1e293b]/95 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(19,185,165,0.15)] ring-1 ring-white/5 overflow-hidden">
+<!-- Header -->
+<div class="flex items-center justify-between px-6 pt-6 pb-2">
+<h2 class="text-white text-xl font-bold tracking-tight">Create New Project</h2>
+<button class="group text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/50">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+</div>
+<!-- Form Content -->
+<div class="p-6 space-y-6">
+<!-- Project Name Input -->
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-300">
+                        Project Name <span class="text-primary">*</span>
+</label>
+<input class="form-input flex w-full rounded-lg bg-[#0f172a]/50 border border-slate-700/60 text-white placeholder:text-slate-500 focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors" placeholder="e.g., Q4 Marketing Campaign" type="text" value=""/>
+</div>
+<!-- Description Textarea -->
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-300">
+                        Description
+                    </label>
+<textarea class="form-textarea flex w-full rounded-lg bg-[#0f172a]/50 border border-slate-700/60 text-white placeholder:text-slate-500 focus:border-primary focus:ring-1 focus:ring-primary min-h-[84px] p-4 text-base resize-none transition-colors" placeholder="Briefly describe the goals..." rows="3"></textarea>
+</div>
+<!-- Color Picker -->
+<div class="space-y-3">
+<label class="block text-sm font-medium text-slate-300">Project Color</label>
+<div class="flex flex-wrap gap-3">
+<!-- Teal (Default) -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input checked="" class="peer sr-only" name="project_color" type="radio" value="teal"/>
+<span class="absolute inset-0 rounded-full bg-teal-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-primary transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Blue -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="blue"/>
+<span class="absolute inset-0 rounded-full bg-blue-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-blue-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Purple -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="purple"/>
+<span class="absolute inset-0 rounded-full bg-purple-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-purple-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Pink -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="pink"/>
+<span class="absolute inset-0 rounded-full bg-pink-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-pink-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Red -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="red"/>
+<span class="absolute inset-0 rounded-full bg-red-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-red-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Orange -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="orange"/>
+<span class="absolute inset-0 rounded-full bg-orange-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-orange-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Yellow -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="yellow"/>
+<span class="absolute inset-0 rounded-full bg-yellow-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-yellow-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+<!-- Green -->
+<label class="relative size-8 rounded-full cursor-pointer group">
+<input class="peer sr-only" name="project_color" type="radio" value="green"/>
+<span class="absolute inset-0 rounded-full bg-green-500 ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-[#1e293b] peer-checked:ring-green-500 transition-all duration-200"></span>
+<span class="material-symbols-outlined absolute inset-0 flex items-center justify-center text-white text-[16px] opacity-0 peer-checked:opacity-100 scale-50 peer-checked:scale-100 transition-all duration-200">check</span>
+</label>
+</div>
+</div>
+<!-- Template Dropdown -->
+<div class="space-y-2">
+<label class="block text-sm font-medium text-slate-300">
+                        Template
+                    </label>
+<div class="relative">
+<select class="form-select w-full rounded-lg bg-[#0f172a]/50 border border-slate-700/60 text-white focus:border-primary focus:ring-1 focus:ring-primary h-12 pl-4 pr-10 text-base transition-colors appearance-none cursor-pointer">
+<option value="blank">Blank Board</option>
+<option value="software">Software Development</option>
+<option value="marketing">Marketing Campaign</option>
+<option value="personal">Personal Goals</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="flex items-center justify-end gap-3 px-6 py-5 border-t border-white/5 bg-[#0f172a]/20">
+<button class="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 focus:bg-white/5 transition-all focus:outline-none">
+                    Cancel
+                </button>
+<button class="px-6 py-2.5 rounded-lg text-sm font-semibold bg-primary text-[#11211f] hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#1e293b] focus:ring-primary transition-all shadow-md shadow-primary/10">
+                    Create Project
+                </button>
+</div>
+</div>
+</div>
+</body></html>

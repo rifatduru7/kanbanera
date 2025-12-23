@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ERA KANBAN - Empty States</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b9a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white overflow-x-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 flex-shrink-0 border-r border-white/10 bg-background-dark hidden md:flex flex-col justify-between p-4">
+<div class="flex flex-col gap-8">
+<!-- Brand -->
+<div class="flex items-center gap-3 px-2">
+<div class="flex items-center justify-center size-10 rounded-lg bg-gradient-to-br from-primary to-emerald-700 text-white shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-2xl">view_kanban</span>
+</div>
+<h1 class="text-white text-lg font-bold tracking-tight">ERA KANBAN</h1>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">view_kanban</span>
+<span class="text-sm font-medium">Boards</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Team</span>
+</a>
+<div class="h-px bg-white/10 my-2 mx-3"></div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined">style</span>
+<span class="text-sm font-medium">Design System</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Actions -->
+<div class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-white/5 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="flex items-center gap-3 px-3 py-3 mt-2 rounded-xl bg-white/5 border border-white/5">
+<div aria-label="User avatar gradient" class="size-8 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500" role="img"></div>
+<div class="flex flex-col">
+<span class="text-xs font-semibold text-white">Alex Morgan</span>
+<span class="text-[10px] text-gray-400">Product Manager</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-y-auto bg-background-light dark:bg-[#0f1b19] relative">
+<!-- Header -->
+<header class="w-full px-8 py-8 md:py-12 border-b border-white/5 bg-background-dark">
+<div class="max-w-6xl mx-auto">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-2 text-primary text-sm font-medium mb-2">
+<span>Design System</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span>Components</span>
+</div>
+<h2 class="text-3xl md:text-4xl font-black tracking-tight text-white">Empty States Gallery</h2>
+<p class="text-gray-400 text-lg max-w-2xl">A collection of empty state patterns used across the ERA Kanban application to guide users when no content is available.</p>
+</div>
+</div>
+</header>
+<!-- Content Grid -->
+<div class="flex-1 px-6 py-8 md:px-10 md:py-12">
+<div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+<!-- 1. No Projects -->
+<div class="flex flex-col rounded-2xl bg-background-dark border border-white/5 overflow-hidden shadow-xl shadow-black/20 group hover:border-primary/30 transition-colors duration-300">
+<div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+<span class="text-xs font-bold tracking-wider text-gray-500 uppercase">01. No Projects</span>
+<span class="size-2 rounded-full bg-primary/50"></span>
+</div>
+<div class="flex flex-col items-center justify-center p-12 text-center h-full min-h-[400px]">
+<!-- Illustration Area -->
+<div class="relative mb-8 size-48 flex items-center justify-center">
+<div class="absolute inset-0 bg-primary/5 rounded-full blur-2xl scale-75 group-hover:scale-100 transition-transform duration-500"></div>
+<span class="material-symbols-outlined text-[120px] text-primary/80 drop-shadow-[0_0_15px_rgba(19,185,165,0.3)]">folder_open</span>
+</div>
+<h3 class="text-xl font-bold text-white mb-2">No projects yet</h3>
+<p class="text-gray-400 max-w-xs mb-8 leading-relaxed">Create your first project to get started with your agile workflow.</p>
+<button class="bg-primary hover:bg-emerald-400 text-background-dark font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(19,185,165,0.2)]">
+<span class="material-symbols-outlined text-xl">add</span>
+<span>Create Project</span>
+</button>
+</div>
+</div>
+<!-- 2. Empty Board -->
+<div class="flex flex-col rounded-2xl bg-background-dark border border-white/5 overflow-hidden shadow-xl shadow-black/20 group hover:border-primary/30 transition-colors duration-300">
+<div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+<span class="text-xs font-bold tracking-wider text-gray-500 uppercase">02. Empty Board (Column)</span>
+<span class="size-2 rounded-full bg-orange-400/50"></span>
+</div>
+<div class="flex flex-col items-center justify-center p-12 text-center h-full min-h-[400px]">
+<!-- Illustration Area -->
+<div class="relative mb-8 size-48 flex items-center justify-center">
+<div class="absolute inset-0 border-2 border-dashed border-white/10 rounded-xl w-32 h-40 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-6"></div>
+<span class="material-symbols-outlined text-[100px] text-gray-600 group-hover:text-primary/60 transition-colors duration-300 relative z-10">assignment_add</span>
+</div>
+<h3 class="text-xl font-bold text-white mb-2">No tasks in this column</h3>
+<p class="text-gray-400 max-w-xs mb-8 leading-relaxed">This stage is clear. Drag tasks here from other columns or create a new one.</p>
+<button class="bg-transparent hover:bg-white/5 border border-white/20 hover:border-white/40 text-white font-medium py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-xl">add_task</span>
+<span>Add Task</span>
+</button>
+</div>
+</div>
+<!-- 3. No Search Results -->
+<div class="flex flex-col rounded-2xl bg-background-dark border border-white/5 overflow-hidden shadow-xl shadow-black/20 group hover:border-primary/30 transition-colors duration-300">
+<div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+<span class="text-xs font-bold tracking-wider text-gray-500 uppercase">03. No Search Results</span>
+<span class="size-2 rounded-full bg-blue-400/50"></span>
+</div>
+<div class="flex flex-col items-center justify-center p-12 text-center h-full min-h-[400px]">
+<!-- Illustration Area -->
+<div class="relative mb-8 size-48 flex items-center justify-center">
+<span class="material-symbols-outlined text-[110px] text-gray-700">search_off</span>
+<div class="absolute right-10 top-10 size-8 bg-background-dark rounded-full flex items-center justify-center border border-white/10">
+<span class="material-symbols-outlined text-red-400 text-lg">close</span>
+</div>
+</div>
+<h3 class="text-xl font-bold text-white mb-2">No results found</h3>
+<p class="text-gray-400 max-w-xs mb-6 leading-relaxed">We couldn't find anything matching your search. Try adjusting your search or filters.</p>
+<button class="text-primary hover:text-emerald-300 font-semibold text-sm border-b border-primary/30 hover:border-primary transition-colors pb-0.5">
+                            Clear all filters
+                        </button>
+</div>
+</div>
+<!-- 4. No Activity -->
+<div class="flex flex-col rounded-2xl bg-background-dark border border-white/5 overflow-hidden shadow-xl shadow-black/20 group hover:border-primary/30 transition-colors duration-300">
+<div class="px-6 py-4 border-b border-white/5 flex justify-between items-center">
+<span class="text-xs font-bold tracking-wider text-gray-500 uppercase">04. No Activity</span>
+<span class="size-2 rounded-full bg-purple-400/50"></span>
+</div>
+<div class="flex flex-col items-center justify-center p-12 text-center h-full min-h-[400px]">
+<!-- Illustration Area -->
+<div class="relative mb-8 size-48 flex items-center justify-center">
+<!-- Clock ticks ring -->
+<div class="absolute inset-0 rounded-full border border-white/5 w-40 h-40 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+<span class="material-symbols-outlined text-[100px] text-gray-600">history_toggle_off</span>
+</div>
+<h3 class="text-xl font-bold text-white mb-2">No recent activity</h3>
+<p class="text-gray-500 max-w-xs leading-relaxed text-sm">When you or your team makes changes, a timeline of actions will appear here to keep you updated.</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

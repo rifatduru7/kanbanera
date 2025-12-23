@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile - ERA KANBAN</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b9a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f", // Deep dark green/black base
+                        "surface-dark": "#1a2c2a",    // Slightly lighter for cards
+                        "border-dark": "#244743",     // Border color
+                        "text-secondary": "#92c8c2",  // Muted teal text
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "2xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #11211f; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #244743; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #13b9a5; 
+        }
+        
+        .glass-panel {
+            background: rgba(26, 44, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(36, 71, 67, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-white font-display overflow-hidden selection:bg-primary/30">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="hidden lg:flex flex-col w-64 h-full border-r border-border-dark bg-[#112220]">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-8 bg-primary/20 flex items-center justify-center text-primary" data-alt="Abstract logo shape">
+<span class="material-symbols-outlined">space_dashboard</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-tight tracking-tight">ERA KANBAN</h1>
+<p class="text-text-secondary text-xs font-normal">Pro Workspace</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 gap-2 flex flex-col">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Board</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">list</span>
+<span class="text-sm font-medium">Backlog</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">calendar_month</span>
+<span class="text-sm font-medium">Timeline</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">bar_chart</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+<div class="mt-8 mb-2 px-3 text-xs font-bold text-text-secondary/60 uppercase tracking-wider">Settings</div>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">Team Members</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-surface-dark text-white shadow-sm border border-border-dark/50" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary">person</span>
+<span class="text-sm font-medium">My Profile</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-secondary hover:bg-surface-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">App Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-border-dark">
+<button class="flex items-center gap-3 w-full px-3 py-2 text-text-secondary hover:text-red-400 transition-colors">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="text-sm font-medium">Log out</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col h-full relative overflow-hidden bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&amp;w=2564&amp;auto=format&amp;fit=crop')] bg-cover bg-center" data-alt="Abstract dark fluid gradient background">
+<!-- Overlay to darken background for readability -->
+<div class="absolute inset-0 bg-[#11211f]/90 z-0"></div>
+<!-- Top Header -->
+<header class="relative z-10 flex items-center justify-between border-b border-border-dark bg-[#112220]/80 backdrop-blur-md px-6 py-4 lg:px-10">
+<h2 class="text-white text-lg font-bold tracking-tight lg:hidden">ERA KANBAN</h2>
+<!-- Breadcrumb/Title for Desktop -->
+<div class="hidden lg:flex items-center gap-2 text-sm text-text-secondary">
+<span>Settings</span>
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-white font-medium">User Profile</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Search -->
+<div class="hidden md:flex items-center bg-surface-dark rounded-lg px-3 py-1.5 border border-border-dark focus-within:border-primary/50 transition-colors w-64">
+<span class="material-symbols-outlined text-text-secondary text-[20px]">search</span>
+<input class="bg-transparent border-none text-sm text-white placeholder-text-secondary/50 focus:ring-0 w-full ml-2 p-0" placeholder="Search..." type="text"/>
+</div>
+<!-- Notification Bell -->
+<button class="relative text-text-secondary hover:text-white transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 size-2 bg-primary rounded-full"></span>
+</button>
+<!-- User Avatar Mini -->
+<div class="size-9 rounded-full bg-cover bg-center border border-border-dark" data-alt="User profile picture thumbnail" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBYYewAvsGjP1S6bBKyEOyRWjQLjaRcMD1CvN5s0uUPSsmvs6mt4oWeX_7eswcvBWIGnjjgKduEgKgnP0qy9LKFi8m5SjK6nNIROOftcs04Rlw8G57qEhMd5sGbWvmkmvQX_sJcjdkw86Hv-ZSRZTgssXRuCzRIEWMo44UG29AgSXDoiNDCLY33yzi4_sl1vexpr340cDJLfJQ80Im5KabzvVTxY6LUlMrDWN_q1zAN1dH76WEEySmFubPdai87Sd9AhaKp2Q16WDI')"></div>
+</div>
+</header>
+<!-- Scrollable Page Content -->
+<main class="relative z-10 flex-1 overflow-y-auto p-4 lg:p-10">
+<div class="max-w-6xl mx-auto">
+<!-- Page Heading -->
+<div class="mb-8">
+<h1 class="text-3xl font-bold text-white mb-2">User Profile</h1>
+<p class="text-text-secondary">Manage your personal details, workspace preferences, and account security.</p>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left Column: Profile Card (Sticky on Large Screens) -->
+<div class="lg:col-span-4 lg:sticky lg:top-0">
+<div class="glass-panel rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">
+<div class="relative group cursor-pointer mb-5">
+<div class="size-24 rounded-full bg-cover bg-center border-4 border-surface-dark shadow-lg transition-transform group-hover:scale-105" data-alt="User large profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCUsn7kVrlQXy8OH4cyyjI9IfL0M2G1RstUDpK4396aYHTCTn--eloeUXTMoaiWerhkDNsh9GQWBU02Cmn_imNQeLk6TRbCIcssvDz5r1VHnsl3CN-23kCYexLn9jkbnvhBG89wNuB4_1WfF0vD5X2JHr4pZpSPivT2QHl-GQaf8SnqFpYVGXEFfYqoLw510DmNZ-NuTL33UTnBxloLocWUA9wlJndpwvVuvL2j-vNUVGZkEnFwyvyPotrjl5W9efeiu5y9_0_Ynx4')"></div>
+<div class="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+<span class="material-symbols-outlined text-white text-[24px]">photo_camera</span>
+</div>
+</div>
+<h3 class="text-xl font-bold text-white">Jane Doe</h3>
+<div class="flex items-center justify-center gap-1.5 mt-1 text-text-secondary text-sm">
+<span class="material-symbols-outlined text-[16px]">lock</span>
+<span>janedoe@erakanban.com</span>
+</div>
+<div class="mt-5 flex gap-2">
+<span class="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary ring-1 ring-inset ring-primary/20">
+<span class="size-1.5 rounded-full bg-primary"></span>
+                                        Admin
+                                    </span>
+<span class="inline-flex items-center rounded-full bg-purple-500/10 px-3 py-1 text-xs font-medium text-purple-400 ring-1 ring-inset ring-purple-500/20">
+                                        Pro Plan
+                                    </span>
+</div>
+<div class="mt-8 pt-6 border-t border-border-dark w-full">
+<div class="flex items-center justify-between text-sm mb-3">
+<span class="text-text-secondary">Member since</span>
+<span class="text-white font-medium">Dec 2024</span>
+</div>
+<div class="flex items-center justify-between text-sm">
+<span class="text-text-secondary">Last active</span>
+<span class="text-white font-medium">Just now</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Settings Sections -->
+<div class="lg:col-span-8 flex flex-col gap-8">
+<!-- Personal Information -->
+<section class="glass-panel rounded-2xl p-6 md:p-8">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-lg font-semibold text-white">Personal Information</h3>
+<p class="text-sm text-text-secondary mt-1">Update your photo and personal details.</p>
+</div>
+<button class="p-2 rounded-lg hover:bg-white/5 text-text-secondary transition-colors">
+<span class="material-symbols-outlined">edit</span>
+</button>
+</div>
+<form class="space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-text-secondary">First Name</label>
+<input class="w-full rounded-lg bg-[#112220] border-border-dark text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5" type="text" value="Jane"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-text-secondary">Last Name</label>
+<input class="w-full rounded-lg bg-[#112220] border-border-dark text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm p-2.5" type="text" value="Doe"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-text-secondary">Email Address</label>
+<div class="relative">
+<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+<span class="material-symbols-outlined text-gray-500 text-[20px]">mail</span>
+</span>
+<input class="block w-full rounded-lg border-0 bg-white/5 py-2.5 pl-10 text-gray-400 shadow-sm ring-1 ring-inset ring-border-dark sm:text-sm sm:leading-6 cursor-not-allowed" disabled="" type="email" value="janedoe@erakanban.com"/>
+<div class="absolute inset-y-0 right-0 flex items-center pr-3">
+<span class="material-symbols-outlined text-gray-500 text-[18px]">lock</span>
+</div>
+</div>
+<p class="text-xs text-text-secondary/60">Email address cannot be changed for security reasons.</p>
+</div>
+<div class="pt-4 flex justify-end">
+<button class="bg-primary hover:bg-primary/90 text-[#0f1d1b] font-semibold py-2.5 px-6 rounded-lg transition-colors text-sm shadow-[0_0_15px_rgba(19,185,165,0.3)]" type="button">
+                                            Save Changes
+                                        </button>
+</div>
+</form>
+</section>
+<!-- Security -->
+<section class="glass-panel rounded-2xl p-6 md:p-8">
+<h3 class="text-lg font-semibold text-white mb-6">Security</h3>
+<div class="space-y-6">
+<div class="flex items-center justify-between pb-6 border-b border-border-dark">
+<div>
+<h4 class="text-sm font-medium text-white">Password</h4>
+<p class="text-sm text-text-secondary mt-1">Last changed 3 months ago</p>
+</div>
+<button class="rounded-lg border border-border-dark bg-transparent px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-white/5 transition-colors" type="button">
+                                            Change Password
+                                        </button>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<h4 class="text-sm font-medium text-white">Two-factor Authentication</h4>
+<p class="text-sm text-text-secondary mt-1">Add an extra layer of security to your account.</p>
+</div>
+<!-- Toggle -->
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-surface-dark peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Preferences -->
+<section class="glass-panel rounded-2xl p-6 md:p-8">
+<h3 class="text-lg font-semibold text-white mb-6">Preferences</h3>
+<div class="space-y-6">
+<!-- Theme -->
+<div class="flex flex-col gap-3">
+<label class="text-sm font-medium text-white">Interface Theme</label>
+<div class="grid grid-cols-3 gap-3">
+<button class="flex items-center justify-center gap-2 rounded-lg border border-border-dark bg-[#112220] px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-dark hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">light_mode</span>
+                                                Light
+                                            </button>
+<button class="relative flex items-center justify-center gap-2 rounded-lg border border-primary bg-primary/10 px-3 py-2.5 text-sm font-medium text-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">dark_mode</span>
+                                                Dark
+                                                <span class="absolute -top-1 -right-1 flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+</span>
+</button>
+<button class="flex items-center justify-center gap-2 rounded-lg border border-border-dark bg-[#112220] px-3 py-2.5 text-sm font-medium text-text-secondary hover:bg-surface-dark hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[18px]">desktop_windows</span>
+                                                System
+                                            </button>
+</div>
+</div>
+<!-- Notifications -->
+<div class="pt-4 border-t border-border-dark">
+<label class="text-sm font-medium text-white block mb-4">Notifications</label>
+<div class="space-y-3">
+<div class="flex items-start">
+<div class="flex h-5 items-center">
+<input class="h-4 w-4 rounded border-border-dark bg-[#112220] text-primary focus:ring-primary focus:ring-offset-[#112220]" id="comments" name="comments" type="checkbox"/>
+</div>
+<div class="ml-3 text-sm leading-5">
+<label class="font-medium text-white" for="comments">Email Notifications</label>
+<p class="text-text-secondary">Get emails to find out what's going on when you're not online.</p>
+</div>
+</div>
+<div class="flex items-start">
+<div class="flex h-5 items-center">
+<input checked="" class="h-4 w-4 rounded border-border-dark bg-[#112220] text-primary focus:ring-primary focus:ring-offset-[#112220]" id="candidates" name="candidates" type="checkbox"/>
+</div>
+<div class="ml-3 text-sm leading-5">
+<label class="font-medium text-white" for="candidates">Desktop Push Notifications</label>
+<p class="text-text-secondary">Receive push notifications when mentioned or assigned a task.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Language -->
+<div class="pt-4 border-t border-border-dark">
+<label class="text-sm font-medium text-white block mb-2">Language</label>
+<select class="mt-1 block w-full rounded-lg border-border-dark bg-[#112220] py-2.5 pl-3 pr-10 text-white focus:border-primary focus:ring-primary sm:text-sm">
+<option>English (US)</option>
+<option>Spanish</option>
+<option>French</option>
+<option>German</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Danger Zone -->
+<section class="glass-panel rounded-2xl p-6 md:p-8 border-red-900/40 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="material-symbols-outlined text-red-500 text-[120px] leading-none">warning</span>
+</div>
+<h3 class="text-lg font-semibold text-red-500 mb-2 relative z-10">Danger Zone</h3>
+<p class="text-sm text-text-secondary mb-6 max-w-lg relative z-10">Once you delete your account, there is no going back. Please be certain. All your projects, tasks, and team associations will be permanently removed.</p>
+<button class="relative z-10 rounded-lg border border-red-900/50 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-500 hover:bg-red-500 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-[#112220]" type="button">
+                                    Delete Account
+                                </button>
+</section>
+<!-- Spacer -->
+<div class="h-10"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

@@ -16,7 +16,7 @@ export function useProjects() {
         queryFn: async () => {
             const response = await projectsApi.getProjects();
             if (response.success && response.data) {
-                return response.data.projects;
+                return { projects: response.data.projects };
             }
             throw new Error(response.message || 'Failed to fetch projects');
         },

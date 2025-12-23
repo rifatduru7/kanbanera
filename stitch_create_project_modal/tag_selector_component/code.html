@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tag Selector Component - ERA KANBAN</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b9a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                        "surface-dark": "#1C2E2C", // Slightly lighter for cards/dropdowns
+                        "border-dark": "#2A403D", // For borders
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for the dropdown list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #2A403D;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-center justify-center font-display p-6 text-slate-900 dark:text-white">
+<!-- Mock Sidebar Container -->
+<div class="w-full max-w-[340px] flex flex-col gap-6">
+<!-- Context Title (Visual Guide Only) -->
+<div class="opacity-50 text-xs font-semibold tracking-wider uppercase mb-[-10px]">Task Properties</div>
+<!-- Tag Selector Component Wrapper -->
+<div class="flex flex-col gap-3 relative z-10">
+<!-- Label -->
+<div class="flex items-center justify-between">
+<label class="text-sm font-medium text-slate-500 dark:text-slate-400">Tags</label>
+</div>
+<!-- Selected Tags + Trigger Button Area -->
+<div class="flex flex-wrap gap-2 items-center min-h-[40px]">
+<!-- Selected Tag 1: Bug (Red) -->
+<div class="group flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-full bg-red-500/20 text-red-100 hover:bg-red-500/30 transition-colors border border-red-500/10 cursor-default">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+<span class="text-xs font-medium">Bug</span>
+<button class="flex items-center justify-center size-5 rounded-full hover:bg-red-500/20 text-red-200/70 hover:text-red-100 transition-colors ml-0.5">
+<span class="material-symbols-outlined text-[14px] font-bold">close</span>
+</button>
+</div>
+<!-- Selected Tag 2: Feature (Blue) -->
+<div class="group flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-full bg-blue-500/20 text-blue-100 hover:bg-blue-500/30 transition-colors border border-blue-500/10 cursor-default">
+<span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+<span class="text-xs font-medium">Feature</span>
+<button class="flex items-center justify-center size-5 rounded-full hover:bg-blue-500/20 text-blue-200/70 hover:text-blue-100 transition-colors ml-0.5">
+<span class="material-symbols-outlined text-[14px] font-bold">close</span>
+</button>
+</div>
+<!-- Selected Tag 3: Urgent (Orange) -->
+<div class="group flex items-center gap-1.5 h-7 pl-2.5 pr-1.5 rounded-full bg-orange-500/20 text-orange-100 hover:bg-orange-500/30 transition-colors border border-orange-500/10 cursor-default">
+<span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+<span class="text-xs font-medium">Urgent</span>
+<button class="flex items-center justify-center size-5 rounded-full hover:bg-orange-500/20 text-orange-200/70 hover:text-orange-100 transition-colors ml-0.5">
+<span class="material-symbols-outlined text-[14px] font-bold">close</span>
+</button>
+</div>
+<!-- Trigger Button -->
+<button class="flex items-center gap-1.5 h-7 px-3 rounded-full bg-transparent hover:bg-surface-dark border border-dashed border-slate-600 hover:border-primary text-slate-400 hover:text-primary transition-all text-xs font-medium group">
+<span class="material-symbols-outlined text-[16px] group-hover:scale-110 transition-transform">add</span>
+<span>Add Tag</span>
+</button>
+</div>
+<!-- Dropdown Panel (Visualized as Open) -->
+<!-- Positioned absolutely relative to the wrapper in a real scenario, but static here for display -->
+<div class="absolute top-full left-0 mt-2 w-full min-w-[300px] bg-[#152624] dark:bg-surface-dark border border-border-dark rounded-xl shadow-2xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-200">
+<!-- Search Header -->
+<div class="p-3 border-b border-border-dark">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">search</span>
+<input class="w-full h-10 bg-background-dark border border-border-dark rounded-lg pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search tags..." type="text"/>
+</div>
+</div>
+<!-- Tags List -->
+<div class="flex flex-col max-h-[240px] overflow-y-auto custom-scrollbar py-1">
+<!-- Section Label -->
+<div class="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Select an option</div>
+<!-- List Item: Selected -->
+<button class="flex items-center justify-between w-full px-4 py-2.5 hover:bg-background-dark/50 transition-colors text-left group">
+<div class="flex items-center gap-3">
+<div class="size-3 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]"></div>
+<span class="text-sm font-medium text-white">Bug</span>
+</div>
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+</button>
+<!-- List Item: Selected -->
+<button class="flex items-center justify-between w-full px-4 py-2.5 hover:bg-background-dark/50 transition-colors text-left group">
+<div class="flex items-center gap-3">
+<div class="size-3 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.4)]"></div>
+<span class="text-sm font-medium text-white">Feature</span>
+</div>
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+</button>
+<!-- List Item: Selected -->
+<button class="flex items-center justify-between w-full px-4 py-2.5 hover:bg-background-dark/50 transition-colors text-left group">
+<div class="flex items-center gap-3">
+<div class="size-3 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.4)]"></div>
+<span class="text-sm font-medium text-white">Urgent</span>
+</div>
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+</button>
+<!-- List Item: Unselected -->
+<button class="flex items-center justify-between w-full px-4 py-2.5 hover:bg-background-dark/50 transition-colors text-left group">
+<div class="flex items-center gap-3">
+<div class="size-3 rounded-full bg-emerald-500"></div>
+<span class="text-sm font-medium text-slate-300 group-hover:text-white">Design System</span>
+</div>
+<!-- Checkmark hidden -->
+</button>
+<!-- List Item: Unselected -->
+<button class="flex items-center justify-between w-full px-4 py-2.5 hover:bg-background-dark/50 transition-colors text-left group">
+<div class="flex items-center gap-3">
+<div class="size-3 rounded-full bg-purple-500"></div>
+<span class="text-sm font-medium text-slate-300 group-hover:text-white">Marketing</span>
+</div>
+</button>
+<!-- List Item: Unselected -->
+<button class="flex items-center justify-between w-full px-4 py-2.5 hover:bg-background-dark/50 transition-colors text-left group">
+<div class="flex items-center gap-3">
+<div class="size-3 rounded-full bg-slate-400"></div>
+<span class="text-sm font-medium text-slate-300 group-hover:text-white">Documentation</span>
+</div>
+</button>
+</div>
+<!-- Footer: Create New Tag -->
+<div class="border-t border-border-dark p-4 bg-[#142220]">
+<div class="flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<span class="text-xs font-semibold text-slate-400">CREATE NEW TAG</span>
+</div>
+<!-- Color Picker Grid -->
+<div class="flex justify-between items-center px-1">
+<!-- Red -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-red-500 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-red-500 transition-all hover:scale-110"></span>
+</label>
+<!-- Orange -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-orange-500 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-orange-500 transition-all hover:scale-110"></span>
+</label>
+<!-- Amber -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-amber-400 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-amber-400 transition-all hover:scale-110"></span>
+</label>
+<!-- Green -->
+<label class="group relative cursor-pointer">
+<input checked="" class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-emerald-500 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-emerald-500 transition-all hover:scale-110"></span>
+</label>
+<!-- Teal/Primary -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-teal-400 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-teal-400 transition-all hover:scale-110"></span>
+</label>
+<!-- Blue -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-blue-500 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-blue-500 transition-all hover:scale-110"></span>
+</label>
+<!-- Indigo -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-indigo-500 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-indigo-500 transition-all hover:scale-110"></span>
+</label>
+<!-- Pink -->
+<label class="group relative cursor-pointer">
+<input class="peer sr-only" name="tag-color" type="radio"/>
+<span class="block size-6 rounded-full bg-pink-500 ring-2 ring-transparent ring-offset-2 ring-offset-surface-dark peer-checked:ring-pink-500 transition-all hover:scale-110"></span>
+</label>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Simulated content behind/below to show Z-index context -->
+<div class="h-32 rounded-lg bg-surface-dark border border-border-dark p-4 opacity-50 relative z-0">
+<div class="h-4 w-1/3 bg-slate-700/50 rounded mb-3"></div>
+<div class="h-3 w-full bg-slate-700/30 rounded mb-2"></div>
+<div class="h-3 w-5/6 bg-slate-700/30 rounded"></div>
+<!-- Description for background abstract image -->
+<img class="hidden" data-alt="Abstract blurry pattern representing obscured content behind the modal" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcgSK5dm7gkr0DnBQ4Tq5XFZenPDWNPvh0-Cjgu17XsPO0NoZPnDJ5wnGsi5Xc546iuVNEDvwhdG9yGT_VG0JgqpbGxzqko_ERLd9RK3S7_bg4_VDRDpOlZ-cDGPxrM7YngTUPaccQdnRgIuGmOr4vlGMbP6K0c7AeSqQmCQwIC6LURCuU89B39kSw359q51Q0ymohxs7MRgeg4Z8QQeGwYUpnNWMIcoAkS1M0aiMo_Yly3eDxS2Sbr8Dk-bi9gkYMPaUxOKGiC2g"/>
+</div>
+</div>
+</body></html>

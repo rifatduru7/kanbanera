@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LoginPage } from './pages/auth/LoginPage';
+import RegisterPage from './pages/auth/RegisterPage';
 import { DashboardLayout } from './pages/dashboard/DashboardLayout';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { BoardPage } from './pages/dashboard/BoardPage';
+import { ProjectsPage } from './pages/dashboard/ProjectsPage';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -23,13 +25,14 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
 
           {/* Protected Routes */}
           <Route path="/" element={<DashboardLayout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="board" element={<BoardPage />} />
-            <Route path="projects" element={<ProjectsPlaceholder />} />
+            <Route path="projects" element={<ProjectsPage />} />
             <Route path="settings" element={<SettingsPlaceholder />} />
             <Route path="members" element={<MembersPlaceholder />} />
           </Route>
@@ -43,15 +46,6 @@ function App() {
 }
 
 // Placeholder components - will be replaced with actual pages
-
-function ProjectsPlaceholder() {
-  return (
-    <div className="text-center py-20">
-      <h2 className="text-2xl font-bold text-white">Projects</h2>
-      <p className="text-slate-400 mt-2">Project list will appear here</p>
-    </div>
-  );
-}
 
 function SettingsPlaceholder() {
   return (

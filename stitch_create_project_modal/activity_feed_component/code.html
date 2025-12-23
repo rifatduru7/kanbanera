@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ERA KANBAN - Activity Feed</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b9a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                        "card-dark": "#162927",
+                        "border-dark": "#244743",
+                        "text-secondary": "#92c8c2",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for the activity list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #244743;
+            border-radius: 20px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #13b9a5;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="hidden md:flex flex-col w-64 bg-background-dark border-r border-border-dark flex-shrink-0">
+<div class="flex flex-col gap-4 p-4 h-full">
+<div class="flex flex-col px-2">
+<h1 class="text-white text-lg font-bold tracking-tight">ERA KANBAN</h1>
+<p class="text-text-secondary text-xs font-normal">Project Alpha</p>
+</div>
+<nav class="flex flex-col gap-2 flex-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-secondary hover:bg-border-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">view_kanban</span>
+<span class="text-sm font-medium">Board</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl bg-border-dark text-white shadow-sm" href="#">
+<span class="material-symbols-outlined text-2xl fill-1">schedule</span>
+<span class="text-sm font-medium">Timeline</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-secondary hover:bg-border-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">list</span>
+<span class="text-sm font-medium">Backlog</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-secondary hover:bg-border-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">bar_chart</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+<div class="flex-grow"></div>
+<a class="flex items-center gap-3 px-3 py-2 rounded-xl text-text-secondary hover:bg-border-dark hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Main Content -->
+<div class="flex flex-col flex-1 min-w-0 overflow-hidden relative">
+<!-- Top Header -->
+<header class="flex items-center justify-between border-b border-border-dark px-6 py-3 bg-background-dark z-20">
+<div class="flex items-center gap-4 text-white">
+<div class="size-8 flex items-center justify-center rounded-lg bg-primary/20 text-primary">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<h2 class="text-lg font-bold">Project Timeline</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center bg-card-dark rounded-xl px-3 h-10 border border-border-dark w-64 focus-within:border-primary transition-colors">
+<span class="material-symbols-outlined text-text-secondary">search</span>
+<input class="bg-transparent border-none text-white text-sm focus:ring-0 w-full placeholder:text-text-secondary/50" placeholder="Search activity..." type="text"/>
+</div>
+<button class="flex items-center justify-center size-10 rounded-xl bg-card-dark border border-border-dark text-white hover:bg-border-dark transition-colors relative">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-card-dark"></span>
+</button>
+<div class="size-10 rounded-full bg-cover bg-center border border-border-dark" data-alt="User profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAcmXsisllUP7QFozwD9jQOT0CnEhgiJebGzPpI9WIh-cqZNlbXnDoSbFWl6rNm3K0yTM9jzfzJT-K7iZW64oIRMcvhZhq878Y4XNcQq6Zyb6DukTVPvVXWe80oen4Ky3e3udriqYjXXyCmuJbA5fWQQAAlLBl1iu8hKlWtdOhxfKSYS6gGz52waim4GE91h8GAA2aSpe0-ChYytagIHLGkALqR2LK0LJHalnZ3_6hZhKJy_ahNCLtuiTz6S9afGvNIXOtfBRykCPk');"></div>
+</div>
+</header>
+<!-- Content Area -->
+<main class="flex-1 overflow-y-auto bg-background-dark p-6 md:p-10 flex justify-center">
+<!-- Activity Feed Component -->
+<div class="w-full max-w-[600px] flex flex-col h-full max-h-[800px]">
+<!-- Component Container -->
+<div class="bg-card-dark rounded-2xl border border-border-dark shadow-xl flex flex-col h-full overflow-hidden">
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-5 border-b border-border-dark bg-card-dark/50 backdrop-blur-sm sticky top-0 z-10">
+<div class="flex flex-col gap-0.5">
+<h3 class="text-white text-lg font-bold">Recent Activity</h3>
+<p class="text-text-secondary text-xs">Real-time updates across the project</p>
+</div>
+<div class="relative group">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-background-dark border border-border-dark hover:border-text-secondary transition-all text-sm font-medium text-white">
+<span class="material-symbols-outlined text-[18px] text-primary">filter_list</span>
+<span>Filter: All</span>
+<span class="material-symbols-outlined text-[18px] text-text-secondary">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Scrollable List -->
+<div class="overflow-y-auto p-6 custom-scrollbar flex-1 space-y-0">
+<!-- Item 1: Task Created -->
+<div class="group flex gap-4">
+<!-- Timeline Column -->
+<div class="flex flex-col items-center flex-shrink-0 w-8">
+<div class="relative z-10">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-background-dark" data-alt="Avatar of Admin" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA68po-kqQF7BkpGqL2svoNb3kMx23Lt3scugWBp-9RWhnEhGxPt9F5GBEOt3pOwjJfoTaNsaMzo-V6yFPkBqPoRIrqKBV2SAsNaUUVDzeGCsqA7cYCU53hZqEipry5Hj-tYudML5iOYIZ4DLKX8jx740CaKMDp-4CRHAQyrfhMSOYtotClOjf9cIUVic26qpbh3fYC3nCrOGKmuAiW8WOCbQ0KjqglcgLUGffCv_FQ5wslDBDMx4DX985BeuSdV5gZ3opc1n88uqo');"></div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-blue-500 rounded-full flex items-center justify-center ring-2 ring-background-dark">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">add</span>
+</div>
+</div>
+<div class="w-px bg-border-dark flex-grow my-2 group-last:hidden min-h-[32px]"></div>
+</div>
+<!-- Content Column -->
+<div class="flex flex-col pb-8 pt-1">
+<p class="text-sm text-gray-300 leading-relaxed">
+<span class="font-semibold text-white">Admin</span> created task <a class="text-primary hover:underline font-medium" href="#">Q3 Planning</a> in <span class="text-text-secondary">Backlog</span>
+</p>
+<span class="text-xs text-text-secondary mt-1.5">5h ago</span>
+</div>
+</div>
+<!-- Item 2: Comment Added -->
+<div class="group flex gap-4">
+<div class="flex flex-col items-center flex-shrink-0 w-8">
+<div class="relative z-10">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-background-dark" data-alt="Avatar of Sarah" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB3DTbxATeaAmo3uylJilpsZF47haQAVv7loI45m4N7nhQUqJjaH3St3xiPn8J-TvLrsLeR-ZYKOlv_Sb53N4M05MFU1qvx73pczpkLzuD7bFjCplPnhdCVz_Ziwa-Rvr2GENHSwubXVpCMmtSfKnovOjGReHEI9lublT63RuIQDWnUcysd3Z2Nuga9VCTtVUEMm5l9XUFgwXGXYftz6mwSrLR2-TACGJ1_vVizGxM22uwSHU8SSLLVoKXUerc-gPlCF6MIeIeAH00');"></div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-yellow-500 rounded-full flex items-center justify-center ring-2 ring-background-dark">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">chat_bubble</span>
+</div>
+</div>
+<div class="w-px bg-border-dark flex-grow my-2 group-last:hidden min-h-[32px]"></div>
+</div>
+<div class="flex flex-col pb-8 pt-1 max-w-full">
+<p class="text-sm text-gray-300 leading-relaxed">
+<span class="font-semibold text-white">Sarah L.</span> commented on <a class="text-primary hover:underline font-medium" href="#">API Integration</a>
+</p>
+<div class="mt-3 p-3 rounded-lg bg-background-dark border border-border-dark text-sm text-gray-300 italic relative before:content-[''] before:absolute before:top-[-5px] before:left-3 before:w-2.5 before:h-2.5 before:bg-background-dark before:border-t before:border-l before:border-border-dark before:rotate-45">
+                                    "I've updated the documentation endpoint. Please review the new schema."
+                                </div>
+<span class="text-xs text-text-secondary mt-2">3h ago</span>
+</div>
+</div>
+<!-- Item 3: File Uploaded -->
+<div class="group flex gap-4">
+<div class="flex flex-col items-center flex-shrink-0 w-8">
+<div class="relative z-10">
+<div class="size-8 rounded-full bg-indigo-900/50 flex items-center justify-center ring-2 ring-background-dark text-indigo-300 font-bold text-xs">DT</div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-purple-500 rounded-full flex items-center justify-center ring-2 ring-background-dark">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">attach_file</span>
+</div>
+</div>
+<div class="w-px bg-border-dark flex-grow my-2 group-last:hidden min-h-[32px]"></div>
+</div>
+<div class="flex flex-col pb-8 pt-1">
+<p class="text-sm text-gray-300 leading-relaxed">
+<span class="font-semibold text-white">Design Team</span> uploaded a file to <a class="text-primary hover:underline font-medium" href="#">Landing Page</a>
+</p>
+<a class="mt-3 flex items-center gap-3 p-2 pr-4 rounded-lg bg-background-dark border border-border-dark hover:border-primary/50 hover:bg-background-dark/80 transition-all group/file w-fit" href="#">
+<div class="size-10 rounded bg-[#244743] flex items-center justify-center text-primary group-hover/file:text-white transition-colors">
+<span class="material-symbols-outlined">image</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-white group-hover/file:text-primary transition-colors">mockup_v2.png</span>
+<span class="text-xs text-text-secondary">2.4 MB</span>
+</div>
+</a>
+<span class="text-xs text-text-secondary mt-2">2h ago</span>
+</div>
+</div>
+<!-- Item 4: Task Moved -->
+<div class="group flex gap-4">
+<div class="flex flex-col items-center flex-shrink-0 w-8">
+<div class="relative z-10">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-background-dark" data-alt="Avatar of Mike" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAHsQZlOIZUKhGB_y1eiEuYUoTpuey5n54-Qsic-IJL9GQuv-PwlYiXeZiSUDWpdoyHMtT_ZR3pD2w4u76vI_m7MDjlq2IEIHKSHlb4IvtEHL2IlR96bRUkVHIytVIfwVCdZtz9hI9C3fxo6BvgPgLAb5oxgb69wQA1bvP3lj7dFiIMY_BrycDHRno_lWkkDbl-V_oT-OIad2NtqxdSn0ijCkdTsvKs66EboZgV3njRNFnlOqKgV1FJ1E7WnhCOdMaPmTbEJeNpT-E');"></div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-orange-500 rounded-full flex items-center justify-center ring-2 ring-background-dark">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">arrow_forward</span>
+</div>
+</div>
+<div class="w-px bg-border-dark flex-grow my-2 group-last:hidden min-h-[32px]"></div>
+</div>
+<div class="flex flex-col pb-8 pt-1">
+<p class="text-sm text-gray-300 leading-relaxed">
+<span class="font-semibold text-white">Mike R.</span> moved <a class="text-primary hover:underline font-medium" href="#">Login Flow</a> from <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-500/10 text-blue-400 border border-blue-500/20 mx-1">In Progress</span> to <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-orange-500/10 text-orange-400 border border-orange-500/20 mx-1">Testing</span>
+</p>
+<span class="text-xs text-text-secondary mt-1.5">45m ago</span>
+</div>
+</div>
+<!-- Item 5: Task Completed -->
+<div class="group flex gap-4">
+<div class="flex flex-col items-center flex-shrink-0 w-8">
+<div class="relative z-10">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-background-dark" data-alt="Your Avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC_3eGB8_y_bRH8kaqHBqyzpcOQ3EVgiEHhhs-kt5Pn1c8wG7fBkhE1JXtD44zgpINRCLDhjoqWvNTYcL-UDZTcjd9Vo2qJ4NfxxWkRLxcM0uTKlUHWNy_DV9eI_p-9DEY025RQ9Yk_XT00vZVfgRqd8PRtgEZbkDLzX_Q4oX1Onep1fIvYKhzIFjJJ2Nayn7ZsNynlXLYm957v3DBccRtkZGTdhUiXquAQvLFEl4r-iCAx3zgMoIoUQgleK6Yf9sk1yqQuIvN0SZI');"></div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-primary rounded-full flex items-center justify-center ring-2 ring-background-dark">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">check</span>
+</div>
+</div>
+<div class="w-px bg-border-dark flex-grow my-2 group-last:hidden min-h-[32px]"></div>
+</div>
+<div class="flex flex-col pb-8 pt-1">
+<p class="text-sm text-gray-300 leading-relaxed">
+<span class="font-semibold text-white">You</span> completed <a class="text-primary hover:underline font-medium line-through decoration-primary/50" href="#">Update Dependencies</a>
+</p>
+<span class="text-xs text-text-secondary mt-1.5">15m ago</span>
+</div>
+</div>
+<!-- Item 6: Member Joined -->
+<div class="group flex gap-4">
+<div class="flex flex-col items-center flex-shrink-0 w-8">
+<div class="relative z-10">
+<div class="size-8 rounded-full bg-cover bg-center ring-2 ring-background-dark" data-alt="Avatar of Alex" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC-5SLhVQTiHlUvxz65HxfxYrLC1HhsJ2a7oSVwIDjlhTg4Mpg0x7CPBw9wjqE44RqQ4xYvkm9dKU5vlSexWcnGTxt4otS1w9fatetTdgRrdVspVnHmxhmY3ESfS8it8HrflsVYINLU4r_ld33HE6QtW7Cx05wScWY8n_nSQYLzXoY5eqa1n3uBkJSHi3JiuRec9jQYZqCGOVFS-ul-ih8quHgwZeFdoLzoUyG3336h1W7qVY93Am5i4A0jBYFczryDrJSQSlEuJqA');"></div>
+<div class="absolute -bottom-1 -right-1 size-4 bg-pink-500 rounded-full flex items-center justify-center ring-2 ring-background-dark">
+<span class="material-symbols-outlined text-[10px] text-white font-bold">person_add</span>
+</div>
+</div>
+<!-- Last item, no line below -->
+</div>
+<div class="flex flex-col pb-2 pt-1">
+<p class="text-sm text-gray-300 leading-relaxed">
+<span class="font-semibold text-white">Alex K.</span> joined the project team
+                                </p>
+<span class="text-xs text-text-secondary mt-1.5">Just now</span>
+</div>
+</div>
+</div>
+<!-- Footer / Load More -->
+<div class="p-4 border-t border-border-dark bg-background-dark/30">
+<button class="w-full py-2 text-xs font-medium text-text-secondary hover:text-white hover:bg-background-dark rounded-lg transition-colors uppercase tracking-wider">
+                            Load older activity
+                        </button>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Era Kanban Mobile Navigation</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b9a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                        "surface-dark": "#1a2c2a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "3xl": "2.5rem",
+                        "full": "9999px"
+                    },
+                    backdropBlur: {
+                        "xs": "2px",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar hiding for clean mobile look */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Glassmorphism utility specific for this design to ensure consistency */
+        .glass-panel {
+            background: rgba(17, 33, 31, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+</head>
+<body class="bg-[#0b1615] flex items-center justify-center min-h-screen p-8 font-display text-white selection:bg-primary selection:text-white">
+<!-- Mobile Device Simulator -->
+<div class="relative w-[375px] h-[812px] bg-background-dark rounded-[40px] shadow-2xl border-[8px] border-[#1a2c2a] overflow-hidden flex flex-col">
+<!-- Status Bar Area (Simulated) -->
+<div class="h-12 w-full flex justify-between items-center px-6 pt-2 z-20 shrink-0">
+<span class="text-xs font-semibold">9:41</span>
+<div class="flex gap-1.5 items-center">
+<span class="material-symbols-outlined text-[16px]">signal_cellular_alt</span>
+<span class="material-symbols-outlined text-[16px]">wifi</span>
+<span class="material-symbols-outlined text-[16px]">battery_full</span>
+</div>
+</div>
+<!-- App Header -->
+<header class="flex items-center justify-between px-6 py-4 z-10">
+<div>
+<h1 class="text-xl font-bold tracking-tight">My Projects</h1>
+<p class="text-gray-400 text-xs">Era Kanban Workspace</p>
+</div>
+<div class="size-10 rounded-full bg-surface-dark overflow-hidden border border-[#244743]" data-alt="User profile portrait" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDoDRwSRpX2DegD5BLXVL_FRKBPQMGQG2XVNW-hzkfGrtWOzTfNhl8qvuKS4OjSEwtXO4hgN4dlJoh6YudJ08ACLtdjJ317JpUYtNlYwQ4fCbhuH2fEcN_zovyHITWaPqT4Ms0vntil_3JV12fiyuKGjdMi4nUvL-F-e6fCaXHUpVAjDpyzL80CJCnN2lfApPDhkxNsiLNTUqY0y32FaWw3S6xsHC9Dm9uUMhl0DSdvF2r9_HNr4CzKmo0Iajw3uhfsV1S-2cBdRNE'); background-size: cover; background-position: center;"></div>
+</header>
+<!-- Scrollable Content Area -->
+<main class="flex-1 overflow-y-auto no-scrollbar pb-32 px-4 space-y-4">
+<!-- Search Bar -->
+<div class="relative group">
+<div class="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full bg-surface-dark/50 border border-[#244743] rounded-xl py-3 pl-10 pr-4 text-sm placeholder-gray-500 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all" placeholder="Search tasks..." type="text"/>
+</div>
+<!-- Stats Row -->
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+<div class="bg-gradient-to-br from-primary/20 to-surface-dark border border-primary/10 p-4 rounded-2xl min-w-[140px] flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="text-2xl font-bold">12</span>
+<span class="material-symbols-outlined text-primary">pending_actions</span>
+</div>
+<span class="text-xs text-gray-300">Pending Tasks</span>
+</div>
+<div class="bg-surface-dark border border-[#244743] p-4 rounded-2xl min-w-[140px] flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="text-2xl font-bold">5</span>
+<span class="material-symbols-outlined text-orange-400">warning</span>
+</div>
+<span class="text-xs text-gray-300">Overdue</span>
+</div>
+<div class="bg-surface-dark border border-[#244743] p-4 rounded-2xl min-w-[140px] flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="text-2xl font-bold">28</span>
+<span class="material-symbols-outlined text-green-400">check_circle</span>
+</div>
+<span class="text-xs text-gray-300">Completed</span>
+</div>
+</div>
+<!-- Section Title -->
+<div class="flex justify-between items-end pt-2">
+<h2 class="text-lg font-bold">Recent Boards</h2>
+<a class="text-primary text-xs font-medium" href="#">View All</a>
+</div>
+<!-- Cards -->
+<div class="space-y-3">
+<!-- Card 1 -->
+<div class="bg-surface-dark rounded-xl p-4 border-l-4 border-primary shadow-lg group active:scale-[0.98] transition-transform duration-150">
+<div class="flex justify-between mb-2">
+<span class="bg-primary/20 text-primary text-[10px] px-2 py-0.5 rounded-full font-medium">Design System</span>
+<span class="material-symbols-outlined text-gray-400 text-lg">more_horiz</span>
+</div>
+<h3 class="font-semibold text-sm mb-1">Update Component Library</h3>
+<p class="text-gray-400 text-xs line-clamp-2">Refactor the button components to support new variants and accessibility standards.</p>
+<div class="flex items-center justify-between mt-4">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-surface-dark bg-gray-600 bg-center bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDwBjCzF0oUQyOLjmt-aNCKFipUDvxn_cYLafMBtIKvgGGRSSPZCFOu2ZKDoZ50_qI-z167g4Jc-xVVK_iAc6iEuYv__CaTGP6mbKLauPx4yJjARq_TL_Bf2Up1JUUFXrGU8BEonTqMGaFKAuiaMVssowbTjbq_uomb3PnkZhioslkyMVVNKGyUoBS6WOPgIv_DQ6mGcZ1sRq6FIboWLfyFIbvUczDqtkWThNEEu88hA0uS2ru0nspJeWzlFSLrqgG8pEZQp-JEIsg')"></div>
+<div class="size-6 rounded-full border border-surface-dark bg-gray-500 bg-center bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuARLs3oHfkG1meVqT4Onez3Zcwpdo_UbBJ0BhkATFTvbITllA-ACr0t3JU33iJ13WsgGufuV0uGm2bipYgZFcvhTjij1BS-eZU6-0Fv9o4ywxuwLmxRlp5Gx_U4wXa6AUm81E5FQLNRpt3AAOOw_AfUDKGWq75VnH4eUWBcdAM3QuySig_o_5K1drj3zpgjQxm1np2_PiwAY3xTbsgJ7abFBOAmDN3xifG114G9X0hi4cRdrNgqJBbp0cLAqRO7S9WkKSBm7nzpHn4')"></div>
+</div>
+<div class="flex items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-[10px]">Today</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-dark rounded-xl p-4 border-l-4 border-purple-500 shadow-lg group active:scale-[0.98] transition-transform duration-150">
+<div class="flex justify-between mb-2">
+<span class="bg-purple-500/20 text-purple-400 text-[10px] px-2 py-0.5 rounded-full font-medium">Marketing</span>
+<span class="material-symbols-outlined text-gray-400 text-lg">more_horiz</span>
+</div>
+<h3 class="font-semibold text-sm mb-1">Q4 Campaign Assets</h3>
+<p class="text-gray-400 text-xs line-clamp-2">Create social media banners and email templates for the upcoming holiday season.</p>
+<div class="flex items-center justify-between mt-4">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-surface-dark bg-gray-500 bg-center bg-cover" data-alt="Team member avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBW9Z3IbV_F4qGJA7dQcv1CC4uY4pKaOoDUtscU4wL7Re8xbrEUP_LlSSX698fL84ouGNsAsnCh3g70i-blf444-Cb1TcsO68fqMEgIDGVreAJEGtaoh1xnx7EC1-jolmNhsN8WIVjRZX82HSg1bl-UKn76FKpYWIrdRggCp2DWeriNQGAshHrnmc7vLcXVYSO7iF1h_ped3BiwIbmhViY9iORDI_YOFzeQuGkvPE1trEPHcZ_vkWDw3DkynfNwhmgToZzzCDxX5Mk')"></div>
+</div>
+<div class="flex items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-[10px]">Tomorrow</span>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-dark rounded-xl p-4 border-l-4 border-orange-500 shadow-lg group active:scale-[0.98] transition-transform duration-150">
+<div class="flex justify-between mb-2">
+<span class="bg-orange-500/20 text-orange-400 text-[10px] px-2 py-0.5 rounded-full font-medium">Development</span>
+<span class="material-symbols-outlined text-gray-400 text-lg">more_horiz</span>
+</div>
+<h3 class="font-semibold text-sm mb-1">API Integration</h3>
+<p class="text-gray-400 text-xs line-clamp-2">Connect the frontend to the new payments gateway API.</p>
+<div class="flex items-center justify-between mt-4">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-surface-dark bg-gray-500 flex items-center justify-center text-[10px]">JD</div>
+</div>
+<div class="flex items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-[10px]">Oct 24</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Glassmorphism Gradient Overlay at bottom of content to smooth scroll -->
+<div class="absolute bottom-[90px] left-0 right-0 h-12 bg-gradient-to-t from-background-dark to-transparent pointer-events-none z-10"></div>
+<!-- BOTTOM NAVIGATION COMPONENT -->
+<nav class="absolute bottom-0 w-full z-50 glass-panel border-t border-white/5 pb-6 pt-2">
+<div class="flex items-end justify-around w-full px-2 h-[60px]">
+<!-- Nav Item 1: Home -->
+<button class="flex flex-col items-center justify-center w-16 gap-1 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-gray-200 transition-colors text-[28px]">home</span>
+<span class="text-[10px] font-medium text-gray-400 opacity-0 h-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-300">Home</span>
+</button>
+<!-- Nav Item 2: Projects (Active State) -->
+<button class="flex flex-col items-center justify-center w-16 gap-1">
+<span class="material-symbols-outlined filled text-primary text-[28px] drop-shadow-[0_0_8px_rgba(19,185,165,0.4)]">folder</span>
+<span class="text-[10px] font-medium text-primary tracking-wide">Projects</span>
+</button>
+<!-- Nav Item 3: Add Task (FAB) -->
+<!-- The wrapper helps position the button slightly protruding if desired, but here we keep it centered and prominent -->
+<div class="relative -top-5">
+<button class="size-14 rounded-full bg-primary shadow-[0_8px_16px_rgba(19,185,165,0.4)] flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-transform duration-200 ring-4 ring-background-dark/50">
+<span class="material-symbols-outlined text-[32px] font-bold">add</span>
+</button>
+</div>
+<!-- Nav Item 4: Calendar -->
+<button class="flex flex-col items-center justify-center w-16 gap-1 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-gray-200 transition-colors text-[28px]">calendar_month</span>
+<span class="text-[10px] font-medium text-gray-400 opacity-0 h-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-300">Calendar</span>
+</button>
+<!-- Nav Item 5: Profile -->
+<button class="flex flex-col items-center justify-center w-16 gap-1 group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-gray-200 transition-colors text-[28px]">person</span>
+<span class="text-[10px] font-medium text-gray-400 opacity-0 h-0 group-hover:h-auto group-hover:opacity-100 transition-all duration-300">Profile</span>
+</button>
+</div>
+<!-- Safe Area Indicator -->
+<div class="w-full flex justify-center mt-2">
+<div class="w-32 h-1 bg-gray-600/50 rounded-full"></div>
+</div>
+</nav>
+</div>
+</body></html>

@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ERA KANBAN - My Projects</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13b9a5",
+                        "background-light": "#f6f8f8",
+                        "background-dark": "#11211f",
+                        "surface-dark": "#162a28", // Slightly lighter for cards
+                        "surface-highlight": "#1e3633", // Hover state
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for better aesthetics in dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #11211f; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #244743; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #13b9a5; 
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white antialiased overflow-hidden">
+<div class="flex h-screen w-full overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-20 lg:w-64 flex-shrink-0 flex flex-col border-r border-white/5 bg-background-dark hidden md:flex">
+<div class="flex h-16 items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl">view_kanban</span>
+<h1 class="text-xl font-bold tracking-tight text-white hidden lg:block">ERA KANBAN</h1>
+</div>
+</div>
+<nav class="flex-1 flex flex-col gap-2 p-4 overflow-y-auto">
+<a class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 text-[#92c8c2] hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">dashboard</span>
+<span class="font-medium hidden lg:block">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-xl bg-[#244743]/50 text-white border border-[#244743]" href="#">
+<span class="material-symbols-outlined text-primary fill-1">folder</span>
+<span class="font-medium hidden lg:block">Projects</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 text-[#92c8c2] hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">check_circle</span>
+<span class="font-medium hidden lg:block">Tasks</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 text-[#92c8c2] hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">people</span>
+<span class="font-medium hidden lg:block">Team</span>
+</a>
+<div class="mt-auto pt-4 border-t border-white/5">
+<a class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/5 text-[#92c8c2] hover:text-white transition-colors group" href="#">
+<span class="material-symbols-outlined group-hover:text-primary transition-colors">settings</span>
+<span class="font-medium hidden lg:block">Settings</span>
+</a>
+</div>
+</nav>
+<div class="p-4 border-t border-white/5">
+<div class="flex items-center gap-3">
+<img alt="Current user avatar" class="h-10 w-10 rounded-full border-2 border-primary object-cover" data-alt="Portrait of a man with a beard smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh8MG23FJJja1OYpOdTsImMQqOy0b-I2s4Syf_34NAahJIXNbjiowXRLqQLuewzCzW0rlQzXx5c2B7qXAaE5OBT4dMgp8VTspeG1rItHrYS67lGr5y54Hha-nbjRKjXwjRjfbh2v8YN4rUI6LrTJW4JSqwXcUQiGunbdBrqX_SkdYaYePIB2d7AaCDXjJUzDYHQIWrMDVNpOQ2JFW4_anOdN-UX0JdFnBsOxTdUDJYph-IMIACB6oi1m6LHt95UlAraqV1LzJ6knY"/>
+<div class="hidden lg:flex flex-col">
+<p class="text-sm font-semibold text-white">Alex Morgan</p>
+<p class="text-xs text-[#92c8c2]">Product Owner</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-dark relative">
+<!-- Background Gradient Decorations -->
+<div class="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-[#13b9a5]/5 to-transparent pointer-events-none z-0"></div>
+<!-- Top Header Area -->
+<header class="flex-shrink-0 z-10 px-6 py-6 md:px-8 border-b border-white/5 bg-background-dark/95 backdrop-blur-xl">
+<div class="flex flex-col gap-6 max-w-7xl mx-auto w-full">
+<!-- Title Row -->
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-3xl">folder_open</span>
+<h2 class="text-3xl font-bold text-white tracking-tight">My Projects</h2>
+</div>
+<p class="text-[#92c8c2] text-sm md:text-base">Manage and track your ongoing projects across all teams.</p>
+</div>
+</div>
+<!-- Controls Toolbar -->
+<div class="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+<!-- Search -->
+<div class="relative w-full md:max-w-md group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-[#92c8c2] group-focus-within:text-primary transition-colors">search</span>
+</div>
+<input class="block w-full rounded-xl border-none bg-surface-dark py-2.5 pl-10 pr-3 text-white placeholder-[#92c8c2] focus:ring-2 focus:ring-primary focus:bg-surface-highlight transition-all sm:text-sm" placeholder="Search projects by name, tag, or owner..." type="text"/>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-3">
+<!-- View Toggle -->
+<div class="bg-surface-dark p-1 rounded-xl flex items-center border border-white/5">
+<button class="p-2 rounded-lg bg-background-dark shadow-sm text-primary transition-all">
+<span class="material-symbols-outlined text-[20px]">grid_view</span>
+</button>
+<button class="p-2 rounded-lg text-[#92c8c2] hover:text-white transition-all">
+<span class="material-symbols-outlined text-[20px]">view_list</span>
+</button>
+</div>
+<!-- Filter Button (Optional but common) -->
+<button class="p-2.5 h-full rounded-xl bg-surface-dark border border-white/5 text-[#92c8c2] hover:text-white hover:bg-surface-highlight transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<!-- New Project CTA -->
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-background-dark px-4 py-2.5 rounded-xl font-bold text-sm transition-all transform active:scale-95 shadow-[0_0_15px_rgba(19,185,165,0.3)]">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="whitespace-nowrap">New Project</span>
+</button>
+</div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto p-6 md:p-8 z-0">
+<div class="max-w-7xl mx-auto">
+<!-- Projects Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1: Website Redesign -->
+<div class="group relative flex flex-col bg-surface-dark hover:bg-surface-highlight rounded-xl overflow-hidden border border-white/5 hover:border-primary/30 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer">
+<!-- Color Stripe -->
+<div class="h-1.5 w-full bg-primary"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-3">
+<h3 class="text-xl font-bold text-white group-hover:text-primary transition-colors">Website Redesign</h3>
+<button class="text-[#92c8c2] hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<p class="text-[#92c8c2] text-sm line-clamp-2 mb-6">Complete overhaul of the corporate website including new branding implementation and CMS migration.</p>
+<div class="mt-auto">
+<div class="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-primary">check_circle</span>
+<span>12 Tasks</span>
+</div>
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">group</span>
+<span>5 Members</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex -space-x-2">
+<img alt="Team member 1" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Woman with short dark hair looking confident" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqTKZWASKehrzZz9AYpb0WEyLRuHzd-lQUhLw3GfKIkZ8t76_VL53uovW45tzX0_tQnbS1HhMXiY74GeiLUX3_IbL6zgITK2R318ZvrxhlVgtyCFhokMVWQzsnIvfoRpUrLKSJPsnzffN6xr-JU8ye5xfXSgDDG9fIm1jBRe6wQqtQhwZ4a959hjT6bLt86YDBZn4irUR2UiZbCarwY54mCYiZc0xrk1GhmT4FnoVG1s_7rs7S-Yx8TiAS3wtcboZoyphTXOYMu6Y"/>
+<img alt="Team member 2" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Man with glasses smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoEjCDMGdpZEEXoD7D7H5U-FVWQy3VCmnED3K-1ul4drz3zum1GadtScIB6dvPzWMUvJ-Zo_QIuYAf-IfeS1xI6Eq5cpUi7AQKROsY2HmCYPN66Yqlvrld25AJ1Uot6MEFoqPPhnPWKaGau7adAw2iG-jg6t8ovYn5L-Mr6IoU42CyWTDxHnpR7BXnSThjQPxGDujBFwmRdVBBs8cjk2SYQSyUlG8Z4G59_YW4dwnUaE_CBpryPM6-ce2uEhYLn5sn8ONB5Kb8h1M"/>
+<img alt="Team member 3" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Man in white shirt smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS_V7nslAiro9gdy6UQviS8xeN8japS61Gp1OMB2KMG3gsNo9wJa8QfE-6a9JBVPbPSKGKbn98RO-BVtv99MemPYX08fEqe9c0NHvvlZPx0CLS-U7g5s5XyZVxykEnIccobwWfH1wS4cv1IQgNmvOWeE2HuLEuP4cLXPGMh7f0puCpG7X7g7l_a9hta74JMtqwVwsusFxkRSISz6JxzyZ6kBlrBYjlUaNIrMtwBz33kVf9n5SF7RQMGeVHJzsqawzpvCHvq_8QzRk"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface-dark bg-[#244743] text-white flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<span class="text-sm font-bold text-primary">65%</span>
+</div>
+<div class="w-full bg-white/10 rounded-full h-1.5">
+<div class="bg-primary h-1.5 rounded-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Mobile App MVP -->
+<div class="group relative flex flex-col bg-surface-dark hover:bg-surface-highlight rounded-xl overflow-hidden border border-white/5 hover:border-purple-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer">
+<!-- Color Stripe -->
+<div class="h-1.5 w-full bg-purple-500"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-3">
+<h3 class="text-xl font-bold text-white group-hover:text-purple-400 transition-colors">Mobile App MVP</h3>
+<button class="text-[#92c8c2] hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<p class="text-[#92c8c2] text-sm line-clamp-2 mb-6">Initial release for iOS and Android focusing on core user authentication and feed features.</p>
+<div class="mt-auto">
+<div class="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-purple-400">check_circle</span>
+<span>24 Tasks</span>
+</div>
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">group</span>
+<span>3 Members</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a man looking to the side" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHH9ENxWfq-PimfLt4LdT0hwV-3LHng0hAuQC1iCZoh8RnI7yoHfmzc2rfrcsBB7J0xNobsxFSIzLzN0hQUaMJ-WhGGnf2OMOLgrX5erPeyoRN9vCaqeb-OliNgVWxQPc03AQk8Y9uV_GO9Icd1MdTnX3n7XA-MhVXkKog8Rt8jJZMkL5pYe9RnoFUeUN40dIqDmkNx6Z_xkEjJPLnP4OeoxKySEDsPfz_pOmX1lbV0mpL9RP52BJLKWgmPRz-mWjfU6eqzNUpoXA"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Woman smiling outdoors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBElcFGZNr6lmHfMJ-4T3OfLg2_DZ8SAOYrz4JgQRhYqSeyxk_MU39KlLtt7nfOOq7zugEdqU_p4zKkCue8nYvILabWoSp0sscwud7juRq6fSW6y0n_Lrlu8IY48s3Znb-iOvW0HgtZKBiAvHVIltJtB7GF4UGUu_afJGvjhc_9eMtcpyPdRsmZKV3imO4R9gBdkuYUQRbVvDAKB9Q87poUxpZ6eEh2zS3cbGtX2aV7vF1Cg_WBkJvS4TvFnmwrQlePExeT8BOIy6U"/>
+</div>
+<span class="text-sm font-bold text-purple-400">32%</span>
+</div>
+<div class="w-full bg-white/10 rounded-full h-1.5">
+<div class="bg-purple-500 h-1.5 rounded-full" style="width: 32%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Marketing Campaign -->
+<div class="group relative flex flex-col bg-surface-dark hover:bg-surface-highlight rounded-xl overflow-hidden border border-white/5 hover:border-orange-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer">
+<!-- Color Stripe -->
+<div class="h-1.5 w-full bg-orange-500"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-3">
+<h3 class="text-xl font-bold text-white group-hover:text-orange-400 transition-colors">Q4 Marketing</h3>
+<button class="text-[#92c8c2] hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<p class="text-[#92c8c2] text-sm line-clamp-2 mb-6">Holiday season social media strategy and email marketing sequences setup.</p>
+<div class="mt-auto">
+<div class="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-orange-400">check_circle</span>
+<span>8 Tasks</span>
+</div>
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">group</span>
+<span>2 Members</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Young woman smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCwSfefZkcTWrMPBB0yGTD1razzczMmPqiw7dxBqw4Dy8Ks5_isHTYntMAf8GVLrgdhDSsZk3g-bN1w9nbRE9HqMeS-2xJsjtzpbecE9RdHDtkQQJtesx5rD9pDzhJEvUbsjWpS9u-fIRPAN9PWaOj6m69NhRy8uiumgP4tJ5wv9asWSGM9L01ZHGJZtYEI7KjEKkolydyyibLrJ9pVlliP98b5zzmiWgJJgh2EcPFZDJ_Az14rqIbAJtpas_H4G06SUX9-fm51cNk"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Man with short hair and beard" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDvimDBQPvEoZX-ug8yOPVmiKIqz7KZGIyVJIab0seewfZGtFrvzKnjk962gfh9g4HyXIWpqNMJJeMsgZfRuMOEO19r72MuOL7rPJBgd5rO9K5FOClvg8xN9JBL2gMybYgU1_1Nj8WahhdDpIQ1G0YrKfBzcoQHZHn-q6Ocf-JyXb9iGL4hXbYgwQNkcbbCQmNdp_V0YyvRh4BSPO7PhZymhtx7PSsMYgV5cvhlOPNPGeWx4bZJd2GTQuW_jf956JU6em1UdrZE-mo"/>
+</div>
+<span class="text-sm font-bold text-orange-400">85%</span>
+</div>
+<div class="w-full bg-white/10 rounded-full h-1.5">
+<div class="bg-orange-500 h-1.5 rounded-full" style="width: 85%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Internal Tools -->
+<div class="group relative flex flex-col bg-surface-dark hover:bg-surface-highlight rounded-xl overflow-hidden border border-white/5 hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer">
+<!-- Color Stripe -->
+<div class="h-1.5 w-full bg-blue-500"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-3">
+<h3 class="text-xl font-bold text-white group-hover:text-blue-400 transition-colors">DevOps Pipeline</h3>
+<button class="text-[#92c8c2] hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<p class="text-[#92c8c2] text-sm line-clamp-2 mb-6">Automating the deployment process and integrating CI/CD checks for the main repo.</p>
+<div class="mt-auto">
+<div class="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">check_circle</span>
+<span>15 Tasks</span>
+</div>
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">group</span>
+<span>4 Members</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Portrait of a young man" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOcZ7K_zWp4AMVjmjacRRhl_Dcm7vD3GapW1hn-8AYoToZCg3_BbJ_TUaf3EzXgV5WC6cvRYOPR8OG3tvRVZCk5fb9OAyqhUjjXf-5Tf8p45TN7HpvV1BT1G8F6hlEAtXC318YIk89k-Ct5G3Fj6cgJ5Nn_eICfei3uyp-ZISWpLsNwGQIV_eeRVvftJW198wTkesNghnoDZK7t8LxFeCYct56dGV6kyxiL4t7ylKf-uopewYgtoXhXAIn9pPxXAkDTSFtMTMoH0c"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Woman with long hair looking at camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQoYMla8bXoHbqUaoZZQaYsxHP97M2dLYSFQDVe4gFr4nzEueIU6Ox0hqHu_GcLQanPv82zi9xmuoiLy7rF8DulX8gqVNeGqK4u6NeZFFdcPP7RxD1bDCLk3V_HHTZwjux1ZNl2CVTJQG33sWbWleherMYlJPExcB5Cs0qBHyiVJ1KMAfmAE6Zg34dPuhr-CQ3Cx2vAn7h4jMTH5BldBI4lciE-GDp4pvkGl1J2OUdwzAuQ3mZELNsgux04Y-J7nJ6xFRJfGF6bU8"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface-dark bg-[#244743] text-white flex items-center justify-center text-[10px] font-bold">+2</div>
+</div>
+<span class="text-sm font-bold text-blue-400">45%</span>
+</div>
+<div class="w-full bg-white/10 rounded-full h-1.5">
+<div class="bg-blue-500 h-1.5 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5: Finance -->
+<div class="group relative flex flex-col bg-surface-dark hover:bg-surface-highlight rounded-xl overflow-hidden border border-white/5 hover:border-emerald-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer">
+<!-- Color Stripe -->
+<div class="h-1.5 w-full bg-emerald-500"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-3">
+<h3 class="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">Q3 Audits</h3>
+<button class="text-[#92c8c2] hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<p class="text-[#92c8c2] text-sm line-clamp-2 mb-6">Reviewing expenses and preparing financial reports for the upcoming board meeting.</p>
+<div class="mt-auto">
+<div class="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-emerald-400">check_circle</span>
+<span>45 Tasks</span>
+</div>
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">group</span>
+<span>6 Members</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Man in business suit" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCZ-WokdCvgTWIHdIME2K9xfbjefuyV65ABNhNmTb0dJIUFCeWST80gqTWMDGpOGYKdz9NZwZWDUyns1gOVYjCbrZejO8gfRw5frl2HfKpgSd3MDeUMsjJHaV7L4VIQ5iGbPbrdhd0Pvw-ERk0EZnJ17t8wkC8jXUhGGZzzEMH_Ca8ZH48ChorXe97hhnwljLky7f6evHwdoYXlq9Qo_eAjXTct5FpcP850gItPhxheqz72UZG9z3JFo0oGSsEHZ-UErA3usITp9F8"/>
+<div class="w-8 h-8 rounded-full border-2 border-surface-dark bg-[#244743] text-white flex items-center justify-center text-[10px] font-bold">+5</div>
+</div>
+<span class="text-sm font-bold text-emerald-400">12%</span>
+</div>
+<div class="w-full bg-white/10 rounded-full h-1.5">
+<div class="bg-emerald-500 h-1.5 rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 6: Design System -->
+<div class="group relative flex flex-col bg-surface-dark hover:bg-surface-highlight rounded-xl overflow-hidden border border-white/5 hover:border-pink-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer">
+<!-- Color Stripe -->
+<div class="h-1.5 w-full bg-pink-500"></div>
+<div class="p-5 flex flex-col h-full">
+<div class="flex justify-between items-start mb-3">
+<h3 class="text-xl font-bold text-white group-hover:text-pink-400 transition-colors">Design System</h3>
+<button class="text-[#92c8c2] hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_vert</span>
+</button>
+</div>
+<p class="text-[#92c8c2] text-sm line-clamp-2 mb-6">Creating a unified component library in Figma and React for the engineering team.</p>
+<div class="mt-auto">
+<div class="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-pink-400">check_circle</span>
+<span>92 Tasks</span>
+</div>
+<div class="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+<span class="material-symbols-outlined text-[16px] text-blue-400">group</span>
+<span>2 Members</span>
+</div>
+</div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex -space-x-2">
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Woman with piercing gaze" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmSsOnI9xr-PXN1Xaa0HqM43jFFnCbAOTsonQGPHqOXRUvYJLvIY6LS5rPDqiJiXOIqUrEYdR3k4fEO3094uy7ETKqi2yqU9vhJQxM3DdJa40I3SGPN29ypAPgNDCkfWz1y1u_4NHUSDC2v5YbIHS5ybz5PQRpsrFdYEjD7szZ49NiipRaOqlD8gYbb6afpnH78aEmBuGsCenjsZqiRu15gE9-W92hwkYmPjn-PhCEHgK_TBII0G9mI32btNJg5cFFz2cwE0mmW-Q"/>
+<img alt="Team member" class="w-8 h-8 rounded-full border-2 border-surface-dark object-cover" data-alt="Man with beard looking sideways" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh5YKb0BdU789BO6p-_zyo9oS_wkQWsmHA1Psw7C-tsZn9qbN6kuufzotioOCVUW1euJkBKoi2lNtPvlqkU0dQxF9XQnq3is-O6B6miWiMAFpMZcB0J6HSCoxpDCVqvm5ONXhV6gMFqu2hDf2vvM8ZagoGnkn-jf9-LY8DtT0pYa6tFc0YQir3TpQJfSUBoXYPiuDZdyK_tE2oIC6G23clc2oP9lD3SCHjUmzKyDvUnAycYNf6WBaxayXcRPKs3JJJPGEda-nU67I"/>
+</div>
+<span class="text-sm font-bold text-pink-400">90%</span>
+</div>
+<div class="w-full bg-white/10 rounded-full h-1.5">
+<div class="bg-pink-500 h-1.5 rounded-full" style="width: 90%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State / Footer Area (Hidden by default, shown as example of lower section) -->
+<div class="mt-12 mb-6 border-t border-white/5 pt-8 flex flex-col items-center justify-center text-center opacity-40 hover:opacity-100 transition-opacity">
+<div class="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-3xl text-[#92c8c2]">folder_off</span>
+</div>
+<h3 class="text-white font-medium mb-1">Archived Projects</h3>
+<p class="text-[#92c8c2] text-sm">View projects that have been completed or closed</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
