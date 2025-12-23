@@ -1,4 +1,4 @@
-import { RefreshCw, Bell, Menu, ChevronRight, CheckCircle } from 'lucide-react';
+import { RefreshCw, Bell, Menu, ChevronRight, CheckCircle, Search, Command } from 'lucide-react';
 import { useState } from 'react';
 
 interface HeaderProps {
@@ -8,6 +8,7 @@ interface HeaderProps {
     onMenuClick?: () => void;
     onRefresh?: () => void;
     lastSynced?: Date | null;
+    onSearchClick?: () => void;
 }
 
 export function Header({
@@ -17,6 +18,7 @@ export function Header({
     onMenuClick,
     onRefresh,
     lastSynced,
+    onSearchClick,
 }: HeaderProps) {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -63,9 +65,22 @@ export function Header({
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+                {/* Search Button */}
+                <button
+                    onClick={onSearchClick}
+                    className="flex items-center gap-2 h-9 px-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all text-slate-400"
+                >
+                    <Search className="size-4" />
+                    <span className="hidden sm:inline text-sm">Search...</span>
+                    <div className="hidden sm:flex items-center gap-0.5 text-xs ml-2 text-slate-500">
+                        <Command className="size-3" />
+                        <span>K</span>
+                    </div>
+                </button>
+
                 {/* Sync Status */}
-                <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-sm cursor-default">
+                <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 shadow-sm cursor-default">
                     <CheckCircle className="text-emerald-400 size-4" />
                     <span className="text-xs text-slate-300 font-medium">
                         {getSyncText()}

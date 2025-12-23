@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
 import { BottomNav } from '../../components/layout/BottomNav';
+import { SearchModal, useSearchModal } from '../../components/ui/SearchModal';
 import { Outlet } from 'react-router-dom';
 
 export function DashboardLayout() {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [lastSynced, setLastSynced] = useState<Date | null>(new Date());
+    const searchModal = useSearchModal();
 
     const handleRefresh = async () => {
         // TODO: Implement actual data refresh
@@ -35,6 +37,7 @@ export function DashboardLayout() {
                     isActive={true}
                     onRefresh={handleRefresh}
                     lastSynced={lastSynced}
+                    onSearchClick={searchModal.open}
                 />
 
                 {/* Content - Extra bottom padding for mobile nav */}
@@ -47,6 +50,9 @@ export function DashboardLayout() {
 
             {/* Mobile Bottom Navigation */}
             <BottomNav />
+
+            {/* Global Search Modal (Cmd+K) */}
+            <SearchModal isOpen={searchModal.isOpen} onClose={searchModal.close} />
         </div>
     );
 }
