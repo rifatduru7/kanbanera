@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Board } from '../../components/kanban/Board';
+import { TaskModal } from '../../components/kanban/TaskModal';
 import { Filter } from 'lucide-react';
 import type { Column, Task } from '../../types/kanban';
+import type { TaskDetail } from '../../types/task-detail';
 
 // Mock data for demonstration
 const mockColumns: Column[] = [
@@ -89,8 +91,61 @@ const mockColumns: Column[] = [
     },
 ];
 
+// Helper to create mock task detail from basic task
+function createMockTaskDetail(task: Task, columnName: string): TaskDetail {
+    return {
+        ...task,
+        status: columnName,
+        projectId: 'project-1',
+        projectName: 'Cloud Migration',
+        subtasks: [
+            { id: 'sub-1', taskId: task.id, title: 'Design Token Payload Structure', isCompleted: true, position: 0, createdAt: new Date().toISOString() },
+            { id: 'sub-2', taskId: task.id, title: 'Generate RS256 Key Pair', isCompleted: true, position: 1, createdAt: new Date().toISOString() },
+            { id: 'sub-3', taskId: task.id, title: 'Implement Worker Signing Logic', isCompleted: false, position: 2, createdAt: new Date().toISOString() },
+            { id: 'sub-4', taskId: task.id, title: 'Unit Test Verification Middleware', isCompleted: false, position: 3, createdAt: new Date().toISOString() },
+        ],
+        comments: [
+            {
+                id: 'comment-1',
+                taskId: task.id,
+                userId: 'user-2',
+                userName: 'Sarah Jenkins',
+                content: 'Make sure to use the RS256 algorithm for signing. We need asymmetric keys for the public verification endpoint.',
+                createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            },
+            {
+                id: 'comment-2',
+                taskId: task.id,
+                userId: 'user-1',
+                userName: 'You',
+                content: "Got it. I've already generated the keys and stored them in Worker Secrets.",
+                createdAt: new Date(Date.now() - 10 * 60 * 1000).toISOString(),
+            },
+        ],
+        attachments: [
+            {
+                id: 'att-1',
+                taskId: task.id,
+                fileName: 'auth_schema_v1.png',
+                fileSize: 2.4 * 1024 * 1024,
+                mimeType: 'image/png',
+                createdAt: new Date().toISOString(),
+            },
+            {
+                id: 'att-2',
+                taskId: task.id,
+                fileName: 'specs.pdf',
+                fileSize: 120 * 1024,
+                mimeType: 'application/pdf',
+                createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            },
+        ],
+    };
+}
+
 export function BoardPage() {
-    const [columns, setColumns] = useState<Column[]>(mockColumns);
+    const [columns] = useState<Column[]>(mockColumns);
+    const [selectedTask, setSelectedTask] = useState<TaskDetail | null>(null);
 
     const handleTaskMove = (taskId: string, toColumnId: string, newPosition: number) => {
         console.log('Task moved:', { taskId, toColumnId, newPosition });
@@ -98,13 +153,38 @@ export function BoardPage() {
     };
 
     const handleTaskClick = (task: Task) => {
-        console.log('Task clicked:', task);
-        // TODO: Open task detail modal
+        const column = columns.find(c => c.id === task.columnId);
+        const taskDetail = createMockTaskDetail(task, column?.name || 'Unknown');
+        setSelectedTask(taskDetail);
     };
 
     const handleAddTask = (columnId: string) => {
         console.log('Add task to column:', columnId);
         // TODO: Open create task modal
+    };
+
+    const handleCloseModal = () => {
+        setSelectedTask(null);
+    };
+
+    const handleUpdateTask = (updates: Partial<TaskDetail>) => {
+        console.log('Update task:', updates);
+        // TODO: Call API to update task
+    };
+
+    const handleAddSubtask = (title: string) => {
+        console.log('Add subtask:', title);
+        // TODO: Call API to add subtask
+    };
+
+    const handleToggleSubtask = (subtaskId: string, completed: boolean) => {
+        console.log('Toggle subtask:', { subtaskId, completed });
+        // TODO: Call API to toggle subtask
+    };
+
+    const handleAddComment = (content: string) => {
+        console.log('Add comment:', content);
+        // TODO: Call API to add comment
     };
 
     return (
@@ -160,6 +240,20 @@ export function BoardPage() {
                 onTaskClick={handleTaskClick}
                 onAddTask={handleAddTask}
             />
+
+            {/* Task Modal */}
+            {selectedTask && (
+                <TaskModal
+                    task={selectedTask}
+                    isOpen={true}
+                    onClose={handleCloseModal}
+                    onUpdate={handleUpdateTask}
+                    onAddSubtask={handleAddSubtask}
+                    onToggleSubtask={handleToggleSubtask}
+                    onAddComment={handleAddComment}
+                />
+            )}
         </div>
     );
 }
+
