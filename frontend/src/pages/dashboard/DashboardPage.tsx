@@ -1,8 +1,16 @@
-import { ActivityFeed } from '../../components/activity/ActivityFeed';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { ActivityFeed } from '../../components/activity/ActivityFeed';
+import { CreateProjectModal } from '../../components/project/CreateProjectModal';
+import { CreateTaskModal } from '../../components/task/CreateTaskModal';
+import { InviteMemberModal } from '../../components/member/InviteMemberModal';
+import { useMetrics } from '../../hooks/useMetrics';
 
 export function DashboardPage() {
+    const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+    const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
     const { data, isLoading } = useMetrics();
 
     const stats = data?.stats || {
@@ -71,13 +79,22 @@ export function DashboardPage() {
                 <div className="lg:col-span-1 glass-panel rounded-xl p-6">
                     <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
                     <div className="flex flex-col gap-3">
-                        <button className="btn-primary w-full py-2.5 rounded-lg text-sm font-medium">
+                        <button
+                            onClick={() => setIsProjectModalOpen(true)}
+                            className="btn-primary w-full py-2.5 rounded-lg text-sm font-medium"
+                        >
                             + New Project
                         </button>
-                        <button className="w-full py-2.5 rounded-lg text-sm font-medium text-white border border-white/10 hover:bg-white/5 transition-colors">
+                        <button
+                            onClick={() => setIsTaskModalOpen(true)}
+                            className="w-full py-2.5 rounded-lg text-sm font-medium text-white border border-white/10 hover:bg-white/5 transition-colors"
+                        >
                             + Add Task
                         </button>
-                        <button className="w-full py-2.5 rounded-lg text-sm font-medium text-white border border-white/10 hover:bg-white/5 transition-colors">
+                        <button
+                            onClick={() => setIsInviteModalOpen(true)}
+                            className="w-full py-2.5 rounded-lg text-sm font-medium text-white border border-white/10 hover:bg-white/5 transition-colors"
+                        >
                             Invite Member
                         </button>
                     </div>
@@ -88,6 +105,20 @@ export function DashboardPage() {
                     <ActivityFeed compact={true} title="Recent Activity" />
                 </div>
             </div>
+
+            {/* Modals */}
+            <CreateProjectModal
+                isOpen={isProjectModalOpen}
+                onClose={() => setIsProjectModalOpen(false)}
+            />
+            <CreateTaskModal
+                isOpen={isTaskModalOpen}
+                onClose={() => setIsTaskModalOpen(false)}
+            />
+            <InviteMemberModal
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+            />
         </div>
     );
 }

@@ -125,7 +125,7 @@ export function useCreateTask(projectId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: { column_id: string; title: string; description?: string; priority?: string }) => {
+        mutationFn: async (data: { column_id: string; title: string; description?: string; priority?: string; due_date?: string }) => {
             const response = await tasksApi.createTask(data);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to create task');
