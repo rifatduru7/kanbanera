@@ -1,0 +1,82 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LoginPage } from './pages/auth/LoginPage';
+import { DashboardLayout } from './pages/dashboard/DashboardLayout';
+import { DashboardPage } from './pages/dashboard/DashboardPage';
+import { BoardPage } from './pages/dashboard/BoardPage';
+import './index.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: true,
+      staleTime: 1000 * 60 * 1, // 1 minute
+      retry: 1,
+    },
+  },
+});
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Protected Routes */}
+          <Route path="/" element={<DashboardLayout />}>
+            <Route index element={<Navigate to="/dashboard" replace />} />
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="board" element={<BoardPage />} />
+            <Route path="projects" element={<ProjectsPlaceholder />} />
+            <Route path="settings" element={<SettingsPlaceholder />} />
+            <Route path="members" element={<MembersPlaceholder />} />
+          </Route>
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
+}
+
+// Placeholder components - will be replaced with actual pages
+function BoardPlaceholder() {
+  return (
+    <div className="text-center py-20">
+      <h2 className="text-2xl font-bold text-white">Kanban Board</h2>
+      <p className="text-slate-400 mt-2">Coming next...</p>
+    </div>
+  );
+}
+
+function ProjectsPlaceholder() {
+  return (
+    <div className="text-center py-20">
+      <h2 className="text-2xl font-bold text-white">Projects</h2>
+      <p className="text-slate-400 mt-2">Project list will appear here</p>
+    </div>
+  );
+}
+
+function SettingsPlaceholder() {
+  return (
+    <div className="text-center py-20">
+      <h2 className="text-2xl font-bold text-white">Settings</h2>
+      <p className="text-slate-400 mt-2">Settings page coming soon</p>
+    </div>
+  );
+}
+
+function MembersPlaceholder() {
+  return (
+    <div className="text-center py-20">
+      <h2 className="text-2xl font-bold text-white">Team Members</h2>
+      <p className="text-slate-400 mt-2">Members management coming soon</p>
+    </div>
+  );
+}
+
+export default App;
