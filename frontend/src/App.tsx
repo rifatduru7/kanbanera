@@ -8,6 +8,7 @@ import { BoardPage } from './pages/dashboard/BoardPage';
 import { ProjectsPage } from './pages/dashboard/ProjectsPage';
 import { CalendarPage } from './pages/dashboard/CalendarPage';
 import { MetricsPage } from './pages/dashboard/MetricsPage';
+import { ProfilePage } from './pages/dashboard/ProfilePage';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -37,7 +38,8 @@ function App() {
             <Route path="projects" element={<ProjectsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="metrics" element={<MetricsPage />} />
-            <Route path="settings" element={<SettingsPlaceholder />} />
+            <Route path="profile" element={<ProfilePage />} />
+            <Route path="settings" element={<ProfilePage />} />
             <Route path="members" element={<MembersPlaceholder />} />
           </Route>
 
@@ -50,15 +52,6 @@ function App() {
 }
 
 // Placeholder components - will be replaced with actual pages
-
-function SettingsPlaceholder() {
-  return (
-    <div className="text-center py-20">
-      <h2 className="text-2xl font-bold text-white">Settings</h2>
-      <p className="text-slate-400 mt-2">Settings page coming soon</p>
-    </div>
-  );
-}
 
 function MembersPlaceholder() {
   return (
