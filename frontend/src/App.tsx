@@ -6,6 +6,8 @@ import { DashboardLayout } from './pages/dashboard/DashboardLayout';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { BoardPage } from './pages/dashboard/BoardPage';
 import { ProjectsPage } from './pages/dashboard/ProjectsPage';
+import { CalendarPage } from './pages/dashboard/CalendarPage';
+import { MetricsPage } from './pages/dashboard/MetricsPage';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -33,6 +35,8 @@ function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="board" element={<BoardPage />} />
             <Route path="projects" element={<ProjectsPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="metrics" element={<MetricsPage />} />
             <Route path="settings" element={<SettingsPlaceholder />} />
             <Route path="members" element={<MembersPlaceholder />} />
           </Route>

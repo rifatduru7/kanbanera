@@ -9,6 +9,8 @@ import {
     ChevronDown,
     ChevronLeft,
     ChevronRight,
+    Calendar,
+    BarChart3,
 } from 'lucide-react';
 
 interface NavItem {
@@ -22,6 +24,8 @@ const menuItems: NavItem[] = [
     { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { label: 'Projects', icon: FolderKanban, href: '/projects' },
     { label: 'Kanban Board', icon: Kanban, href: '/board' },
+    { label: 'Calendar', icon: Calendar, href: '/calendar' },
+    { label: 'Metrics', icon: BarChart3, href: '/metrics' },
     { label: 'Settings', icon: Settings, href: '/settings' },
 ];
 
