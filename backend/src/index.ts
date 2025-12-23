@@ -10,6 +10,8 @@ import { columnRoutes } from './routes/columns';
 import { taskRoutes } from './routes/tasks';
 import { userRoutes } from './routes/users';
 import attachmentRoutes from './routes/attachments';
+import metricsRoutes from './routes/metrics';
+import activitiesRoutes from './routes/activities';
 import { authRateLimit, apiRateLimit, uploadRateLimit } from './middleware/rateLimit';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -59,6 +61,8 @@ app.use('/api/projects/*', apiRateLimit);
 app.use('/api/columns/*', apiRateLimit);
 app.use('/api/tasks/*', apiRateLimit);
 app.use('/api/users/*', apiRateLimit);
+app.use('/api/metrics', apiRateLimit);
+app.use('/api/activities', apiRateLimit);
 
 // Upload rate limiting - stricter
 app.use('/api/attachments/*', uploadRateLimit);
@@ -70,6 +74,8 @@ app.route('/api/columns', columnRoutes);
 app.route('/api/tasks', taskRoutes);
 app.route('/api/users', userRoutes);
 app.route('/api/attachments', attachmentRoutes);
+app.route('/api/metrics', metricsRoutes);
+app.route('/api/activities', activitiesRoutes);
 
 // 404 Handler
 app.notFound((c) => {

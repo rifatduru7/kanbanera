@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Loader2 } from 'lucide-react';
+import { useTasksByDateRange, getMonthRange, type CalendarTask } from '../../hooks/useCalendarData';
 
 // Date utilities
 const DAYS_OF_WEEK = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -8,13 +9,6 @@ const MONTHS = [
     'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-interface CalendarTask {
-    id: string;
-    title: string;
-    dueDate: string;
-    priority: 'low' | 'medium' | 'high' | 'critical';
-}
-
 // Priority to color mapping
 const priorityColors: Record<string, string> = {
     low: 'bg-green-500',
@@ -22,15 +16,6 @@ const priorityColors: Record<string, string> = {
     high: 'bg-orange-500',
     critical: 'bg-red-500',
 };
-
-// Mock data - will be replaced with API data
-const mockTasks: CalendarTask[] = [
-    { id: '1', title: 'Sprint Planning', dueDate: '2024-12-23', priority: 'high' },
-    { id: '2', title: 'Design Review', dueDate: '2024-12-25', priority: 'medium' },
-    { id: '3', title: 'API Integration', dueDate: '2024-12-25', priority: 'high' },
-    { id: '4', title: 'Code Review', dueDate: '2024-12-27', priority: 'low' },
-    { id: '5', title: 'Deployment', dueDate: '2024-12-30', priority: 'critical' },
-];
 
 function getDaysInMonth(year: number, month: number) {
     return new Date(year, month + 1, 0).getDate();
@@ -50,16 +35,24 @@ export function CalendarPage() {
     const daysInMonth = getDaysInMonth(year, month);
     const firstDayOfMonth = getFirstDayOfMonth(year, month);
 
+    // Get date range for API call
+    const { from, to } = useMemo(() => getMonthRange(year, month), [year, month]);
+
+    // Fetch tasks from API
+    const { data: tasks = [], isLoading } = useTasksByDateRange(from, to);
+
     // Get tasks for current month
     const tasksByDate = useMemo(() => {
         const map: Record<string, CalendarTask[]> = {};
-        mockTasks.forEach((task) => {
-            const date = task.dueDate;
-            if (!map[date]) map[date] = [];
-            map[date].push(task);
+        tasks.forEach((task) => {
+            const date = task.dueDate?.split('T')[0]; // Handle ISO date
+            if (date) {
+                if (!map[date]) map[date] = [];
+                map[date].push(task);
+            }
         });
         return map;
-    }, []);
+    }, [tasks]);
 
     // Navigate months
     const goToPrevMonth = () => {
@@ -130,6 +123,7 @@ export function CalendarPage() {
                         <h2 className="text-3xl font-bold text-white tracking-tight">
                             {MONTHS[month]} {year}
                         </h2>
+                        {isLoading && <Loader2 className="size-5 text-primary animate-spin" />}
                     </div>
 
                     {/* Navigation */}
@@ -161,8 +155,8 @@ export function CalendarPage() {
                     <button
                         onClick={() => setViewMode('month')}
                         className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${viewMode === 'month'
-                                ? 'bg-background text-white shadow-sm'
-                                : 'text-slate-400 hover:text-white'
+                            ? 'bg-background text-white shadow-sm'
+                            : 'text-slate-400 hover:text-white'
                             }`}
                     >
                         Month
@@ -170,8 +164,8 @@ export function CalendarPage() {
                     <button
                         onClick={() => setViewMode('week')}
                         className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${viewMode === 'week'
-                                ? 'bg-background text-white shadow-sm'
-                                : 'text-slate-400 hover:text-white'
+                            ? 'bg-background text-white shadow-sm'
+                            : 'text-slate-400 hover:text-white'
                             }`}
                     >
                         Week
@@ -202,8 +196,8 @@ export function CalendarPage() {
                                 <div
                                     key={index}
                                     className={`group p-2 min-h-[100px] flex flex-col gap-1 cursor-pointer transition-colors ${item.isCurrentMonth
-                                            ? 'hover:bg-white/[0.02]'
-                                            : 'bg-background/30'
+                                        ? 'hover:bg-white/[0.02]'
+                                        : 'bg-background/30'
                                         } ${item.isToday ? 'bg-primary/5 relative' : ''}`}
                                 >
                                     {/* Today indicator */}
@@ -214,10 +208,10 @@ export function CalendarPage() {
                                     {/* Day number */}
                                     <span
                                         className={`text-sm font-medium p-1 flex items-center justify-between ${item.isCurrentMonth
-                                                ? item.isToday
-                                                    ? 'text-primary font-bold'
-                                                    : 'text-slate-400'
-                                                : 'text-slate-600'
+                                            ? item.isToday
+                                                ? 'text-primary font-bold'
+                                                : 'text-slate-400'
+                                            : 'text-slate-600'
                                             }`}
                                     >
                                         {item.day}
@@ -233,12 +227,13 @@ export function CalendarPage() {
                                         <div
                                             key={task.id}
                                             className={`flex items-center gap-2 ${item.isToday
-                                                    ? 'bg-primary/20 border border-primary/30'
-                                                    : 'bg-surface border border-white/5'
+                                                ? 'bg-primary/20 border border-primary/30'
+                                                : 'bg-surface border border-white/5'
                                                 } rounded px-2 py-1 hover:border-primary/50 transition-colors`}
+                                            title={`${task.title} (${task.projectName || 'No project'})`}
                                         >
                                             <div
-                                                className={`size-1.5 rounded-full ${priorityColors[task.priority]} shrink-0`}
+                                                className={`size-1.5 rounded-full ${priorityColors[task.priority] || 'bg-gray-500'} shrink-0`}
                                             />
                                             <span className="text-xs text-slate-200 truncate">{task.title}</span>
                                         </div>

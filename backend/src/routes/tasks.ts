@@ -7,6 +7,63 @@ export const taskRoutes = new Hono<{ Bindings: Env }>();
 // All routes require authentication
 taskRoutes.use('*', authMiddleware);
 
+// GET /api/tasks/calendar - Get tasks by date range for calendar view
+taskRoutes.get('/calendar', async (c) => {
+    const userId = c.get('userId');
+    const from = c.req.query('from');
+    const to = c.req.query('to');
+
+    try {
+        let query = `
+            SELECT t.*, c.name as column_name, p.name as project_name
+            FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN columns c ON t.column_id = c.id
+            LEFT JOIN project_members pm ON p.id = pm.project_id
+            WHERE (p.owner_id = ? OR pm.user_id = ?)
+            AND t.due_date IS NOT NULL
+        `;
+        const params: (string | null)[] = [userId, userId];
+
+        if (from) {
+            query += ' AND t.due_date >= ?';
+            params.push(from);
+        }
+        if (to) {
+            query += ' AND t.due_date <= ?';
+            params.push(to);
+        }
+
+        query += ' ORDER BY t.due_date ASC';
+
+        const { results: tasks } = await c.env.DB.prepare(query)
+            .bind(...params)
+            .all();
+
+        return c.json({
+            success: true,
+            data: {
+                tasks: tasks?.map((t: Record<string, unknown>) => ({
+                    id: t.id,
+                    title: t.title,
+                    dueDate: t.due_date,
+                    priority: t.priority,
+                    projectId: t.project_id,
+                    projectName: t.project_name,
+                    columnName: t.column_name,
+                    labels: t.labels ? JSON.parse(t.labels as string) : [],
+                })) || [],
+            },
+        });
+    } catch (error) {
+        console.error('Get calendar tasks error:', error);
+        return c.json(
+            { success: false, error: 'Server Error', message: 'Failed to fetch calendar tasks' },
+            500
+        );
+    }
+});
+
 // POST /api/tasks - Create task
 taskRoutes.post('/', async (c) => {
     const userId = c.get('userId');

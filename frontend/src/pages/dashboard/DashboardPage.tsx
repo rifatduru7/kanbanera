@@ -1,6 +1,19 @@
 import { ActivityFeed } from '../../components/activity/ActivityFeed';
+import { useMetrics } from '../../hooks/useMetrics';
+import { Loader2 } from 'lucide-react';
 
 export function DashboardPage() {
+    const { data, isLoading } = useMetrics();
+
+    const stats = data?.stats || {
+        totalTasks: 0,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        overdueTasks: 0,
+        totalProjects: 0,
+        activeProjects: 0,
+    };
+
     return (
         <div className="flex flex-col gap-8">
             {/* Page Header */}
@@ -24,27 +37,31 @@ export function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     title="Total Projects"
-                    value="12"
-                    change="+2 this month"
+                    value={isLoading ? '—' : String(stats.totalProjects)}
+                    change={`${stats.activeProjects} active`}
                     color="primary"
+                    loading={isLoading}
                 />
                 <StatCard
                     title="Active Tasks"
-                    value="48"
-                    change="8 due today"
+                    value={isLoading ? '—' : String(stats.inProgressTasks)}
+                    change={`${stats.overdueTasks} overdue`}
                     color="yellow"
+                    loading={isLoading}
                 />
                 <StatCard
                     title="Completed"
-                    value="156"
-                    change="+23 this week"
+                    value={isLoading ? '—' : String(stats.completedTasks)}
+                    change={`${stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0}% completion`}
                     color="green"
+                    loading={isLoading}
                 />
                 <StatCard
-                    title="Team Members"
-                    value="8"
-                    change="2 pending invites"
+                    title="Total Tasks"
+                    value={isLoading ? '—' : String(stats.totalTasks)}
+                    change="across all projects"
                     color="purple"
+                    loading={isLoading}
                 />
             </div>
 
@@ -80,9 +97,10 @@ interface StatCardProps {
     value: string;
     change: string;
     color: 'primary' | 'yellow' | 'green' | 'purple';
+    loading?: boolean;
 }
 
-function StatCard({ title, value, change, color }: StatCardProps) {
+function StatCard({ title, value, change, color, loading }: StatCardProps) {
     const colorClasses = {
         primary: 'from-primary/20 to-primary/5 border-primary/20',
         yellow: 'from-yellow-500/20 to-yellow-500/5 border-yellow-500/20',
@@ -95,7 +113,10 @@ function StatCard({ title, value, change, color }: StatCardProps) {
             className={`glass-panel rounded-xl p-5 bg-gradient-to-br ${colorClasses[color]} border`}
         >
             <p className="text-slate-400 text-sm font-medium">{title}</p>
-            <p className="text-3xl font-bold text-white mt-2">{value}</p>
+            <div className="text-3xl font-bold text-white mt-2 flex items-center gap-2">
+                {loading && <Loader2 className="size-5 animate-spin text-primary" />}
+                {value}
+            </div>
             <p className="text-xs text-slate-500 mt-1">{change}</p>
         </div>
     );

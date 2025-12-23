@@ -1,4 +1,5 @@
-import { BarChart3, CheckCircle, Clock, AlertTriangle, TrendingUp, Users } from 'lucide-react';
+import { BarChart3, CheckCircle, Clock, AlertTriangle, TrendingUp, Users, Loader2 } from 'lucide-react';
+import { useMetrics, useCompletionRate } from '../../hooks/useMetrics';
 
 // Stat Card Component
 interface StatCardProps {
@@ -48,10 +49,10 @@ interface ProgressBarProps {
 }
 
 function ProgressBar({ label, value, max, color }: ProgressBarProps) {
-    const percentage = Math.round((value / max) * 100);
+    const percentage = max > 0 ? Math.round((value / max) * 100) : 0;
     return (
         <div className="flex items-center gap-4">
-            <span className="text-sm text-text-muted w-24 truncate">{label}</span>
+            <span className="text-sm text-text-muted w-24 truncate capitalize">{label}</span>
             <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
                 <div
                     className={`h-full rounded-full transition-all duration-500 ${color}`}
@@ -63,30 +64,43 @@ function ProgressBar({ label, value, max, color }: ProgressBarProps) {
     );
 }
 
-// Mock data
-const mockStats = {
-    totalTasks: 156,
-    completedTasks: 89,
-    inProgressTasks: 42,
-    overdueTasks: 7,
+const priorityColors: Record<string, string> = {
+    critical: 'bg-red-500',
+    high: 'bg-orange-500',
+    medium: 'bg-yellow-500',
+    low: 'bg-green-500',
+    none: 'bg-gray-500',
 };
 
-const mockTeamPerformance = [
-    { name: 'Alex Morgan', completed: 28, color: 'bg-primary' },
-    { name: 'Sarah Chen', completed: 24, color: 'bg-blue-500' },
-    { name: 'Mike Johnson', completed: 19, color: 'bg-purple-500' },
-    { name: 'Emily Davis', completed: 18, color: 'bg-pink-500' },
-];
-
-const mockPriorityDistribution = [
-    { label: 'Critical', value: 12, color: 'bg-red-500' },
-    { label: 'High', value: 34, color: 'bg-orange-500' },
-    { label: 'Medium', value: 67, color: 'bg-yellow-500' },
-    { label: 'Low', value: 43, color: 'bg-green-500' },
-];
+const teamColors = ['bg-primary', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'];
 
 export function MetricsPage() {
-    const completionRate = Math.round((mockStats.completedTasks / mockStats.totalTasks) * 100);
+    const { data, isLoading, error } = useMetrics();
+    const completionRate = useCompletionRate();
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="size-8 text-primary animate-spin" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-64 text-red-400">
+                <AlertTriangle className="size-6 mr-2" />
+                Failed to load metrics
+            </div>
+        );
+    }
+
+    const stats = data?.stats || {
+        totalTasks: 0,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        overdueTasks: 0,
+    };
 
     return (
         <div className="flex flex-col h-full overflow-y-auto">
@@ -107,28 +121,28 @@ export function MetricsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard
                         title="Total Tasks"
-                        value={mockStats.totalTasks}
+                        value={stats.totalTasks}
                         icon={<CheckCircle className="size-5" />}
                         color="primary"
                     />
                     <StatCard
                         title="Completed"
-                        value={mockStats.completedTasks}
+                        value={stats.completedTasks}
                         icon={<CheckCircle className="size-5" />}
                         trend={{ value: 12, isPositive: true }}
                         color="green"
                     />
                     <StatCard
                         title="In Progress"
-                        value={mockStats.inProgressTasks}
+                        value={stats.inProgressTasks}
                         icon={<Clock className="size-5" />}
                         color="blue"
                     />
                     <StatCard
                         title="Overdue"
-                        value={mockStats.overdueTasks}
+                        value={stats.overdueTasks}
                         icon={<AlertTriangle className="size-5" />}
-                        trend={{ value: 2, isPositive: false }}
+                        trend={stats.overdueTasks > 0 ? { value: stats.overdueTasks, isPositive: false } : undefined}
                         color="red"
                     />
                 </div>
@@ -172,11 +186,11 @@ export function MetricsPage() {
                         <div className="flex justify-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
                                 <div className="size-3 rounded-full bg-primary" />
-                                <span className="text-text-muted">Completed ({mockStats.completedTasks})</span>
+                                <span className="text-text-muted">Completed ({stats.completedTasks})</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <div className="size-3 rounded-full bg-white/10" />
-                                <span className="text-text-muted">Remaining ({mockStats.totalTasks - mockStats.completedTasks})</span>
+                                <span className="text-text-muted">Remaining ({stats.totalTasks - stats.completedTasks})</span>
                             </div>
                         </div>
                     </div>
@@ -189,15 +203,19 @@ export function MetricsPage() {
                         </h3>
 
                         <div className="space-y-4">
-                            {mockPriorityDistribution.map((item) => (
-                                <ProgressBar
-                                    key={item.label}
-                                    label={item.label}
-                                    value={item.value}
-                                    max={156}
-                                    color={item.color}
-                                />
-                            ))}
+                            {data?.priorityDistribution.length ? (
+                                data.priorityDistribution.map((item) => (
+                                    <ProgressBar
+                                        key={item.priority}
+                                        label={item.priority}
+                                        value={item.count}
+                                        max={stats.totalTasks}
+                                        color={priorityColors[item.priority] || 'bg-gray-500'}
+                                    />
+                                ))
+                            ) : (
+                                <p className="text-text-muted text-sm">No priority data available</p>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -210,23 +228,27 @@ export function MetricsPage() {
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        {mockTeamPerformance.map((member, index) => (
-                            <div key={member.name} className="bg-white/5 rounded-xl p-4 border border-white/5">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className={`size-10 rounded-full ${member.color} flex items-center justify-center text-white font-bold`}>
-                                        {member.name.charAt(0)}
+                        {data?.teamPerformance.length ? (
+                            data.teamPerformance.map((member, index) => (
+                                <div key={member.userId} className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className={`size-10 rounded-full ${teamColors[index % teamColors.length]} flex items-center justify-center text-white font-bold`}>
+                                            {member.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-medium text-sm">{member.name}</p>
+                                            <p className="text-text-muted text-xs">#{index + 1} Contributor</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className="text-white font-medium text-sm">{member.name}</p>
-                                        <p className="text-text-muted text-xs">#{index + 1} Contributor</p>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-2xl font-bold text-white">{member.completed}</span>
+                                        <span className="text-xs text-text-muted">tasks completed</span>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-2xl font-bold text-white">{member.completed}</span>
-                                    <span className="text-xs text-text-muted">tasks completed</span>
-                                </div>
-                            </div>
-                        ))}
+                            ))
+                        ) : (
+                            <p className="text-text-muted text-sm col-span-4">No team data available. Assign tasks to team members to see performance.</p>
+                        )}
                     </div>
                 </div>
             </div>
