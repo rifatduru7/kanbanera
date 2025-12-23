@@ -287,22 +287,30 @@ export function TaskModal({
                                 </div>
                             </div>
 
-                            {/* Labels */}
+                            {/* Tags */}
                             <div className="flex flex-col gap-3">
                                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
-                                    Labels
+                                    Tags
                                 </label>
                                 <div className="flex flex-wrap gap-2">
                                     {task.labels?.map((label) => (
                                         <span
                                             key={label}
-                                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-primary/20 text-primary border border-primary/30"
+                                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-primary/20 text-primary border border-primary/30"
                                         >
+                                            <span className="size-1.5 rounded-full bg-primary" />
                                             {label}
+                                            <button
+                                                className="hover:bg-primary/30 rounded-full p-0.5 transition-colors ml-0.5"
+                                                onClick={() => {/* TODO: Remove tag */ }}
+                                            >
+                                                <X className="size-3" />
+                                            </button>
                                         </span>
                                     ))}
-                                    <button className="inline-flex items-center justify-center w-6 h-6 rounded-full border border-dashed border-text-muted/50 text-text-muted hover:text-white hover:border-white transition-colors">
+                                    <button className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-dashed border-text-muted/50 text-text-muted hover:border-primary hover:text-primary transition-all text-xs font-medium">
                                         <Plus className="size-3" />
+                                        Add Tag
                                     </button>
                                 </div>
                             </div>
@@ -393,16 +401,16 @@ function SubtaskItem({
         >
             <div
                 className={`relative flex items-center justify-center w-5 h-5 rounded border transition-colors ${subtask.isCompleted
-                        ? 'border-primary bg-primary text-black'
-                        : 'border-text-muted/50 group-hover:border-primary bg-transparent'
+                    ? 'border-primary bg-primary text-black'
+                    : 'border-text-muted/50 group-hover:border-primary bg-transparent'
                     }`}
             >
                 {subtask.isCompleted && <Check className="size-3" strokeWidth={3} />}
             </div>
             <span
                 className={`text-sm ${subtask.isCompleted
-                        ? 'text-text-muted line-through decoration-primary decoration-2'
-                        : 'text-white'
+                    ? 'text-text-muted line-through decoration-primary decoration-2'
+                    : 'text-white'
                     }`}
             >
                 {subtask.title}
@@ -433,8 +441,8 @@ function CommentItem({
                 </div>
                 <p
                     className={`text-sm leading-relaxed p-3 rounded-lg ${isOwn
-                            ? 'bg-primary/20 border border-primary/20 text-white rounded-tr-none text-right'
-                            : 'bg-white/5 text-gray-300 rounded-tl-none'
+                        ? 'bg-primary/20 border border-primary/20 text-white rounded-tr-none text-right'
+                        : 'bg-white/5 text-gray-300 rounded-tl-none'
                         }`}
                 >
                     {comment.content}

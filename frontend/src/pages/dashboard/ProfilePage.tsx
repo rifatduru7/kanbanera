@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { User, Mail, Lock, Moon, Sun, Monitor, Bell, Trash2, Camera, Shield } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-
-type Theme = 'light' | 'dark' | 'system';
+import { useTheme, type Theme } from '../../hooks/useTheme';
 
 export function ProfilePage() {
     const { user } = useAuthStore();
+    const { theme, setTheme } = useTheme();
     const [firstName, setFirstName] = useState(user?.name?.split(' ')[0] || 'Alex');
     const [lastName, setLastName] = useState(user?.name?.split(' ').slice(1).join(' ') || 'Morgan');
-    const [theme, setTheme] = useState<Theme>('dark');
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [pushNotifications, setPushNotifications] = useState(true);
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
 
     const handleSaveChanges = () => {
         // TODO: API call to update profile

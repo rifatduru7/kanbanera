@@ -1,3 +1,5 @@
+import { ActivityFeed } from '../../components/activity/ActivityFeed';
+
 export function DashboardPage() {
     return (
         <div className="flex flex-col gap-8">
@@ -46,11 +48,27 @@ export function DashboardPage() {
                 />
             </div>
 
-            {/* Recent Activity */}
-            <div className="glass-panel rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
-                <div className="text-slate-400 text-sm">
-                    No recent activity to display. Create a project to get started!
+            {/* Two Column Layout: Quick Actions + Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Quick Actions */}
+                <div className="lg:col-span-1 glass-panel rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+                    <div className="flex flex-col gap-3">
+                        <button className="btn-primary w-full py-2.5 rounded-lg text-sm font-medium">
+                            + New Project
+                        </button>
+                        <button className="w-full py-2.5 rounded-lg text-sm font-medium text-white border border-white/10 hover:bg-white/5 transition-colors">
+                            + Add Task
+                        </button>
+                        <button className="w-full py-2.5 rounded-lg text-sm font-medium text-white border border-white/10 hover:bg-white/5 transition-colors">
+                            Invite Member
+                        </button>
+                    </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="lg:col-span-2">
+                    <ActivityFeed compact={true} title="Recent Activity" />
                 </div>
             </div>
         </div>
