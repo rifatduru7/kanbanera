@@ -1,21 +1,39 @@
 import { useState } from 'react';
-import { User, Mail, Lock, Moon, Sun, Monitor, Bell, Trash2, Camera, Shield } from 'lucide-react';
+import { User, Mail, Lock, Moon, Sun, Monitor, Bell, Trash2, Camera, Shield, Loader2, Check } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme, type Theme } from '../../hooks/useTheme';
+import { authApi } from '../../lib/api/client';
 
 export function ProfilePage() {
-    const { user } = useAuthStore();
+    const { user, setUser } = useAuthStore();
     const { theme, setTheme } = useTheme();
-    const [firstName, setFirstName] = useState(user?.name?.split(' ')[0] || 'Alex');
-    const [lastName, setLastName] = useState(user?.name?.split(' ').slice(1).join(' ') || 'Morgan');
+    const [firstName, setFirstName] = useState(user?.name?.split(' ')[0] || '');
+    const [lastName, setLastName] = useState(user?.name?.split(' ').slice(1).join(' ') || '');
     const [emailNotifications, setEmailNotifications] = useState(true);
     const [pushNotifications, setPushNotifications] = useState(true);
     const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
 
-    const handleSaveChanges = () => {
-        // TODO: API call to update profile
-        console.log('Saving profile:', { firstName, lastName });
+    const handleSaveChanges = async () => {
+        setIsSaving(true);
+        setSaveSuccess(false);
+
+        try {
+            const fullName = `${firstName} ${lastName}`.trim();
+            const response = await authApi.updateProfile({ full_name: fullName });
+
+            if (response.success && response.data) {
+                setUser({ ...user!, name: fullName });
+                setSaveSuccess(true);
+                setTimeout(() => setSaveSuccess(false), 3000);
+            }
+        } catch (error) {
+            console.error('Failed to update profile:', error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     return (
@@ -127,13 +145,21 @@ export function ProfilePage() {
                                         <p className="text-xs text-text-muted/60">Email address cannot be changed for security reasons.</p>
                                     </div>
 
-                                    <div className="pt-4 flex justify-end">
+                                    <div className="pt-4 flex justify-end gap-3 items-center">
+                                        {saveSuccess && (
+                                            <span className="text-green-400 text-sm flex items-center gap-1">
+                                                <Check className="size-4" />
+                                                Saved!
+                                            </span>
+                                        )}
                                         <button
                                             type="button"
                                             onClick={handleSaveChanges}
-                                            className="btn-primary py-2.5 px-6 rounded-lg font-semibold text-sm shadow-[0_0_15px_rgba(19,185,165,0.3)]"
+                                            disabled={isSaving}
+                                            className="btn-primary py-2.5 px-6 rounded-lg font-semibold text-sm shadow-[0_0_15px_rgba(19,185,165,0.3)] flex items-center gap-2 disabled:opacity-70"
                                         >
-                                            Save Changes
+                                            {isSaving && <Loader2 className="size-4 animate-spin" />}
+                                            {isSaving ? 'Saving...' : 'Save Changes'}
                                         </button>
                                     </div>
                                 </form>

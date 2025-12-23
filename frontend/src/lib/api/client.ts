@@ -86,6 +86,11 @@ export const authApi = {
         const response = await api.get<ApiResponse<{ user: any }>>('/api/auth/me');
         return response.data;
     },
+
+    updateProfile: async (data: { full_name?: string; avatar_url?: string }) => {
+        const response = await api.put<ApiResponse<{ user: any }>>('/api/users/me', data);
+        return response.data;
+    },
 };
 
 // Projects API

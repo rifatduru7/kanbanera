@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Board } from '../../components/kanban/Board';
 import { TaskModal } from '../../components/kanban/TaskModal';
 import { Filter, Loader2, AlertCircle, FolderKanban, ChevronDown } from 'lucide-react';
-import { useProjects, useProject, useMoveTask, useCreateTask, useAddSubtask, useToggleSubtask, useAddComment } from '../../hooks/useKanbanData';
+import { useProjects, useProject, useMoveTask, useCreateTask, useUpdateTask, useAddSubtask, useToggleSubtask, useAddComment } from '../../hooks/useKanbanData';
 import { tasksApi } from '../../lib/api/client';
 import type { Column, Task } from '../../types/kanban';
 import type { TaskDetail } from '../../types/task-detail';
@@ -28,6 +28,7 @@ export function BoardPage() {
     // API mutations
     const moveTask = useMoveTask(selectedProjectId || '');
     const createTask = useCreateTask(selectedProjectId || '');
+    const updateTask = useUpdateTask(selectedProjectId || '');
     const addSubtask = useAddSubtask(selectedProjectId || '');
     const toggleSubtask = useToggleSubtask(selectedProjectId || '');
     const addComment = useAddComment(selectedProjectId || '');
@@ -135,8 +136,15 @@ export function BoardPage() {
     };
 
     const handleUpdateTask = (updates: Partial<TaskDetail>) => {
-        console.log('Update task:', updates);
-        // TODO: Implement task update
+        if (selectedTask) {
+            updateTask.mutate({
+                id: selectedTask.id,
+                title: updates.title,
+                description: updates.description,
+                priority: updates.priority,
+                due_date: updates.dueDate,
+            });
+        }
     };
 
     const handleAddSubtask = (title: string) => {
