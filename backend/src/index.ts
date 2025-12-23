@@ -10,6 +10,7 @@ import { columnRoutes } from './routes/columns';
 import { taskRoutes } from './routes/tasks';
 import { userRoutes } from './routes/users';
 import attachmentRoutes from './routes/attachments';
+import { authRateLimit, apiRateLimit, uploadRateLimit } from './middleware/rateLimit';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -26,7 +27,7 @@ app.use(
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
         allowHeaders: ['Content-Type', 'Authorization'],
-        exposeHeaders: ['Content-Length'],
+        exposeHeaders: ['Content-Length', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
         maxAge: 86400,
     })
 );
@@ -47,6 +48,20 @@ app.get('/api/health', (c) => {
         timestamp: new Date().toISOString(),
     });
 });
+
+// Apply rate limiting per route group
+// Auth routes - strict rate limiting (5 attempts per 15 min for login/register)
+app.use('/api/auth/login', authRateLimit);
+app.use('/api/auth/register', authRateLimit);
+
+// Standard API rate limiting
+app.use('/api/projects/*', apiRateLimit);
+app.use('/api/columns/*', apiRateLimit);
+app.use('/api/tasks/*', apiRateLimit);
+app.use('/api/users/*', apiRateLimit);
+
+// Upload rate limiting - stricter
+app.use('/api/attachments/*', uploadRateLimit);
 
 // API Routes
 app.route('/api/auth', authRoutes);
