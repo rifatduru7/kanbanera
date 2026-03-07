@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Loader2 } from 'lucide-react';
+import { CaretLeft as ChevronLeft, CaretRight as ChevronRight, CalendarBlank as Calendar, CircleNotch as Loader2 } from '@phosphor-icons/react';
 import { useTasksByDateRange, getMonthRange, type CalendarTask } from '../../hooks/useCalendarData';
 
 // Date utilities

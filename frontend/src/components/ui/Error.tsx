@@ -1,4 +1,4 @@
-import { AlertCircle, RefreshCw, Home, ArrowLeft } from 'lucide-react';
+import { WarningCircle as AlertCircle, ArrowsClockwise as RefreshCw, House as Home, ArrowLeft } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 
 interface ErrorDisplayProps {

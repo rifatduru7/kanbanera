@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Kanban, Github, Mail, Loader2, AlertCircle } from 'lucide-react';
+import { Eye, EyeClosed as EyeOff, Kanban, GithubLogo as Github, EnvelopeSimple as Mail, CircleNotch as Loader2, WarningCircle as AlertCircle } from '@phosphor-icons/react';
 import { authApi } from '../../lib/api/client';
 import { useAuthStore } from '../../stores/authStore';
 

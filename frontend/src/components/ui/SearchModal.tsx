@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, X, FileText, FolderKanban, Calendar, User, BarChart3, Command } from 'lucide-react';
+import { MagnifyingGlass as Search, X, FileText, Kanban as FolderKanban, CalendarBlank as Calendar, User, ChartBar as BarChart3, Command } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 
 interface SearchResult {
@@ -135,8 +135,8 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                                         }}
                                         onMouseEnter={() => setSelectedIndex(index)}
                                         className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-left ${isSelected
-                                                ? 'bg-primary/20 text-white'
-                                                : 'text-text-muted hover:bg-white/5'
+                                            ? 'bg-primary/20 text-white'
+                                            : 'text-text-muted hover:bg-white/5'
                                             }`}
                                     >
                                         <div

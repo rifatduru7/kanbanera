@@ -257,12 +257,12 @@ taskRoutes.put('/:id', async (c) => {
        WHERE id = ?`
         )
             .bind(
-                title,
-                description ?? task.description,
-                priority,
-                assignee_id ?? null,
-                due_date ?? null,
-                labels ? JSON.stringify(labels) : task.labels,
+                title ?? null,
+                description === undefined ? task.description : description,
+                priority ?? null,
+                assignee_id === undefined ? task.assignee_id : assignee_id,
+                due_date === undefined ? task.due_date : due_date,
+                labels === undefined ? task.labels : JSON.stringify(labels),
                 taskId
             )
             .run();

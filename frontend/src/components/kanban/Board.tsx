@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
     DndContext,
     DragOverlay,
@@ -27,10 +27,13 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask }: BoardProp
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [localColumns, setLocalColumns] = useState(columns);
 
-    // Update local state when props change
-    if (JSON.stringify(columns) !== JSON.stringify(localColumns)) {
+    // Track drag destination with a ref to avoid stale closure issues
+    const dragDestinationRef = useRef<{ columnId: string; position: number } | null>(null);
+
+    // Sync local state with props
+    useEffect(() => {
         setLocalColumns(columns);
-    }
+    }, [columns]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -43,7 +46,7 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask }: BoardProp
         })
     );
 
-    const findColumn = useCallback(
+    const findColumnForTask = useCallback(
         (taskId: string) => {
             return localColumns.find((col) =>
                 col.tasks.some((task) => task.id === taskId)
@@ -57,6 +60,12 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask }: BoardProp
         const task = active.data.current?.task as Task | undefined;
         if (task) {
             setActiveTask(task);
+            // Initialize drag destination with current position
+            const currentColumn = findColumnForTask(task.id);
+            if (currentColumn) {
+                const taskIndex = currentColumn.tasks.findIndex(t => t.id === task.id);
+                dragDestinationRef.current = { columnId: currentColumn.id, position: taskIndex };
+            }
         }
     };
 
@@ -67,84 +76,98 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask }: BoardProp
         const activeId = active.id as string;
         const overId = over.id as string;
 
-        const activeColumn = findColumn(activeId);
-        const overColumn =
-            localColumns.find((col) => col.id === overId) || findColumn(overId);
+        // Find current column of dragged task (from local state)
+        let sourceColumn: ColumnType | undefined;
+        let sourceTaskIndex = -1;
 
-        if (!activeColumn || !overColumn || activeColumn.id === overColumn.id) {
-            return;
-        }
-
-        // Move task to new column
-        setLocalColumns((prev) => {
-            const activeTaskIndex = activeColumn.tasks.findIndex(
-                (t) => t.id === activeId
-            );
-            const activeTaskData = activeColumn.tasks[activeTaskIndex];
-
-            return prev.map((col) => {
-                if (col.id === activeColumn.id) {
-                    return {
-                        ...col,
-                        tasks: col.tasks.filter((t) => t.id !== activeId),
-                    };
-                }
-                if (col.id === overColumn.id) {
-                    const overTaskIndex = col.tasks.findIndex((t) => t.id === overId);
-                    const insertIndex = overTaskIndex >= 0 ? overTaskIndex : col.tasks.length;
-                    return {
-                        ...col,
-                        tasks: [
-                            ...col.tasks.slice(0, insertIndex),
-                            { ...activeTaskData, columnId: col.id },
-                            ...col.tasks.slice(insertIndex),
-                        ],
-                    };
-                }
-                return col;
-            });
-        });
-    };
-
-    const handleDragEnd = (event: DragEndEvent) => {
-        const { active, over } = event;
-        setActiveTask(null);
-
-        if (!over) return;
-
-        const activeId = active.id as string;
-        const overId = over.id as string;
-
-        const activeColumn = findColumn(activeId);
-
-        if (!activeColumn) return;
-
-        // Same column reorder
-        if (activeId !== overId) {
-            const activeIndex = activeColumn.tasks.findIndex((t) => t.id === activeId);
-            const overIndex = activeColumn.tasks.findIndex((t) => t.id === overId);
-
-            if (activeIndex !== -1 && overIndex !== -1) {
-                setLocalColumns((prev) =>
-                    prev.map((col) => {
-                        if (col.id === activeColumn.id) {
-                            return {
-                                ...col,
-                                tasks: arrayMove(col.tasks, activeIndex, overIndex),
-                            };
-                        }
-                        return col;
-                    })
-                );
+        for (const col of localColumns) {
+            const idx = col.tasks.findIndex(t => t.id === activeId);
+            if (idx !== -1) {
+                sourceColumn = col;
+                sourceTaskIndex = idx;
+                break;
             }
         }
 
-        // Call API callback for persistence
-        const finalColumn = findColumn(activeId);
-        if (finalColumn) {
-            const taskIndex = finalColumn.tasks.findIndex((t) => t.id === activeId);
-            onTaskMove?.(activeId, finalColumn.id, taskIndex);
+        if (!sourceColumn) return;
+
+        // Determine target column - could be dropping on a column or a task
+        let targetColumn = localColumns.find((col) => col.id === overId);
+        let insertPosition = 0;
+
+        if (targetColumn) {
+            // Dropping on an empty column or column header
+            insertPosition = targetColumn.tasks.length;
+        } else {
+            // Dropping on a task - find which column contains that task
+            for (const col of localColumns) {
+                const overTaskIndex = col.tasks.findIndex(t => t.id === overId);
+                if (overTaskIndex !== -1) {
+                    targetColumn = col;
+                    insertPosition = overTaskIndex;
+                    break;
+                }
+            }
         }
+
+        if (!targetColumn) return;
+
+        // Update destination ref
+        dragDestinationRef.current = { columnId: targetColumn.id, position: insertPosition };
+
+        // If moving to a different column, update local state for visual feedback
+        if (sourceColumn.id !== targetColumn.id) {
+            const taskToMove = sourceColumn.tasks[sourceTaskIndex];
+
+            setLocalColumns((prev) => {
+                return prev.map((col) => {
+                    if (col.id === sourceColumn!.id) {
+                        return {
+                            ...col,
+                            tasks: col.tasks.filter((t) => t.id !== activeId),
+                        };
+                    }
+                    if (col.id === targetColumn!.id) {
+                        const newTasks = [...col.tasks];
+                        newTasks.splice(insertPosition, 0, { ...taskToMove, columnId: col.id });
+                        return {
+                            ...col,
+                            tasks: newTasks,
+                        };
+                    }
+                    return col;
+                });
+            });
+        } else if (sourceTaskIndex !== insertPosition) {
+            // Same column, different position - reorder
+            setLocalColumns((prev) =>
+                prev.map((col) => {
+                    if (col.id === sourceColumn!.id) {
+                        return {
+                            ...col,
+                            tasks: arrayMove(col.tasks, sourceTaskIndex, insertPosition),
+                        };
+                    }
+                    return col;
+                })
+            );
+        }
+    };
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active } = event;
+        setActiveTask(null);
+
+        const activeId = active.id as string;
+        const destination = dragDestinationRef.current;
+
+        // Call API callback with the tracked destination
+        if (destination) {
+            onTaskMove?.(activeId, destination.columnId, destination.position);
+        }
+
+        // Reset destination ref
+        dragDestinationRef.current = null;
     };
 
     return (

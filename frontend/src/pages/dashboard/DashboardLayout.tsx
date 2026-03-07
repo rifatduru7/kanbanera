@@ -40,7 +40,7 @@ export function DashboardLayout() {
     return (
         <div className="flex h-screen w-full relative">
             {/* Sidebar - Hidden on mobile */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block h-full">
                 <Sidebar
                     isCollapsed={sidebarCollapsed}
                     onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}

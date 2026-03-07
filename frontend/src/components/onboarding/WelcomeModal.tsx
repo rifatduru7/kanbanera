@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Kanban, FolderPlus, Users, Sparkles, ArrowRight, CheckCircle } from 'lucide-react';
+import { X, Kanban, FolderPlus, Users, Sparkle as Sparkles, ArrowRight, CheckCircle } from '@phosphor-icons/react';
 
 interface WelcomeModalProps {
     userName?: string;

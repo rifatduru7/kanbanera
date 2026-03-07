@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { FolderOpen, ClipboardList, Search, Clock, Plus, ListTodo } from 'lucide-react';
+import { FolderOpen, ClipboardText as ClipboardList, MagnifyingGlass as Search, Clock, Plus, ListChecks as ListTodo } from '@phosphor-icons/react';
 
 interface EmptyStateProps {
     type?: 'projects' | 'tasks' | 'search' | 'activity' | 'custom';

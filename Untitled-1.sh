@@ -1,0 +1,11 @@
+# Test kullanıcıları oluştur (şifre: TestUser2025Eracloud)
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_yonetici --password-from-env --display-name="Test Yonetici"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_proje_muduru --password-from-env --display-name="Test Proje Muduru"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_kalite_muduru --password-from-env --display-name="Test Kalite Muduru"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_uretim_sefi --password-from-env --display-name="Test Uretim Sefi"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_muhendis1 --password-from-env --display-name="Test Muhendis 1"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_muhendis2 --password-from-env --display-name="Test Muhendis 2"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_satinalma --password-from-env --display-name="Test Satinalma"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_finans --password-from-env --display-name="Test Finans"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_ik --password-from-env --display-name="Test IK"
+docker exec -e OC_PASS='Nova1881@/*/' -u www-data paperless-nextcloud-1 php occ user:add test_it --password-from-env --display-name="Test IT"

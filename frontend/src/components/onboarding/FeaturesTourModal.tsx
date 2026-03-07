@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, ArrowRight, SkipForward } from 'lucide-react';
+import { X, ArrowRight, SkipForward, Kanban, SquaresFour as LayoutDashboard, ShieldCheck, RocketLaunch as Rocket, Lightning as Zap } from '@phosphor-icons/react';
 
 interface FeaturesTourModalProps {
     onComplete: () => void;
@@ -12,7 +12,8 @@ const TOUR_STEPS = [
         title: 'Effortless Management',
         subtitle: 'Drag-and-Drop Boards',
         description: 'Visualize workflows seamlessly. Move tasks between stages with a fluid, native-feel interface.',
-        icon: 'view_kanban',
+        Icon: Kanban,
+        image: '/tour/kanban_board.png',
         tip: 'Designed for speed and simplicity without sacrificing power.',
     },
     {
@@ -20,7 +21,8 @@ const TOUR_STEPS = [
         title: 'Project Hub',
         subtitle: 'Centralized Dashboard',
         description: 'Monitor all your serverless projects from one centralized dashboard with real-time stats.',
-        icon: 'dashboard',
+        Icon: LayoutDashboard,
+        image: '/tour/dashboard.png',
         tip: 'Get insights at a glance with our intuitive metrics.',
     },
     {
@@ -28,7 +30,8 @@ const TOUR_STEPS = [
         title: 'Secure by Default',
         subtitle: 'JWT Authentication & R2 Storage',
         description: 'JWT Authentication and encrypted R2 file storage ensure your data stays private.',
-        icon: 'verified_user',
+        Icon: ShieldCheck,
+        image: '/tour/security.png',
         tip: 'Enterprise-grade security built into every layer.',
     },
     {
@@ -36,7 +39,8 @@ const TOUR_STEPS = [
         title: 'Ready to Start',
         subtitle: 'Create Your First Project',
         description: 'Your serverless workspace is ready. Start organizing your workflow with Era Kanban.',
-        icon: 'rocket_launch',
+        Icon: Rocket,
+        image: '/tour/rocket.png',
         tip: 'Create a project to get started!',
     },
 ];
@@ -77,31 +81,31 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
             <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
 
             {/* Main Card */}
-            <div className="relative w-full max-w-5xl overflow-hidden rounded-2xl bg-surface/90 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col lg:flex-row">
+            <div className="relative w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto lg:overflow-visible rounded-2xl bg-surface/90 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col lg:flex-row scrollbar-hide">
                 {/* Left Panel: Visual Hero */}
-                <div className="relative w-full lg:w-1/2 bg-gradient-to-br from-white/5 to-transparent p-8 flex flex-col justify-center items-center min-h-[320px] lg:min-h-[550px] border-b lg:border-b-0 lg:border-r border-white/10">
+                <div className="relative w-full lg:w-1/2 bg-gradient-to-br from-white/5 to-transparent p-6 lg:p-8 flex flex-col justify-center items-center min-h-[300px] lg:min-h-[550px] border-b lg:border-b-0 lg:border-r border-white/10 shrink-0">
                     {/* Grid Pattern Background */}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
 
                     {/* Animated Icon */}
+                    {/* Animated Image */}
                     <div className={`relative transition-all duration-300 ${isAnimating ? 'scale-90 opacity-50' : 'scale-100 opacity-100'}`}>
-                        <div className="absolute inset-0 bg-primary/30 blur-[50px] rounded-full animate-pulse" />
-                        <div className="relative bg-gradient-to-br from-surface to-surface-dark rounded-2xl p-8 border border-white/10 shadow-2xl">
-                            <span className="material-symbols-outlined text-7xl text-primary">
-                                {step.icon}
-                            </span>
-                        </div>
-                        {/* Floating Particles */}
-                        <div className="absolute -top-3 -right-3 h-8 w-8 rounded-full bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 flex items-center justify-center animate-bounce" style={{ animationDelay: '0.5s' }}>
-                            <span className="material-symbols-outlined text-sm text-emerald-400">add</span>
-                        </div>
-                        <div className="absolute -bottom-2 -left-4 h-10 w-10 rounded-full bg-primary/20 backdrop-blur-sm border border-primary/30 flex items-center justify-center animate-bounce" style={{ animationDuration: '3s' }}>
-                            <span className="material-symbols-outlined text-base text-primary">auto_awesome</span>
+                        <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group mx-auto">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                            <img
+                                src={(step as any).image}
+                                alt={step.title}
+                                className="w-[260px] lg:w-[320px] aspect-[4/3] object-cover transform transition-transform duration-700 group-hover:scale-110"
+                            />
+                            {/* Floating Icon Badge */}
+                            <div className="absolute bottom-4 right-4 z-20 h-10 w-10 rounded-full bg-primary/20 backdrop-blur-md border border-primary/30 flex items-center justify-center animate-bounce shadow-lg shadow-black/20">
+                                <step.Icon className="size-5 text-primary" />
+                            </div>
                         </div>
                     </div>
 
                     {/* Step Info */}
-                    <div className={`mt-10 text-center transition-all duration-300 ${isAnimating ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'}`}>
+                    <div className={`mt-8 lg:mt-10 text-center transition-all duration-300 ${isAnimating ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'}`}>
                         <p className="text-primary font-bold text-sm tracking-wider uppercase mb-2">
                             Step {step.step} of {TOUR_STEPS.length}
                         </p>
@@ -111,13 +115,13 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
 
                     {/* Badge */}
                     <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-[18px]">bolt</span>
+                        <span className="text-primary"><Zap className="size-[18px]" fill="currentColor" /></span>
                         <span className="text-xs font-semibold text-white tracking-wide">Cloudflare Edge Optimized</span>
                     </div>
                 </div>
 
                 {/* Right Panel: Content */}
-                <div className="w-full lg:w-1/2 p-8 lg:p-12 flex flex-col justify-between bg-surface/40">
+                <div className="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col justify-between bg-surface/40">
                     {/* Close Button */}
                     <button
                         onClick={onSkip}
@@ -155,7 +159,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                                             : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'
                                         }`}
                                     >
-                                        <span className="material-symbols-outlined text-[24px]">{feature.icon}</span>
+                                        <feature.Icon className="size-6" />
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <h2 className="text-white text-base font-bold">{feature.subtitle}</h2>
@@ -205,7 +209,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
             </div>
 
             {/* Background Branding Text */}
-            <div className="absolute bottom-4 text-white/5 text-[8vw] font-black leading-none pointer-events-none select-none tracking-tighter">
+            <div className="absolute bottom-4 text-white/5 text-[12vw] lg:text-[8vw] font-black leading-none pointer-events-none select-none tracking-tighter">
                 ERA KANBAN
             </div>
         </div>

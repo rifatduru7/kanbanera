@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { CircleNotch as Loader2 } from '@phosphor-icons/react';
 import { ActivityFeed } from '../../components/activity/ActivityFeed';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';

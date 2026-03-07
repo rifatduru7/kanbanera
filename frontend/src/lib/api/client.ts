@@ -101,7 +101,7 @@ export const projectsApi = {
     },
 
     getProject: async (id: string) => {
-        const response = await api.get<ApiResponse<{ project: any; columns: any[]; members: any[] }>>(`/api/projects/${id}`);
+        const response = await api.get<ApiResponse<{ project: any; columns: any[]; tasks: any[]; members: any[] }>>(`/api/projects/${id}`);
         return response.data;
     },
 
@@ -128,18 +128,18 @@ export const tasksApi = {
         return response.data;
     },
 
-    createTask: async (data: { column_id: string; title: string; description?: string; priority?: string; due_date?: string }) => {
+    createTask: async (data: { project_id: string; column_id: string; title: string; description?: string; priority?: string; due_date?: string }) => {
         const response = await api.post<ApiResponse<{ task: any }>>('/api/tasks', data);
         return response.data;
     },
 
-    updateTask: async (id: string, data: Partial<{ title: string; description: string; priority: string; due_date: string }>) => {
+    updateTask: async (id: string, data: Partial<{ title: string; description: string; priority: string; due_date: string; assignee_id: string; labels: string[] }>) => {
         const response = await api.put<ApiResponse<{ task: any }>>(`/api/tasks/${id}`, data);
         return response.data;
     },
 
     moveTask: async (id: string, data: { column_id: string; position: number }) => {
-        const response = await api.post<ApiResponse<{ task: any }>>(`/api/tasks/${id}/move`, data);
+        const response = await api.put<ApiResponse<{ task: any }>>(`/api/tasks/${id}/move`, data);
         return response.data;
     },
 
@@ -196,5 +196,41 @@ export const columnsApi = {
     reorderColumns: async (projectId: string, columnIds: string[]) => {
         const response = await api.post<ApiResponse<null>>(`/api/columns/reorder`, { project_id: projectId, column_ids: columnIds });
         return response.data;
+    },
+};
+
+// Attachments API
+export const attachmentsApi = {
+    getAttachments: async (taskId: string) => {
+        const response = await api.get<ApiResponse<{ attachments: any[] }>>(`/api/attachments/task/${taskId}`);
+        return response.data;
+    },
+
+    uploadAttachment: async (taskId: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await api.post<ApiResponse<{ attachment: any }>>(
+            `/api/attachments/task/${taskId}`,
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            }
+        );
+        return response.data;
+    },
+
+    deleteAttachment: async (id: string) => {
+        const response = await api.delete<ApiResponse<null>>(`/api/attachments/${id}`);
+        return response.data;
+    },
+
+    getDownloadUrl: async (id: string) => {
+        const response = await api.get<Blob>(`/api/attachments/${id}/download`, {
+            responseType: 'blob'
+        });
+        return URL.createObjectURL(response.data);
     },
 };

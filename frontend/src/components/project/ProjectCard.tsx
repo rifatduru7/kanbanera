@@ -1,4 +1,4 @@
-import { MoreVertical, CheckCircle, Users } from 'lucide-react';
+import { DotsThreeVertical as MoreVertical, CheckCircle, Users } from '@phosphor-icons/react';
 
 interface ProjectCardProps {
     id: string;

@@ -1,4 +1,4 @@
-import { FolderPlus } from 'lucide-react';
+import { FolderPlus } from '@phosphor-icons/react';
 
 interface FirstProjectPromptProps {
     onCreateProject: () => void;

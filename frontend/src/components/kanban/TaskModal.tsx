@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
     X,
-    Link2,
-    Trash2,
-    MoreVertical,
-    ChevronRight,
-    Calendar,
+    Link as Link2,
+    Trash as Trash2,
+    DotsThreeVertical as MoreVertical,
+    CaretRight as ChevronRight,
+    CalendarBlank as Calendar,
     Check,
     Plus,
-    Send,
-    CloudUpload,
+    PaperPlaneRight as Send,
+    CloudArrowUp as CloudUpload,
     FileText,
     Eye,
-} from 'lucide-react';
+    CircleNotch as Loader2,
+} from '@phosphor-icons/react';
 import type { TaskDetail, Subtask, Comment } from '../../types/task-detail';
 
 interface TaskModalProps {
@@ -24,6 +26,10 @@ interface TaskModalProps {
     onToggleSubtask?: (subtaskId: string, completed: boolean) => void;
     onAddComment?: (content: string) => void;
     onUploadAttachment?: (file: File) => void;
+    columns?: { id: string; name: string }[];
+    members?: { id: string; user_id: string; full_name: string; avatar_url?: string }[];
+    onMoveTask?: (columnId: string, position: number) => void;
+    onDeleteTask?: () => void;
 }
 
 export function TaskModal({
@@ -34,11 +40,25 @@ export function TaskModal({
     onAddSubtask,
     onToggleSubtask,
     onAddComment,
+    onUploadAttachment,
+    columns = [],
+    members = [],
+    onMoveTask,
+    onDeleteTask,
 }: TaskModalProps) {
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description || '');
     const [newSubtask, setNewSubtask] = useState('');
     const [newComment, setNewComment] = useState('');
+    const [isUploading, setIsUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // New states for custom UI
+    const [isAddingTag, setIsAddingTag] = useState(false);
+    const [newTagInput, setNewTagInput] = useState('');
+    const [linkCopied, setLinkCopied] = useState(false);
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
 
     if (!isOpen) return null;
 
@@ -61,6 +81,21 @@ export function TaskModal({
         }
     };
 
+    const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file && onUploadAttachment) {
+            setIsUploading(true);
+            try {
+                await onUploadAttachment(file);
+            } finally {
+                setIsUploading(false);
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            }
+        }
+    };
+
     const formatTimeAgo = (dateStr: string) => {
         const date = new Date(dateStr);
         const now = new Date();
@@ -75,55 +110,65 @@ export function TaskModal({
         return `${days}d ago`;
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             />
 
             {/* Modal Content */}
-            <div className="glass-panel w-full max-w-6xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden relative z-10 mx-4">
+            <div className="glass-panel w-full h-[100dvh] lg:h-auto lg:max-h-[90vh] lg:max-w-6xl flex flex-col lg:rounded-2xl shadow-2xl overflow-hidden relative z-10 mx-0 lg:mx-4 bg-surface-dark lg:bg-transparent">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 shrink-0">
-                    <div className="flex flex-col gap-1">
+                <div className="flex items-center justify-between px-4 lg:px-6 py-3 lg:py-4 border-b border-white/10 shrink-0 bg-surface/50 backdrop-blur-md">
+                    <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
                         {/* Breadcrumbs */}
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="text-text-muted font-medium hover:text-primary cursor-pointer transition-colors">
+                        <div className="flex items-center gap-1.5 lg:gap-2 text-xs lg:text-sm whitespace-nowrap overflow-hidden">
+                            <span className="text-text-muted font-medium hover:text-primary cursor-pointer transition-colors truncate max-w-[80px] lg:max-w-[150px]">
                                 {task.projectName}
                             </span>
-                            <ChevronRight className="text-text-muted/50 size-4" />
-                            <span className="text-text-muted font-medium hover:text-primary cursor-pointer transition-colors">
+                            <ChevronRight className="text-text-muted/50 size-3 lg:size-4 shrink-0" />
+                            <span className="text-text-muted font-medium hover:text-primary cursor-pointer transition-colors truncate max-w-[80px] lg:max-w-[150px]">
                                 {task.status}
                             </span>
-                            <ChevronRight className="text-text-muted/50 size-4" />
-                            <span className="text-white font-medium">TASK-{task.id.slice(0, 3).toUpperCase()}</span>
+                            <ChevronRight className="text-text-muted/50 size-3 lg:size-4 shrink-0" />
+                            <span className="text-white font-medium truncate">TASK-{task.id.slice(0, 3).toUpperCase()}</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1 lg:gap-3 shrink-0 ml-2">
                         <button
-                            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 text-text-muted transition-colors"
+                            onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/dashboard?task=${task.id}`);
+                                setLinkCopied(true);
+                                setTimeout(() => setLinkCopied(false), 2000);
+                            }}
+                            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 text-text-muted transition-colors"
                             title="Copy Link"
                         >
-                            <Link2 className="size-5" />
+                            {linkCopied ? <Check className="size-5 text-green-500" /> : <Link2 className="size-5" />}
                         </button>
                         <button
-                            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 text-text-muted transition-colors"
+                            onClick={() => {
+                                if (confirm('Are you sure you want to delete this task?')) {
+                                    onDeleteTask?.();
+                                }
+                            }}
+                            className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 text-text-muted transition-colors hover:text-red-400"
                             title="Delete Task"
                         >
                             <Trash2 className="size-5" />
                         </button>
                         <button
-                            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-white/10 text-text-muted transition-colors"
+                            className="flex items-center justify-center w-8 h-8 lg:w-9 lg:h-9 rounded-lg hover:bg-white/10 text-text-muted transition-colors"
                             title="More Options"
                         >
                             <MoreVertical className="size-5" />
                         </button>
-                        <div className="h-6 w-px bg-white/10 mx-1" />
+                        <div className="h-6 w-px bg-white/10 mx-1 hidden lg:block" />
                         <button
                             onClick={onClose}
-                            className="flex items-center justify-center w-9 h-9 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-text-muted transition-colors"
+                            className="flex items-center justify-center w-8 h-8 lg:w-9 lg:h-9 rounded-lg hover:bg-red-500/20 hover:text-red-400 text-text-muted transition-colors"
                             title="Close"
                         >
                             <X className="size-5" />
@@ -131,10 +176,10 @@ export function TaskModal({
                     </div>
                 </div>
 
-                {/* Body */}
-                <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+                {/* Body - Unified scroll on mobile, split on desktop */}
+                <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden bg-surface-dark/50 lg:bg-transparent">
                     {/* LEFT COLUMN: Main Content */}
-                    <div className="flex-1 overflow-y-auto p-6 lg:p-8 flex flex-col gap-8 border-b lg:border-b-0 lg:border-r border-white/10">
+                    <div className="flex-1 p-4 lg:p-8 flex flex-col gap-6 lg:gap-8 border-b lg:border-b-0 lg:border-r border-white/10 lg:overflow-y-auto custom-scrollbar">
                         {/* Title Input */}
                         <div className="group">
                             <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
@@ -226,16 +271,36 @@ export function TaskModal({
                                 ))}
 
                                 {/* Upload Button */}
-                                <button className="border border-dashed border-white/20 hover:border-primary/50 hover:bg-primary/5 rounded-lg h-full min-h-[140px] flex flex-col items-center justify-center gap-2 text-text-muted transition-all">
-                                    <CloudUpload className="size-6" />
-                                    <span className="text-xs font-medium">Upload to R2</span>
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                                />
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={isUploading}
+                                    className="border border-dashed border-white/20 hover:border-primary/50 hover:bg-primary/5 rounded-lg h-full min-h-[140px] flex flex-col items-center justify-center gap-2 text-text-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {isUploading ? (
+                                        <>
+                                            <Loader2 className="size-6 animate-spin" />
+                                            <span className="text-xs font-medium">Uploading...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <CloudUpload className="size-6" />
+                                            <span className="text-xs font-medium">Upload to R2</span>
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </div>
                     </div>
 
                     {/* RIGHT COLUMN: Sidebar & Comments */}
-                    <div className="w-full lg:w-[360px] flex flex-col bg-black/20 backdrop-blur-sm">
+                    <div className="w-full lg:w-[360px] flex flex-col bg-black/20 backdrop-blur-sm lg:h-full lg:overflow-hidden">
                         {/* Metadata Panel */}
                         <div className="p-6 flex flex-col gap-6 border-b border-white/10">
                             {/* Status */}
@@ -243,13 +308,41 @@ export function TaskModal({
                                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                                     Status
                                 </label>
-                                <button className="flex items-center justify-between w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white hover:border-primary/50 transition-colors">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
-                                        {task.status}
-                                    </div>
-                                    <ChevronRight className="size-4 text-text-muted rotate-90" />
-                                </button>
+                                <div className="relative">
+                                    <button
+                                        onClick={() => {
+                                            setIsStatusOpen(!isStatusOpen);
+                                            setIsAssigneeOpen(false);
+                                        }}
+                                        className="flex items-center justify-between w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white hover:border-primary/50 transition-colors cursor-pointer"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
+                                            {task.status}
+                                        </div>
+                                        <ChevronRight className={`size-4 text-text-muted transition-transform ${isStatusOpen ? '-rotate-90' : 'rotate-90'}`} />
+                                    </button>
+
+                                    {isStatusOpen && (
+                                        <>
+                                            <div className="fixed inset-0 z-40" onClick={() => setIsStatusOpen(false)} />
+                                            <div className="absolute top-full left-0 w-full mt-1.5 bg-surface-dark border border-white/10 rounded-lg shadow-xl overflow-hidden z-50 py-1">
+                                                {columns.map(col => (
+                                                    <button
+                                                        key={col.id}
+                                                        onClick={() => {
+                                                            onMoveTask?.(col.id, 0);
+                                                            setIsStatusOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition-colors ${task.columnId === col.id ? 'text-primary bg-primary/10' : 'text-white'}`}
+                                                    >
+                                                        {col.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Assignee & Due Date */}
@@ -258,32 +351,80 @@ export function TaskModal({
                                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                                         Assignee
                                     </label>
-                                    <button className="flex items-center gap-2 w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white hover:bg-white/10 transition-colors">
-                                        {task.assigneeName ? (
+                                    <div className="relative h-full">
+                                        <div
+                                            onClick={() => {
+                                                setIsAssigneeOpen(!isAssigneeOpen);
+                                                setIsStatusOpen(false);
+                                            }}
+                                            className="flex items-center gap-2 w-full h-full cursor-pointer bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white hover:bg-white/10 transition-colors"
+                                        >
+                                            {task.assigneeName ? (
+                                                <>
+                                                    <div className="size-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">
+                                                        {task.assigneeName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                    </div>
+                                                    <span className="truncate">{task.assigneeName}</span>
+                                                </>
+                                            ) : (
+                                                <span className="text-text-muted">Unassigned</span>
+                                            )}
+                                        </div>
+
+                                        {isAssigneeOpen && (
                                             <>
-                                                <div className="size-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-semibold text-primary">
-                                                    {task.assigneeName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                <div className="fixed inset-0 z-40" onClick={() => setIsAssigneeOpen(false)} />
+                                                <div className="absolute top-full left-0 w-[200px] mt-1.5 bg-surface-dark border border-white/10 rounded-lg shadow-xl overflow-hidden z-50 py-1 max-h-48 overflow-y-auto custom-scrollbar">
+                                                    <button
+                                                        onClick={() => {
+                                                            onUpdate?.({ assigneeId: undefined, assigneeName: undefined });
+                                                            setIsAssigneeOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-white/5 transition-colors ${!task.assigneeId ? 'text-primary bg-primary/10' : 'text-text-muted'}`}
+                                                    >
+                                                        Unassigned
+                                                    </button>
+                                                    {members.map(m => (
+                                                        <button
+                                                            key={m.user_id}
+                                                            onClick={() => {
+                                                                onUpdate?.({ assigneeId: m.user_id, assigneeName: m.full_name });
+                                                                setIsAssigneeOpen(false);
+                                                            }}
+                                                            className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-white/5 transition-colors ${task.assigneeId === m.user_id ? 'text-primary bg-primary/10' : 'text-white'}`}
+                                                        >
+                                                            <div className="size-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[9px] font-semibold text-primary shrink-0">
+                                                                {m.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                            </div>
+                                                            <span className="truncate">{m.full_name}</span>
+                                                        </button>
+                                                    ))}
                                                 </div>
-                                                <span className="truncate">{task.assigneeName}</span>
                                             </>
-                                        ) : (
-                                            <span className="text-text-muted">Unassigned</span>
                                         )}
-                                    </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-col gap-2">
                                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                                         Due Date
                                     </label>
-                                    <button className="flex items-center gap-2 w-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white hover:bg-white/10 transition-colors">
-                                        <Calendar className="size-4" />
-                                        <span>
-                                            {task.dueDate
-                                                ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-                                                : 'No date'}
-                                        </span>
-                                    </button>
+                                    <div className="relative group h-full">
+                                        <input
+                                            type="date"
+                                            value={task.dueDate ? task.dueDate.split('T')[0] : ''}
+                                            onChange={(e) => onUpdate?.({ dueDate: e.target.value || undefined })}
+                                            className="appearance-none absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                        />
+                                        <button className="flex items-center gap-2 w-full h-full bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-sm text-white group-hover:bg-white/10 transition-colors">
+                                            <Calendar className="size-4 shrink-0 text-text-muted group-hover:text-primary transition-colors" />
+                                            <span className="truncate">
+                                                {task.dueDate
+                                                    ? new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                                                    : 'No date'}
+                                            </span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -302,22 +443,58 @@ export function TaskModal({
                                             {label}
                                             <button
                                                 className="hover:bg-primary/30 rounded-full p-0.5 transition-colors ml-0.5"
-                                                onClick={() => {/* TODO: Remove tag */ }}
+                                                onClick={() => {
+                                                    const newLabels = task.labels?.filter(l => l !== label);
+                                                    onUpdate?.({ labels: newLabels });
+                                                }}
                                             >
                                                 <X className="size-3" />
                                             </button>
                                         </span>
                                     ))}
-                                    <button className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-dashed border-text-muted/50 text-text-muted hover:border-primary hover:text-primary transition-all text-xs font-medium">
-                                        <Plus className="size-3" />
-                                        Add Tag
-                                    </button>
+                                    {isAddingTag ? (
+                                        <div className="flex items-center gap-1">
+                                            <input
+                                                type="text"
+                                                autoFocus
+                                                value={newTagInput}
+                                                onChange={(e) => setNewTagInput(e.target.value)}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === 'Enter' && newTagInput.trim()) {
+                                                        onUpdate?.({ labels: [...(task.labels || []), newTagInput.trim()] });
+                                                        setNewTagInput('');
+                                                        setIsAddingTag(false);
+                                                    } else if (e.key === 'Escape') {
+                                                        setIsAddingTag(false);
+                                                        setNewTagInput('');
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    if (newTagInput.trim()) {
+                                                        onUpdate?.({ labels: [...(task.labels || []), newTagInput.trim()] });
+                                                    }
+                                                    setNewTagInput('');
+                                                    setIsAddingTag(false);
+                                                }}
+                                                className="h-7 px-2 w-[100px] text-xs bg-black/20 border border-primary/50 text-white rounded-lg focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-text-muted/50 transition-all"
+                                                placeholder="Type & Enter"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <button
+                                            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-full border border-dashed border-text-muted/50 text-text-muted hover:border-primary hover:text-primary transition-all text-xs font-medium"
+                                            onClick={() => setIsAddingTag(true)}
+                                        >
+                                            <Plus className="size-3" />
+                                            Add Tag
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>
 
                         {/* Comments Section */}
-                        <div className="flex-1 flex flex-col overflow-hidden min-h-[300px] bg-black/10">
+                        <div className="flex-1 flex flex-col bg-black/10 min-h-[400px] lg:min-h-0 lg:overflow-hidden">
                             <div className="p-4 border-b border-white/5 flex items-center justify-between">
                                 <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
                                     <span>💬</span>
@@ -325,11 +502,11 @@ export function TaskModal({
                                 </label>
                                 <span className="text-[10px] text-text-muted uppercase tracking-wider cursor-pointer hover:text-primary">
                                     Show Details
-                                </span>
-                            </div>
+                                </span >
+                            </div >
 
                             {/* Comment List */}
-                            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+                            <div className="flex-1 p-4 flex flex-col gap-4 lg:overflow-y-auto custom-scrollbar">
                                 {task.comments.map((comment) => (
                                     <CommentItem
                                         key={comment.id}
@@ -359,9 +536,9 @@ export function TaskModal({
                                     </button>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </div >
+                    </div >
+                </div >
 
                 {/* Footer */}
                 <div className="p-4 sm:px-6 py-4 border-t border-white/10 flex justify-end gap-3 bg-surface-dark/50 shrink-0">
@@ -381,8 +558,9 @@ export function TaskModal({
                         Save Changes
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >,
+        document.body
     );
 }
 
@@ -457,6 +635,46 @@ import type { Attachment } from '../../types/task-detail';
 
 function AttachmentCard({ attachment }: { attachment: Attachment }) {
     const isImage = attachment.mimeType?.startsWith('image/');
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        let objectUrl: string;
+
+        const loadPreview = async () => {
+            if (isImage) {
+                try {
+                    const { attachmentsApi } = await import('../../lib/api/client');
+                    const url = await attachmentsApi.getDownloadUrl(attachment.id);
+                    setPreviewUrl(url);
+                    objectUrl = url;
+                } catch (err) {
+                    console.error('Failed to load preview', err);
+                }
+            }
+        };
+
+        loadPreview();
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [attachment.id, isImage]);
+
+    const handleDownload = async () => {
+        try {
+            const { attachmentsApi } = await import('../../lib/api/client');
+            const url = previewUrl || await attachmentsApi.getDownloadUrl(attachment.id);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = attachment.fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            if (!previewUrl) URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Failed to download', err);
+        }
+    };
 
     const formatFileSize = (bytes: number) => {
         if (bytes < 1024) return `${bytes} B`;
@@ -465,11 +683,14 @@ function AttachmentCard({ attachment }: { attachment: Attachment }) {
     };
 
     return (
-        <div className="bg-white/5 border border-white/5 rounded-lg p-3 flex flex-col gap-2 hover:bg-white/10 transition-colors cursor-pointer group relative">
+        <div
+            onClick={handleDownload}
+            className="bg-white/5 border border-white/5 rounded-lg p-3 flex flex-col gap-2 hover:bg-white/10 transition-colors cursor-pointer group relative"
+        >
             <div className="w-full h-24 bg-surface-dark rounded overflow-hidden relative flex items-center justify-center">
-                {isImage && attachment.thumbnailUrl ? (
+                {isImage && previewUrl ? (
                     <img
-                        src={attachment.thumbnailUrl}
+                        src={previewUrl}
                         alt={attachment.fileName}
                         className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
                     />
@@ -481,7 +702,7 @@ function AttachmentCard({ attachment }: { attachment: Attachment }) {
                 </div>
             </div>
             <div className="flex flex-col">
-                <span className="text-xs font-medium text-white truncate">{attachment.fileName}</span>
+                <span className="text-xs font-medium text-white truncate" title={attachment.fileName}>{attachment.fileName}</span>
                 <span className="text-[10px] text-text-muted">
                     {formatFileSize(attachment.fileSize)} • {formatTimeAgo(attachment.createdAt)}
                 </span>

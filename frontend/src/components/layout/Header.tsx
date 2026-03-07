@@ -1,4 +1,4 @@
-import { RefreshCw, Bell, Menu, ChevronRight, CheckCircle, Search, Command } from 'lucide-react';
+import { ArrowsClockwise as RefreshCw, Bell, List as Menu, CaretRight as ChevronRight, CheckCircle, MagnifyingGlass as Search, Command } from '@phosphor-icons/react';
 import { useState } from 'react';
 
 interface HeaderProps {

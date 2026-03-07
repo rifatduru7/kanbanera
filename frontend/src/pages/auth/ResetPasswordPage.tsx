@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Kanban, Lock, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Kanban, LockKey as Lock, Eye, EyeClosed as EyeOff, CircleNotch as Loader2, CheckCircle, WarningCircle as AlertCircle } from '@phosphor-icons/react';
 
 export function ResetPasswordPage() {
     const navigate = useNavigate();

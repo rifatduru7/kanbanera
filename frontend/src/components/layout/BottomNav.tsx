@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderKanban, Kanban, Calendar, User } from 'lucide-react';
+import { SquaresFour as LayoutDashboard, Folder as FolderKanban, Kanban, CalendarBlank as Calendar, User } from '@phosphor-icons/react';
 
 const navItems = [
     { icon: LayoutDashboard, label: 'Home', href: '/dashboard' },
@@ -28,8 +28,8 @@ export function BottomNav() {
                             key={item.href}
                             to={item.href}
                             className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all ${isActive
-                                    ? 'text-primary'
-                                    : 'text-slate-400 hover:text-white'
+                                ? 'text-primary'
+                                : 'text-slate-400 hover:text-white'
                                 }`}
                         >
                             <div

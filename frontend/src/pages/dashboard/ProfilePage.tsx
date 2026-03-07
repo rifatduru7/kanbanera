@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { User, Mail, Lock, Moon, Sun, Monitor, Bell, Trash2, Camera, Shield, Loader2, Check } from 'lucide-react';
+import { User, EnvelopeSimple as Mail, LockKey as Lock, Moon, Sun, Desktop as Monitor, Bell, Trash as Trash2, Camera, ShieldCheck as Shield, CircleNotch as Loader2, Check } from '@phosphor-icons/react';
 import { useAuthStore } from '../../stores/authStore';
 import { useTheme, type Theme } from '../../hooks/useTheme';
 import { authApi } from '../../lib/api/client';

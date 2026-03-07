@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FolderOpen, Search, LayoutGrid, List, Filter, Plus } from 'lucide-react';
+import { FolderOpen, MagnifyingGlass as Search, SquaresFour as LayoutGrid, List, Funnel as Filter, Plus } from '@phosphor-icons/react';
 import { useProjects } from '../../hooks/useKanbanData';
 import { ProjectCard } from '../../components/project/ProjectCard';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';

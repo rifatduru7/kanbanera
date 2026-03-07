@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-    LayoutDashboard,
-    FolderKanban,
+    SquaresFour as LayoutDashboard,
+    Folder as FolderKanban,
     Kanban,
-    Settings,
+    GearSix as Settings,
     Users,
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    Calendar,
-    BarChart3,
-} from 'lucide-react';
+    CaretDown as ChevronDown,
+    CaretLeft as ChevronLeft,
+    CaretRight as ChevronRight,
+    CalendarBlank as Calendar,
+    ChartBar as BarChart3,
+} from '@phosphor-icons/react';
 
 interface NavItem {
     label: string;
@@ -50,7 +50,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
     return (
         <aside
             className={`
-        flex-shrink-0 flex flex-col justify-between glass-panel relative z-20
+        flex-shrink-0 flex flex-col justify-between glass-panel relative z-20 h-full
         transition-all duration-300 ease-in-out
         ${collapsed ? 'w-20' : 'w-72'}
       `}

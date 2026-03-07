@@ -1,4 +1,4 @@
-import { ArrowRight, Users } from 'lucide-react';
+import { ArrowRight, Users } from '@phosphor-icons/react';
 
 interface OnboardingCompleteProps {
     onGoToDashboard: () => void;

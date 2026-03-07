@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectsApi, tasksApi, columnsApi } from '../lib/api/client';
-import type { Column, Task } from '../types/kanban';
 
 // Query keys
 export const kanbanKeys = {
@@ -76,33 +75,19 @@ export function useMoveTask(projectId: string) {
             // Snapshot previous value
             const previousData = queryClient.getQueryData(kanbanKeys.project(projectId));
 
-            // Optimistically update
+            // Optimistically update the flat tasks array
             queryClient.setQueryData(kanbanKeys.project(projectId), (old: any) => {
-                if (!old?.columns) return old;
+                if (!old?.tasks) return old;
 
-                const columns = [...old.columns];
-                let movedTask: Task | undefined;
-
-                // Find and remove task from source column
-                for (const col of columns) {
-                    const taskIndex = col.tasks.findIndex((t: Task) => t.id === taskId);
-                    if (taskIndex !== -1) {
-                        movedTask = col.tasks[taskIndex];
-                        col.tasks = col.tasks.filter((t: Task) => t.id !== taskId);
-                        break;
+                // Update the column_id and position of the moved task
+                const updatedTasks = old.tasks.map((t: any) => {
+                    if (t.id === taskId) {
+                        return { ...t, column_id: columnId, position };
                     }
-                }
+                    return t;
+                });
 
-                // Add task to target column
-                if (movedTask) {
-                    const targetCol = columns.find((c: Column) => c.id === columnId);
-                    if (targetCol) {
-                        movedTask = { ...movedTask, columnId, position };
-                        targetCol.tasks.splice(position, 0, movedTask);
-                    }
-                }
-
-                return { ...old, columns };
+                return { ...old, tasks: updatedTasks };
             });
 
             return { previousData };
@@ -121,19 +106,19 @@ export function useMoveTask(projectId: string) {
 }
 
 // Create task
-export function useCreateTask(projectId: string) {
+export function useCreateTask() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: { column_id: string; title: string; description?: string; priority?: string; due_date?: string }) => {
+        mutationFn: async (data: { project_id: string; column_id: string; title: string; description?: string; priority?: string; due_date?: string }) => {
             const response = await tasksApi.createTask(data);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to create task');
             }
             return response.data?.task;
         },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(variables.project_id) });
         },
     });
 }
@@ -143,7 +128,7 @@ export function useUpdateTask(projectId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, ...data }: { id: string; title?: string; description?: string; priority?: string; due_date?: string }) => {
+        mutationFn: async ({ id, ...data }: { id: string; title?: string; description?: string; priority?: string; due_date?: string; assignee_id?: string; labels?: string[] }) => {
             const response = await tasksApi.updateTask(id, data);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to update task');
@@ -238,6 +223,44 @@ export function useCreateColumn(projectId: string) {
                 throw new Error(response.message || 'Failed to create column');
             }
             return response.data?.column;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Upload attachment
+export function useUploadAttachment(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ taskId, file }: { taskId: string; file: File }) => {
+            const { attachmentsApi } = await import('../lib/api/client');
+            const response = await attachmentsApi.uploadAttachment(taskId, file);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to upload attachment');
+            }
+            return response.data?.attachment;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Delete attachment
+export function useDeleteAttachment(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (attachmentId: string) => {
+            const { attachmentsApi } = await import('../lib/api/client');
+            const response = await attachmentsApi.deleteAttachment(attachmentId);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to delete attachment');
+            }
+            return response;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });

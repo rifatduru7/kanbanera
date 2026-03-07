@@ -3,7 +3,7 @@ import {
     SortableContext,
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
+import { Plus } from '@phosphor-icons/react';
 import { TaskCard } from './TaskCard';
 import type { Column as ColumnType, Task } from '../../types/kanban';
 

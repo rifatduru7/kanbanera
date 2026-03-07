@@ -3,12 +3,12 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
     Flag,
-    MessageCircle,
+    ChatCircle as MessageCircle,
     Paperclip,
     CheckCircle,
-    Calendar,
-    MoreHorizontal,
-} from 'lucide-react';
+    CalendarBlank as Calendar,
+    DotsThree as MoreHorizontal,
+} from '@phosphor-icons/react';
 import type { Task } from '../../types/kanban';
 import { PRIORITY_COLORS, LABEL_COLORS } from '../../types/kanban';
 

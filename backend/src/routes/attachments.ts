@@ -1,40 +1,21 @@
 import { Hono } from 'hono';
 import type { Env, Attachment } from '../types';
 import { authMiddleware } from '../middleware/auth';
+import { AwsClient } from 'aws4fetch';
 
 const attachments = new Hono<{ Bindings: Env }>();
 
 // Apply auth middleware to all routes
 attachments.use('*', authMiddleware);
 
-// Helper to generate request for Backblaze B2
-async function signRequest(
-    _method: string,
-    path: string,
-    env: Env,
-    contentType?: string,
-    contentLength?: number
-): Promise<{ url: string; headers: Record<string, string> }> {
-    const date = new Date().toISOString().replace(/[:-]|\.\d{3}/g, '');
-
-    const url = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}${path}`;
-
-    // For simplicity, use basic auth with B2 (works for most operations)
-    const authString = btoa(`${env.B2_KEY_ID}:${env.B2_APP_KEY}`);
-
-    const headers: Record<string, string> = {
-        'Authorization': `Basic ${authString}`,
-        'x-amz-date': date,
-    };
-
-    if (contentType) {
-        headers['Content-Type'] = contentType;
-    }
-    if (contentLength !== undefined) {
-        headers['Content-Length'] = contentLength.toString();
-    }
-
-    return { url, headers };
+// Helper to get S3 client for B2
+function getS3Client(env: Env) {
+    return new AwsClient({
+        accessKeyId: env.B2_KEY_ID,
+        secretAccessKey: env.B2_APP_KEY,
+        region: 'us-west-004', // B2 region from endpoint
+        service: 's3',
+    });
 }
 
 // GET /api/attachments/task/:taskId - Get all attachments for a task
@@ -96,24 +77,23 @@ attachments.post('/task/:taskId', async (c) => {
         const fileExt = file.name.split('.').pop() || '';
         const r2Key = `attachments/${taskId}/${fileId}.${fileExt}`;
 
-        // Upload to Backblaze B2
+        // Upload to Backblaze B2 using aws4fetch
         const fileBuffer = await file.arrayBuffer();
-        const { url, headers } = await signRequest(
-            'PUT',
-            `/${r2Key}`,
-            env,
-            file.type,
-            fileBuffer.byteLength
-        );
+        const s3Client = getS3Client(env);
+        const uploadUrl = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${r2Key}`;
 
-        const uploadResponse = await fetch(url, {
+        const uploadResponse = await s3Client.fetch(uploadUrl, {
             method: 'PUT',
-            headers,
             body: fileBuffer,
+            headers: {
+                'Content-Type': file.type || 'application/octet-stream',
+                'Content-Length': fileBuffer.byteLength.toString(),
+            },
         });
 
         if (!uploadResponse.ok) {
-            console.error('B2 upload failed:', await uploadResponse.text());
+            const errorText = await uploadResponse.text();
+            console.error('B2 upload failed:', uploadResponse.status, errorText);
             return c.json({ success: false, error: 'Failed to upload file to storage' }, 500);
         }
 
@@ -161,11 +141,15 @@ attachments.post('/task/:taskId', async (c) => {
         }, 201);
     } catch (error) {
         console.error('Upload error:', error);
-        return c.json({ success: false, error: 'Failed to upload file' }, 500);
+        console.error('Error name:', (error as Error).name);
+        console.error('Error message:', (error as Error).message);
+        console.error('Error stack:', (error as Error).stack);
+        return c.json({ success: false, error: 'Failed to upload file', details: (error as Error).message }, 500);
     }
 });
 
 // GET /api/attachments/:id/download - Get download URL for attachment
+// GET /api/attachments/:id/download - Get/Proxy attachment content
 attachments.get('/:id/download', async (c) => {
     const { id } = c.req.param();
     const env = c.env;
@@ -179,17 +163,34 @@ attachments.get('/:id/download', async (c) => {
             return c.json({ success: false, error: 'Attachment not found' }, 404);
         }
 
-        // For public bucket, return direct URL
-        // For private bucket, you would generate a signed URL here
-        const downloadUrl = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${attachment.r2_key}`;
+        // Proxy file from B2
+        const s3Client = getS3Client(env);
+        const fileUrl = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${attachment.r2_key}`;
 
-        return c.json({
-            success: true,
-            data: { download_url: downloadUrl },
+        const fileResponse = await s3Client.fetch(fileUrl, {
+            method: 'GET'
+        });
+
+        if (!fileResponse.ok) {
+            console.error('B2 download failed:', fileResponse.status);
+            return c.json({ success: false, error: 'Failed to fetch file from storage' }, 500);
+        }
+
+        // Return file directly
+        const headers = new Headers(fileResponse.headers);
+        headers.set('Content-Disposition', `attachment; filename="${attachment.file_name}"`);
+        // Ensure Content-Type is correct
+        if (attachment.mime_type) {
+            headers.set('Content-Type', attachment.mime_type);
+        }
+
+        return new Response(fileResponse.body, {
+            status: 200,
+            headers,
         });
     } catch (error) {
-        console.error('Download URL error:', error);
-        return c.json({ success: false, error: 'Failed to generate download URL' }, 500);
+        console.error('Download error:', error);
+        return c.json({ success: false, error: 'Failed to download file' }, 500);
     }
 });
 
@@ -214,8 +215,9 @@ attachments.delete('/:id', async (c) => {
         }
 
         // Delete from B2
-        const { url, headers } = await signRequest('DELETE', `/${attachment.r2_key}`, env);
-        await fetch(url, { method: 'DELETE', headers });
+        const s3Client = getS3Client(env);
+        const deleteUrl = `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${attachment.r2_key}`;
+        await s3Client.fetch(deleteUrl, { method: 'DELETE' });
 
         // Delete from database
         await env.DB.prepare('DELETE FROM attachments WHERE id = ?').bind(id).run();

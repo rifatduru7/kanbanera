@@ -1,4 +1,4 @@
-import { Plus, MessageSquare, Paperclip, ArrowRight, Check, UserPlus, Filter, Loader2, AlertCircle, Clock } from 'lucide-react';
+import { Plus, ChatCircle as MessageSquare, Paperclip, ArrowRight, Check, UserPlus, Funnel as Filter, CircleNotch as Loader2, WarningCircle as AlertCircle, Clock } from '@phosphor-icons/react';
 import { useActivities, type Activity } from '../../hooks/useActivities';
 
 type ActivityType = 'task_created' | 'comment' | 'file_uploaded' | 'task_moved' | 'task_completed' | 'member_joined';

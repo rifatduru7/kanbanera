@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { CircleNotch as Loader2 } from '@phosphor-icons/react';
 
 interface SpinnerProps {
     size?: 'sm' | 'md' | 'lg';

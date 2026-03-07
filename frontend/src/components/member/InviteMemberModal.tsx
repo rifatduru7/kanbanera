@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Loader2, Mail, UserPlus, Copy, Check } from 'lucide-react';
+import { X, CircleNotch as Loader2, EnvelopeSimple as Mail, UserPlus, Copy, Check } from '@phosphor-icons/react';
 
 interface InviteMemberModalProps {
     isOpen: boolean;
@@ -164,8 +164,8 @@ export function InviteMemberModal({ isOpen, onClose, projectName = 'this project
                                     type="button"
                                     onClick={handleCopyLink}
                                     className={`px-4 rounded-lg border transition-all flex items-center gap-2 ${copied
-                                            ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                                            : 'border-border text-slate-300 hover:bg-white/5'
+                                        ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                        : 'border-border text-slate-300 hover:bg-white/5'
                                         }`}
                                 >
                                     {copied ? <Check className="size-4" /> : <Copy className="size-4" />}

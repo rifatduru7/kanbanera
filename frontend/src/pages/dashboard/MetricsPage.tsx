@@ -1,4 +1,4 @@
-import { BarChart3, CheckCircle, Clock, AlertTriangle, TrendingUp, Users, Loader2 } from 'lucide-react';
+import { ChartBar as BarChart3, CheckCircle, Clock, Warning as AlertTriangle, TrendUp as TrendingUp, Users, CircleNotch as Loader2 } from '@phosphor-icons/react';
 import { useMetrics, useCompletionRate } from '../../hooks/useMetrics';
 
 // Stat Card Component

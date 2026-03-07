@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Plus, Search, Check } from 'lucide-react';
+import { Plus, MagnifyingGlass as Search, Check } from '@phosphor-icons/react';
 import { TagBadge, TAG_COLORS } from '../ui/TagBadge';
 
 interface Tag {

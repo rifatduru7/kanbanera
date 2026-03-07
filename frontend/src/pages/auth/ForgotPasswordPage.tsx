@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Kanban, Mail, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { Kanban, EnvelopeSimple as Mail, ArrowRight, CircleNotch as Loader2, CheckCircle } from '@phosphor-icons/react';
 
 export function ForgotPasswordPage() {
     const [email, setEmail] = useState('');

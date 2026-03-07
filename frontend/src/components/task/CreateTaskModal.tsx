@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, CircleNotch as Loader2 } from '@phosphor-icons/react';
 import { useProjects, useProject, useCreateTask } from '../../hooks/useKanbanData';
 
 interface CreateTaskModalProps {
@@ -47,7 +47,7 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
         }
     }, [columns]);
 
-    const createTask = useCreateTask(selectedProjectId);
+    const createTask = useCreateTask();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -56,6 +56,7 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
 
         createTask.mutate(
             {
+                project_id: selectedProjectId,
                 column_id: selectedColumnId,
                 title: title.trim(),
                 description: description.trim() || undefined,

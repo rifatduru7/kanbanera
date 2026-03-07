@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { Board } from '../../components/kanban/Board';
 import { TaskModal } from '../../components/kanban/TaskModal';
-import { Filter, Loader2, AlertCircle, FolderKanban, ChevronDown } from 'lucide-react';
-import { useProjects, useProject, useMoveTask, useCreateTask, useUpdateTask, useAddSubtask, useToggleSubtask, useAddComment } from '../../hooks/useKanbanData';
+import { Funnel as Filter, CircleNotch as Loader2, WarningCircle as AlertCircle, Kanban as FolderKanban, CaretDown as ChevronDown } from '@phosphor-icons/react';
+import { useProjects, useProject, useMoveTask, useUpdateTask, useDeleteTask, useAddSubtask, useToggleSubtask, useAddComment, useUploadAttachment } from '../../hooks/useKanbanData';
+import { CreateTaskModal } from '../../components/task/CreateTaskModal';
 import { tasksApi } from '../../lib/api/client';
 import type { Column, Task } from '../../types/kanban';
 import type { TaskDetail } from '../../types/task-detail';
@@ -12,6 +13,8 @@ export function BoardPage() {
     const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<TaskDetail | null>(null);
+    const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
+    const [activeAddTaskColumnId, setActiveAddTaskColumnId] = useState<string | undefined>();
 
     // Fetch projects list
     const { data: projectsData, isLoading: isLoadingProjects } = useProjects();
@@ -27,38 +30,43 @@ export function BoardPage() {
 
     // API mutations
     const moveTask = useMoveTask(selectedProjectId || '');
-    const createTask = useCreateTask(selectedProjectId || '');
     const updateTask = useUpdateTask(selectedProjectId || '');
+    const deleteTask = useDeleteTask(selectedProjectId || '');
     const addSubtask = useAddSubtask(selectedProjectId || '');
     const toggleSubtask = useToggleSubtask(selectedProjectId || '');
     const addComment = useAddComment(selectedProjectId || '');
+    const uploadAttachment = useUploadAttachment(selectedProjectId || '');
 
     // Transform API columns to Board component format
     const columns: Column[] = useMemo(() => {
         if (!projectData?.columns) return [];
+
+        const projectTasks = projectData.tasks || [];
 
         return projectData.columns.map((col: any) => ({
             id: col.id,
             name: col.name,
             position: col.position,
             color: col.color || '#6366f1',
-            tasks: (col.tasks || []).map((task: any) => ({
-                id: task.id,
-                title: task.title,
-                description: task.description,
-                priority: task.priority || 'medium',
-                columnId: col.id,
-                position: task.position,
-                labels: task.labels ? (typeof task.labels === 'string' ? JSON.parse(task.labels) : task.labels) : [],
-                dueDate: task.due_date,
-                assigneeName: task.assignee_name,
-                subtaskCount: task.subtask_count || 0,
-                subtaskCompleted: task.subtask_completed || 0,
-                commentCount: task.comment_count || 0,
-                attachmentCount: task.attachment_count || 0,
-                createdAt: task.created_at,
-                updatedAt: task.updated_at,
-            })),
+            tasks: projectTasks
+                .filter((task: any) => task.column_id === col.id)
+                .map((task: any) => ({
+                    id: task.id,
+                    title: task.title,
+                    description: task.description,
+                    priority: task.priority || 'medium',
+                    columnId: col.id,
+                    position: task.position,
+                    labels: task.labels ? (typeof task.labels === 'string' ? JSON.parse(task.labels) : task.labels) : [],
+                    dueDate: task.due_date,
+                    assigneeName: task.assignee_name,
+                    subtaskCount: task.subtask_count || 0,
+                    subtaskCompleted: task.subtask_completed || 0,
+                    commentCount: task.comment_count || 0,
+                    attachmentCount: task.attachment_count || 0,
+                    createdAt: task.created_at,
+                    updatedAt: task.updated_at,
+                })),
         })).sort((a: Column, b: Column) => a.position - b.position);
     }, [projectData]);
 
@@ -125,10 +133,8 @@ export function BoardPage() {
     };
 
     const handleAddTask = (columnId: string) => {
-        const title = prompt('Enter task title:');
-        if (title) {
-            createTask.mutate({ column_id: columnId, title });
-        }
+        setActiveAddTaskColumnId(columnId);
+        setIsCreateTaskModalOpen(true);
     };
 
     const handleCloseModal = () => {
@@ -143,25 +149,107 @@ export function BoardPage() {
                 description: updates.description,
                 priority: updates.priority,
                 due_date: updates.dueDate,
+                assignee_id: updates.assigneeId,
+                labels: updates.labels,
             });
+            setSelectedTask(prev => prev ? { ...prev, ...updates } : null);
         }
     };
 
-    const handleAddSubtask = (title: string) => {
+    const handleAddSubtask = async (title: string) => {
         if (selectedTask) {
-            addSubtask.mutate({ taskId: selectedTask.id, title });
+            try {
+                const newSubtask = await addSubtask.mutateAsync({ taskId: selectedTask.id, title });
+                if (newSubtask) {
+                    setSelectedTask(prev => prev ? {
+                        ...prev,
+                        subtasks: [...prev.subtasks, {
+                            id: newSubtask.id,
+                            taskId: newSubtask.task_id,
+                            title: newSubtask.title,
+                            isCompleted: newSubtask.is_completed,
+                            position: newSubtask.position,
+                            createdAt: newSubtask.created_at,
+                        }]
+                    } : null);
+                }
+            } catch (error) {
+                console.error('Failed to add subtask:', error);
+            }
         }
     };
 
-    const handleToggleSubtask = (subtaskId: string, completed: boolean) => {
+    const handleToggleSubtask = async (subtaskId: string, completed: boolean) => {
         if (selectedTask) {
-            toggleSubtask.mutate({ taskId: selectedTask.id, subtaskId, isCompleted: completed });
+            // Optimistic update
+            setSelectedTask(prev => prev ? {
+                ...prev,
+                subtasks: prev.subtasks.map(st => st.id === subtaskId ? { ...st, isCompleted: completed } : st)
+            } : null);
+            try {
+                await toggleSubtask.mutateAsync({ taskId: selectedTask.id, subtaskId, isCompleted: completed });
+            } catch (error) {
+                console.error('Failed to toggle subtask:', error);
+                // Revert on error
+                setSelectedTask(prev => prev ? {
+                    ...prev,
+                    subtasks: prev.subtasks.map(st => st.id === subtaskId ? { ...st, isCompleted: !completed } : st)
+                } : null);
+            }
         }
     };
 
-    const handleAddComment = (content: string) => {
+    const handleAddComment = async (content: string) => {
         if (selectedTask) {
-            addComment.mutate({ taskId: selectedTask.id, content });
+            try {
+                const newComment = await addComment.mutateAsync({ taskId: selectedTask.id, content });
+                if (newComment) {
+                    setSelectedTask(prev => prev ? {
+                        ...prev,
+                        comments: [
+                            {
+                                id: newComment.id,
+                                taskId: newComment.task_id,
+                                userId: newComment.user_id,
+                                userName: newComment.full_name || 'You', // Backend returns full_name via join on return
+                                content: newComment.content,
+                                createdAt: newComment.created_at,
+                            },
+                            ...prev.comments
+                        ]
+                    } : null);
+                }
+            } catch (error) {
+                console.error('Failed to add comment:', error);
+            }
+        }
+    };
+
+    const handleUploadAttachment = async (file: File) => {
+        if (selectedTask) {
+            try {
+                const newAttachment = await uploadAttachment.mutateAsync({ taskId: selectedTask.id, file });
+                if (newAttachment) {
+                    setSelectedTask(prev => prev ? {
+                        ...prev,
+                        attachments: [
+                            {
+                                id: newAttachment.id,
+                                taskId: newAttachment.task_id,
+                                fileName: newAttachment.file_name,
+                                fileSize: newAttachment.file_size,
+                                mimeType: newAttachment.mime_type,
+                                downloadUrl: newAttachment.url,
+                                thumbnailUrl: newAttachment.thumbnail_url,
+                                createdAt: newAttachment.created_at,
+                            },
+                            ...prev.attachments
+                        ]
+                    } : null);
+                }
+            } catch (error) {
+                console.error('Failed to upload attachment:', error);
+            }
         }
     };
 
@@ -275,6 +363,17 @@ export function BoardPage() {
                 </div>
             )}
 
+            {/* Create Task Modal */}
+            <CreateTaskModal
+                isOpen={isCreateTaskModalOpen}
+                onClose={() => {
+                    setIsCreateTaskModalOpen(false);
+                    setActiveAddTaskColumnId(undefined);
+                }}
+                defaultProjectId={selectedProjectId || undefined}
+                defaultColumnId={activeAddTaskColumnId}
+            />
+
             {/* Task Modal */}
             {selectedTask && (
                 <TaskModal
@@ -285,6 +384,17 @@ export function BoardPage() {
                     onAddSubtask={handleAddSubtask}
                     onToggleSubtask={handleToggleSubtask}
                     onAddComment={handleAddComment}
+                    onUploadAttachment={handleUploadAttachment}
+                    columns={columns.map(c => ({ id: c.id, name: c.name }))}
+                    members={projectData?.members || []}
+                    onMoveTask={(columnId, position) => {
+                        handleTaskMove(selectedTask.id, columnId, position);
+                        setSelectedTask(prev => prev ? { ...prev, columnId, status: columns.find(c => c.id === columnId)?.name || prev.status } : null);
+                    }}
+                    onDeleteTask={() => {
+                        deleteTask.mutate(selectedTask.id);
+                        handleCloseModal();
+                    }}
                 />
             )}
         </div>
