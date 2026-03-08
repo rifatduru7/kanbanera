@@ -33,6 +33,15 @@ export function DashboardLayout() {
         setIsMobileSidebarOpen(false);
     }, [location.pathname]);
 
+    useEffect(() => {
+        if (!isMobileSidebarOpen) return;
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isMobileSidebarOpen]);
+
     // Check if we should show features tour on mount
     useEffect(() => {
         featuresTour.checkAndShow();
@@ -41,7 +50,7 @@ export function DashboardLayout() {
 
     if (isUserLoading) {
         return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
+            <div className="flex h-[100dvh] w-full items-center justify-center bg-background">
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
@@ -61,7 +70,7 @@ export function DashboardLayout() {
     };
 
     return (
-        <div className="flex h-screen w-full relative">
+        <div className="flex h-[100dvh] w-full relative">
             {/* Sidebar - Desktop */}
             <div className="hidden lg:block h-full">
                 <Sidebar
@@ -90,7 +99,7 @@ export function DashboardLayout() {
             </div>
 
             {/* Main Content Area */}
-            <main className="flex-1 flex flex-col h-full overflow-hidden bg-background">
+            <main className="flex-1 min-h-0 flex flex-col h-full overflow-hidden bg-background">
                 {/* Subtle overlay for depth */}
                 <div className="absolute inset-0 bg-background/95 pointer-events-none z-0" />
 
@@ -106,8 +115,8 @@ export function DashboardLayout() {
                 />
 
                 {/* Content - Extra bottom padding for mobile nav */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 pb-32 lg:pb-8 z-0 relative">
-                    <div className="max-w-7xl mx-auto flex flex-col gap-8">
+                <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-5 md:p-8 pb-safe-nav lg:pb-8 z-0 relative">
+                    <div className="max-w-7xl mx-auto h-full min-h-0 flex flex-col gap-8">
                         <Outlet />
                     </div>
                 </div>
@@ -117,7 +126,7 @@ export function DashboardLayout() {
             <BottomNav />
 
             {/* Global Search Modal (Cmd+K) */}
-            {searchModal.isOpen && <SearchModal isOpen={searchModal.isOpen} onClose={searchModal.close} />}
+            {searchModal.isOpen && <SearchModal isOpen={searchModal.isOpen} onClose={searchModal.close} mobileFullScreen={true} />}
 
             {/* Features Tour Modal for new users */}
             {featuresTour.isOpen && (

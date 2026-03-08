@@ -457,9 +457,9 @@ export function BoardPage() {
     }
 
     return (
-        <div className="flex flex-col gap-8 h-full">
+        <div className="flex flex-col gap-6 md:gap-8 h-full">
             {/* Page Header */}
-            <div className="flex flex-wrap justify-between items-end gap-4">
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                 <div className="flex flex-col gap-2">
                     <nav aria-label="Breadcrumb" className="flex gap-2 text-sm mb-1">
                         <Link to="/dashboard" className="text-text-muted hover:text-primary transition-colors">
@@ -470,17 +470,17 @@ export function BoardPage() {
                     </nav>
 
                     {/* Project Selector */}
-                    <div className="relative">
+                    <div className="relative w-full sm:w-auto">
                         <button
                             onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
-                            className="flex items-center gap-3 text-text text-3xl md:text-4xl font-bold leading-tight tracking-tight hover:text-primary transition-colors"
+                            className="flex items-center gap-3 text-text text-2xl sm:text-3xl md:text-4xl font-bold leading-tight tracking-tight hover:text-primary transition-colors"
                         >
                             {selectedProject?.name || t('projects.select_project')}
                             <ChevronDown className={`size-6 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {isProjectDropdownOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-64 bg-surface border border-border rounded-xl shadow-xl z-50 overflow-hidden">
+                            <div className="absolute top-full left-0 mt-2 w-full sm:w-64 bg-surface border border-border rounded-xl shadow-xl z-50 overflow-hidden">
                                 {projects.map((project) => (
                                     <button
                                         key={project.id}
@@ -505,13 +505,13 @@ export function BoardPage() {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     {isLoadingBoard && <Loader2 className="size-5 text-primary animate-spin" />}
 
                     {/* Filter Button */}
                     <button
                         onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all ${isFilterOpen || searchQuery || priorityFilter || statusFilter
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${isFilterOpen || searchQuery || priorityFilter || statusFilter
                             ? 'bg-primary/10 border-primary/30 text-primary'
                             : 'bg-surface border-border hover:bg-surface-alt text-text'
                             }`}
@@ -528,7 +528,7 @@ export function BoardPage() {
                     {/* Activity Button */}
                     <button
                         onClick={() => setIsActivityDrawerOpen(true)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface border border-border hover:bg-surface-alt text-text text-sm font-medium transition-all"
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface border border-border hover:bg-surface-alt text-text text-sm font-medium transition-all"
                     >
                         {t('projects.activity_feed', 'Activity')}
                     </button>
@@ -536,7 +536,7 @@ export function BoardPage() {
                     {/* Settings Button */}
                     <button
                         onClick={() => setIsProjectSettingsOpen(true)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface border border-border hover:bg-surface-alt text-text text-sm font-medium transition-all"
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface border border-border hover:bg-surface-alt text-text text-sm font-medium transition-all"
                     >
                         {t('nav.settings')}
                     </button>
@@ -679,6 +679,7 @@ export function BoardPage() {
                     isOpen={isActivityDrawerOpen}
                     onClose={() => setIsActivityDrawerOpen(false)}
                     projectId={selectedProject.id}
+                    mobileMode="sheet"
                 />
             )}
 

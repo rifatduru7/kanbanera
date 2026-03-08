@@ -76,7 +76,7 @@ export function ColumnSettingsModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
             {/* Modal Card */}
-            <div className="relative w-full max-w-[450px] flex flex-col rounded-xl border border-border bg-surface/95 backdrop-blur-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="relative w-full max-w-[450px] max-h-[90dvh] flex flex-col rounded-xl border border-border bg-surface/95 backdrop-blur-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
                     <h2 className="text-text text-lg font-bold tracking-tight">{t('board.settings.title')}</h2>
@@ -92,7 +92,7 @@ export function ColumnSettingsModal({
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-5">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 flex flex-col gap-5 overflow-y-auto mobile-scroll">
                     {/* Name */}
                     <div className="flex flex-col gap-2">
                         <label className="text-xs font-semibold text-text-muted uppercase tracking-wider">

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { SquaresFour as LayoutDashboard, Folder as FolderKanban, Kanban, CalendarBlank as Calendar, User } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
+import { AnimatedIcon } from '../ui/AnimatedIcon';
 
 export function BottomNav() {
     const { t } = useTranslation();
@@ -15,12 +16,15 @@ export function BottomNav() {
     ];
 
     return (
-        <nav className="fixed bottom-6 left-6 right-6 z-50 lg:hidden max-w-lg mx-auto">
+        <nav
+            className="fixed inset-safe z-40 lg:hidden max-w-lg mx-auto"
+            style={{ bottom: 'max(0.5rem, var(--safe-bottom))' }}
+        >
             {/* Glass background with subtle border and rich shadow */}
             <div className="absolute inset-0 bg-surface/60 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/5" />
 
             {/* Navigation items */}
-            <div className="relative flex items-center justify-around px-2 py-2.5">
+            <div className="relative flex items-center justify-around px-2 py-2">
                 {navItems.map((item) => {
                     const isActive = location.pathname === item.href;
                     const Icon = item.icon;
@@ -29,7 +33,7 @@ export function BottomNav() {
                         <Link
                             key={item.href}
                             to={item.href}
-                            className={`relative flex flex-col items-center gap-1.5 px-2 transition-all duration-300 ${isActive ? 'text-primary' : 'text-text-muted hover:text-text'
+                            className={`relative flex flex-col items-center gap-1.5 px-2 min-h-11 justify-center transition-all duration-300 ${isActive ? 'text-primary' : 'text-text-muted hover:text-text'
                                 }`}
                         >
                             <div
@@ -38,7 +42,9 @@ export function BottomNav() {
                                         : 'hover:bg-white/5'
                                     }`}
                             >
-                                <Icon
+                                <AnimatedIcon
+                                    icon={Icon}
+                                    animation={isActive ? 'active' : 'hover'}
                                     className={`size-5.5 transition-all duration-300 ${isActive ? 'drop-shadow-[0_0_8px_rgba(40,170,226,0.6)]' : ''}`}
                                     weight={isActive ? 'duotone' : 'regular'}
                                 />

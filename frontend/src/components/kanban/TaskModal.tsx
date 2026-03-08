@@ -20,6 +20,7 @@ import { useTask, useUpdateTask, useMoveTask, useDeleteTask, useAddComment, useD
 import type { Subtask, Comment, TaskDetail, Attachment } from '../../types/task-detail';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/authStore';
+import { useViewport } from '../../hooks/useViewport';
 
 interface TaskModalProps {
     taskId: string;
@@ -68,6 +69,7 @@ export function TaskModal({
     onDeleteAttachment,
 }: TaskModalProps) {
     const { t, i18n } = useTranslation();
+    const { isMobile } = useViewport();
     const currentUserId = useAuthStore((state) => state.user?.id);
     const { data: fetchedTask } = useTask(taskId);
     const task = propTask || fetchedTask;
@@ -104,6 +106,12 @@ export function TaskModal({
     const [isStatusOpen, setIsStatusOpen] = useState(false);
     const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
     const [isPriorityOpen, setIsPriorityOpen] = useState(false);
+
+    const closeDropdowns = () => {
+        setIsStatusOpen(false);
+        setIsAssigneeOpen(false);
+        setIsPriorityOpen(false);
+    };
 
     useEffect(() => {
         if (task) {
@@ -204,7 +212,7 @@ export function TaskModal({
             />
 
             {/* Modal Content */}
-            <div className="glass-panel w-full h-[100dvh] lg:h-auto lg:max-h-[90vh] lg:max-w-6xl flex flex-col lg:rounded-2xl shadow-2xl overflow-hidden relative z-10 mx-0 lg:mx-4 bg-surface lg:bg-transparent">
+            <div className="glass-panel w-full h-[100dvh] lg:h-auto lg:max-h-[90vh] lg:max-w-6xl flex flex-col lg:rounded-2xl shadow-2xl overflow-hidden relative z-20 mx-0 lg:mx-4 bg-surface lg:bg-transparent">
                 {/* Header */}
                 <div className="flex items-center justify-between px-4 lg:px-6 py-3 lg:py-4 border-b border-border-muted shrink-0 bg-surface/50 backdrop-blur-md">
                     <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
@@ -257,8 +265,12 @@ export function TaskModal({
                     </div>
                 </div>
 
+                {(isStatusOpen || isAssigneeOpen || isPriorityOpen) && (
+                    <div className="fixed inset-0 z-30" onClick={closeDropdowns} />
+                )}
+
                 {/* Body - Unified scroll on mobile, split on desktop */}
-                <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto lg:overflow-hidden bg-surface-dark/50 lg:bg-transparent">
+                <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto mobile-scroll lg:overflow-hidden bg-surface-dark/50 lg:bg-transparent">
                     {/* LEFT COLUMN: Main Content */}
                     <div className="flex-1 p-4 lg:p-8 flex flex-col gap-6 lg:gap-8 border-b lg:border-b-0 lg:border-r border-border lg:overflow-y-auto custom-scrollbar">
                         {/* Title Input */}
@@ -417,27 +429,24 @@ export function TaskModal({
                                     </button>
 
                                     {isStatusOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-40" onClick={() => setIsStatusOpen(false)} />
-                                            <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-50 py-1">
-                                                {(columns || []).map((col: { id: string; name: string }) => (
-                                                    <button
-                                                        key={col.id}
-                                                        onClick={() => {
-                                                            if (onMoveTask) {
-                                                                onMoveTask(col.id, 0);
-                                                            } else {
-                                                                moveTask.mutate({ taskId: task.id, columnId: col.id, position: 0 });
-                                                            }
-                                                            setIsStatusOpen(false);
-                                                        }}
-                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-alt transition-colors ${task.columnId === col.id ? 'text-primary bg-primary/10' : 'text-white'}`}
-                                                    >
-                                                        {col.name}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>
+                                        <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1">
+                                            {(columns || []).map((col: { id: string; name: string }) => (
+                                                <button
+                                                    key={col.id}
+                                                    onClick={() => {
+                                                        if (onMoveTask) {
+                                                            onMoveTask(col.id, 0);
+                                                        } else {
+                                                            moveTask.mutate({ taskId: task.id, columnId: col.id, position: 0 });
+                                                        }
+                                                        setIsStatusOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-alt transition-colors ${task.columnId === col.id ? 'text-primary bg-primary/10' : 'text-white'}`}
+                                                >
+                                                    {col.name}
+                                                </button>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -467,31 +476,28 @@ export function TaskModal({
                                     </button>
 
                                     {isPriorityOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-40" onClick={() => setIsPriorityOpen(false)} />
-                                            <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-50 py-1">
-                                                {PRIORITY_OPTIONS.map((p) => (
-                                                    <button
-                                                        key={p}
-                                                        onClick={() => {
-                                                            if (onUpdate) {
-                                                                onUpdate({ priority: p });
-                                                            } else {
-                                                                updateTask.mutate({ id: task.id, priority: p });
-                                                            }
-                                                            setIsPriorityOpen(false);
-                                                        }}
-                                                        className={`w-full flex justify-start items-center gap-2 px-3 py-2 text-sm hover:bg-surface-alt transition-colors capitalize ${task.priority === p ? 'text-primary bg-primary/10' : 'text-white'}`}
-                                                    >
-                                                        {p === 'low' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />}
-                                                        {p === 'medium' && <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />}
-                                                        {p === 'high' && <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />}
-                                                        {p === 'critical' && <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
-                                                        {p}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </>
+                                        <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1">
+                                            {PRIORITY_OPTIONS.map((p) => (
+                                                <button
+                                                    key={p}
+                                                    onClick={() => {
+                                                        if (onUpdate) {
+                                                            onUpdate({ priority: p });
+                                                        } else {
+                                                            updateTask.mutate({ id: task.id, priority: p });
+                                                        }
+                                                        setIsPriorityOpen(false);
+                                                    }}
+                                                    className={`w-full flex justify-start items-center gap-2 px-3 py-2 text-sm hover:bg-surface-alt transition-colors capitalize ${task.priority === p ? 'text-primary bg-primary/10' : 'text-white'}`}
+                                                >
+                                                    {p === 'low' && <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />}
+                                                    {p === 'medium' && <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />}
+                                                    {p === 'high' && <div className="w-2.5 h-2.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" />}
+                                                    {p === 'critical' && <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
+                                                    {p}
+                                                </button>
+                                            ))}
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -524,9 +530,7 @@ export function TaskModal({
                                         </div>
 
                                         {isAssigneeOpen && (
-                                            <>
-                                                <div className="fixed inset-0 z-40" onClick={() => setIsAssigneeOpen(false)} />
-                                                <div className="absolute top-full left-0 w-[200px] mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-50 py-1 max-h-48 overflow-y-auto custom-scrollbar">
+                                                <div className={`absolute top-full left-0 mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1 max-h-48 overflow-y-auto custom-scrollbar ${isMobile ? 'w-full' : 'w-[200px]'}`}>
                                                     <button
                                                         onClick={() => {
                                                             if (onUpdate) {
@@ -560,7 +564,6 @@ export function TaskModal({
                                                         </button>
                                                     ))}
                                                 </div>
-                                            </>
                                         )}
                                     </div>
                                 </div>
@@ -723,7 +726,7 @@ export function TaskModal({
                 </div >
 
                 {/* Footer */}
-                <div className="p-4 sm:px-6 py-4 border-t border-border-muted flex justify-end gap-3 bg-surface/50 shrink-0">
+                <div className="p-4 sm:px-6 pt-4 pb-[max(0.75rem,var(--safe-bottom))] border-t border-border-muted flex justify-end gap-3 bg-surface/50 shrink-0">
                     <button
                         onClick={onClose}
                         className="px-5 py-2 rounded-lg text-sm font-medium text-text hover:bg-surface-alt border border-transparent hover:border-border transition-all"

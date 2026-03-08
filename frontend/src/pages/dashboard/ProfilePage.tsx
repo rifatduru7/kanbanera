@@ -270,8 +270,8 @@ export function ProfilePage() {
     const initials = `${firstName.charAt(0)}${lastName.charAt(0)}`.trim() || user?.fullName?.charAt(0) || 'U';
 
     return (
-        <div className="flex flex-col h-full overflow-y-auto">
-            <header className="flex-shrink-0 px-6 py-6 border-b border-border">
+        <div className="flex flex-col">
+            <header className="flex-shrink-0 px-4 sm:px-6 py-5 sm:py-6 border-b border-border">
                 <div className="flex items-center gap-3">
                     <User className="size-8 text-primary" />
                     <div>
@@ -281,7 +281,7 @@ export function ProfilePage() {
                 </div>
             </header>
 
-            <main className="flex-1 p-6 lg:p-10">
+            <main className="flex-1 p-4 sm:p-6 lg:p-10">
                 <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <div className="lg:col-span-4 lg:sticky lg:top-6">
                         <div className="glass-card rounded-2xl p-6 flex flex-col items-center text-center shadow-xl">

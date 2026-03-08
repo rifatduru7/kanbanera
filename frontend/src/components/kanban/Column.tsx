@@ -73,7 +73,7 @@ export function Column({ column, tasks, onAddTask, onTaskClick, onUpdateColumn, 
     const statusIndicatorStyle = column.color ? { backgroundColor: column.color } : {};
 
     return (
-        <div className="w-80 flex-shrink-0 flex flex-col gap-4">
+        <div className="w-[85vw] sm:w-80 flex-shrink-0 flex flex-col gap-4 snap-start">
             {/* Column Header */}
             <div className="flex items-center justify-between px-1 relative">
                 <div className="flex items-center gap-2 flex-1 min-w-0 mr-2">

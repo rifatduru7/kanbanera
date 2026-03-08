@@ -97,7 +97,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Right Side - Form */}
-            <div className="w-full lg:w-1/2 flex items-center justify-center p-4 sm:p-8 z-10">
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-3 sm:p-8 z-10">
                 <div className="w-full max-w-[520px]">
                     {/* Mobile Logo */}
                     <div className="lg:hidden flex items-center justify-center gap-3 mb-8">
@@ -110,7 +110,7 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Glass Card */}
-                    <div className="glass-card rounded-2xl overflow-hidden p-8 sm:p-10">
+                    <div className="glass-card rounded-2xl overflow-hidden p-5 sm:p-8">
                         <div className="mb-8 text-center">
                             <h3 className="text-3xl font-bold text-text mb-2">Create your account</h3>
                             <p className="text-text-muted">Join thousands of teams managing projects.</p>
@@ -259,7 +259,7 @@ export default function RegisterPage() {
                         </div>
 
                         {/* Login Link */}
-                        <div className="mt-8 text-center text-sm text-text-muted">
+                        <div className="mt-6 text-center text-sm text-text-muted">
                             Already have an account?{' '}
                             <Link to="/login" className="font-semibold text-primary hover:underline transition-colors">
                                 Log in

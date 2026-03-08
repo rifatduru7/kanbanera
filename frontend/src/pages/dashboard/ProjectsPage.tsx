@@ -41,12 +41,12 @@ export function ProjectsPage() {
     }
 
     return (
-        <div className="flex flex-col h-full overflow-hidden relative">
+        <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
             {/* Background Gradient */}
             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none z-0" />
 
             {/* Header */}
-            <header className="flex-shrink-0 z-10 px-6 py-6 md:px-8 border-b border-border bg-background/95 backdrop-blur-xl">
+            <header className="flex-shrink-0 z-10 px-4 sm:px-6 py-5 sm:py-6 md:px-8 border-b border-border bg-background/95 backdrop-blur-xl">
                 <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">
                     {/* Title Row */}
                     <div className="flex justify-between items-start">
@@ -128,7 +128,7 @@ export function ProjectsPage() {
             </header>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-6 md:p-8 z-0">
+            <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-6 md:p-8 z-0">
                 <div className="max-w-7xl mx-auto">
                     {filteredProjects.length === 0 ? (
                         /* Empty State */

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeClosed as EyeOff, Kanban, GithubLogo as Github, EnvelopeSimple as Mail, CircleNotch as Loader2, WarningCircle as AlertCircle } from '@phosphor-icons/react';
+import { Eye, EyeClosed as EyeOff, GithubLogo as Github, EnvelopeSimple as Mail, CircleNotch as Loader2, WarningCircle as AlertCircle } from '@phosphor-icons/react';
 import { isAxiosError } from 'axios';
 import { authApi } from '../../lib/api/client';
 import type { AppUser } from '../../stores/authStore';
 import { useAuthStore } from '../../stores/authStore';
+import { BrandLogoMark } from '../../components/ui/BrandLogoMark';
 
 const getErrorMessage = (err: unknown, fallback: string) => {
     if (isAxiosError<{ message?: string }>(err)) {
@@ -87,13 +88,13 @@ export function LoginPage() {
             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-[100px] mix-blend-screen pointer-events-none" />
 
             {/* Main Container */}
-            <div className="layout-container flex w-full flex-col p-4 sm:p-6 z-10">
+            <div className="layout-container flex w-full flex-col p-3 sm:p-6 z-10 h-dvh-safe justify-center">
                 {/* Glass Card */}
-                <div className="glass-card mx-auto flex w-full max-w-[480px] flex-col overflow-hidden rounded-2xl p-8 sm:p-10">
+                <div className="glass-card mx-auto flex w-full max-w-[480px] flex-col overflow-hidden rounded-2xl p-5 sm:p-8">
                     {/* Logo & Header */}
                     <div className="flex flex-col items-center pb-6">
                         <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/20 text-primary">
-                            <Kanban className="size-8" />
+                            <BrandLogoMark className="size-8" animated={true} />
                         </div>
                         <h1 className="text-center text-3xl font-bold tracking-tight text-text mb-2">
                             {mfaRequired ? 'Two-Factor Auth' : 'Welcome Back'}
@@ -260,7 +261,7 @@ export function LoginPage() {
                 </div>
 
                 {/* Bottom Footer */}
-                <div className="mt-8 flex justify-center gap-6 text-xs text-text-muted/60">
+                <div className="mt-6 flex justify-center flex-wrap gap-4 text-xs text-text-muted/60">
                     <a href="#" className="hover:text-text-muted transition-colors">Privacy Policy</a>
                     <a href="#" className="hover:text-text-muted transition-colors">Terms of Service</a>
                     <a href="#" className="hover:text-text-muted transition-colors">Help Center</a>

@@ -4,6 +4,7 @@ import { MagnifyingGlass as Search, X, FileText, Kanban as FolderKanban, Calenda
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { searchApi } from '../../lib/api/client';
+import { useViewport } from '../../hooks/useViewport';
 
 interface SearchResult {
     id: string;
@@ -26,6 +27,7 @@ const navItems = [
 interface SearchModalProps {
     isOpen: boolean;
     onClose: () => void;
+    mobileFullScreen?: boolean;
 }
 
 function useDebouncedValue<T>(value: T, delay = 250) {
@@ -39,13 +41,14 @@ function useDebouncedValue<T>(value: T, delay = 250) {
     return debounced;
 }
 
-export function SearchModal({ isOpen, onClose }: SearchModalProps) {
+export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: SearchModalProps) {
     const { t } = useTranslation();
     const [query, setQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const debouncedQuery = useDebouncedValue(query.trim(), 250);
+    const { isMobile } = useViewport();
 
     const navigationResults: SearchResult[] = useMemo(() => navItems.map((item) => ({
         id: item.id,
@@ -155,12 +158,14 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
 
     if (!isOpen) return null;
 
+    const isMobileFullScreen = mobileFullScreen && isMobile;
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh]">
+        <div className={`fixed inset-0 z-[100] flex ${isMobileFullScreen ? 'items-stretch justify-stretch pt-0' : 'items-start justify-center pt-[15vh]'}`}>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
-            <div className="relative w-full max-w-2xl mx-4 glass-panel rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="flex items-center gap-4 px-5 py-4 border-b border-border-muted bg-surface/50 backdrop-blur-md">
+            <div className={`relative w-full glass-panel shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 ${isMobileFullScreen ? 'h-[100dvh] max-w-none mx-0 rounded-none' : 'max-w-2xl mx-4 rounded-2xl'}`}>
+                <div className={`flex items-center gap-4 border-b border-border-muted bg-surface/50 backdrop-blur-md ${isMobileFullScreen ? 'px-4 pt-safe pb-3' : 'px-5 py-4'}`}>
                     <Search className="size-5 text-text-muted flex-shrink-0" />
                     <input
                         ref={inputRef}
@@ -187,7 +192,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     </button>
                 </div>
 
-                <div className="max-h-[420px] overflow-y-auto p-2 bg-surface/30">
+                <div className={`${isMobileFullScreen ? 'h-[calc(100dvh-148px)]' : 'max-h-[420px]'} overflow-y-auto p-2 bg-surface/30 mobile-scroll`}>
                     {searchQuery.isFetching && debouncedQuery.length >= 2 ? (
                         <div className="py-8 text-center text-text-muted flex items-center justify-center gap-2 text-sm">
                             <SpinnerGap className="size-4 animate-spin" />
@@ -242,7 +247,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
                     )}
                 </div>
 
-                <div className="flex items-center justify-between px-5 py-3 border-t border-border-muted bg-surface-alt/50">
+                <div className={`items-center justify-between px-5 py-3 border-t border-border-muted bg-surface-alt/50 ${isMobileFullScreen ? 'hidden' : 'flex'}`}>
                     <div className="flex items-center gap-4 text-xs text-text-muted">
                         <span className="flex items-center gap-1">
                             <kbd className="px-1.5 py-0.5 rounded bg-surface-alt border border-border-muted font-mono">^</kbd>

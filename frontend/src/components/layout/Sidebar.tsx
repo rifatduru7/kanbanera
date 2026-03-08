@@ -17,6 +17,8 @@ import {
     SignOut,
 } from '@phosphor-icons/react';
 import { useAuthStore } from '../../stores/authStore';
+import { AnimatedIcon } from '../ui/AnimatedIcon';
+import { BrandLogoMark } from '../ui/BrandLogoMark';
 
 interface NavItem {
     labelKey: string;
@@ -80,7 +82,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
     return (
         <aside
             className={`
-        flex-shrink-0 flex flex-col justify-between glass-panel relative z-20 h-full
+        flex-shrink-0 flex flex-col justify-between glass-panel relative z-20 h-full pt-safe lg:pt-0
         transition-all duration-300 ease-in-out
         ${collapsed ? 'w-20' : 'w-72'}
       `}
@@ -88,7 +90,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             {/* Logo & Brand */}
             <div className="p-6 flex items-center gap-3">
                 <div className="relative flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
-                    <Kanban className="text-text size-6" />
+                    <BrandLogoMark className="text-text size-6" animated={true} />
                 </div>
                 {!collapsed && (
                     <div className="flex flex-col">
@@ -101,7 +103,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 flex flex-col gap-2 px-4 py-2 overflow-y-auto">
+            <nav className="flex-1 flex flex-col gap-2 px-4 py-2 overflow-y-auto mobile-scroll">
                 {!collapsed && (
                     <p className="text-text-muted text-[10px] font-bold uppercase tracking-wider px-3 mb-1">
                         {t('common.menu')}
@@ -126,7 +128,9 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
               `}
                             title={collapsed ? t(item.labelKey) : undefined}
                         >
-                            <Icon
+                            <AnimatedIcon
+                                icon={Icon}
+                                animation={isActive ? 'active' : 'hover'}
                                 className={`size-5 ${isActive ? '' : 'group-hover:text-primary'}`}
                                 strokeWidth={isActive ? 2.5 : 2}
                             />
@@ -166,7 +170,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
               `}
                             title={collapsed ? t(item.labelKey) : undefined}
                         >
-                            <Icon className="size-5 group-hover:text-primary" />
+                            <AnimatedIcon icon={Icon} animation={isActive ? 'active' : 'hover'} className="size-5 group-hover:text-primary" />
                             {!collapsed && (
                                 <span className="text-sm font-medium">{t(item.labelKey)}</span>
                             )}
@@ -205,7 +209,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                             className={`flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors w-full text-left ${collapsed ? 'justify-center' : ''}`}
                             title={collapsed ? t('nav.logout', 'Logout') : undefined}
                         >
-                            <SignOut className="size-4" />
+                            <AnimatedIcon icon={SignOut} animation="hover" className="size-4" />
                             {!collapsed && t('nav.logout', 'Logout')}
                         </button>
                     </div>
@@ -224,7 +228,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                                 <p className="text-sm font-semibold text-text truncate">{user?.fullName || t('common.user')}</p>
                                 <p className="text-xs text-text-muted truncate capitalize">{t(`common.roles.${user?.role || 'member'}`)}</p>
                             </div>
-                            <ChevronDown className={`text-text-muted size-4 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
+                            <AnimatedIcon icon={ChevronDown} animation="hover" className={`text-text-muted size-4 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                         </>
                     )}
                 </div>
@@ -233,12 +237,12 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             {/* Collapse Toggle */}
             <button
                 onClick={handleToggle}
-                className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-surface border border-border flex items-center justify-center text-text-muted hover:text-text hover:bg-surface-alt transition-colors z-30 shadow-sm"
+                className="hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-surface border border-border items-center justify-center text-text-muted hover:text-text hover:bg-surface-alt transition-colors z-30 shadow-sm"
             >
                 {collapsed ? (
-                    <ChevronRight className="size-3" />
+                    <AnimatedIcon icon={ChevronRight} animation="hover" className="size-3" />
                 ) : (
-                    <ChevronLeft className="size-3" />
+                    <AnimatedIcon icon={ChevronLeft} animation="hover" className="size-3" />
                 )}
             </button>
         </aside>

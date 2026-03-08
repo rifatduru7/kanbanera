@@ -317,8 +317,8 @@ export function AdminPage() {
     ] as const;
 
     return (
-        <div className="flex flex-col h-full overflow-hidden">
-            <header className="flex-shrink-0 px-6 py-6 border-b border-border">
+        <div className="flex flex-col h-full min-h-0 overflow-hidden">
+            <header className="flex-shrink-0 px-4 sm:px-6 py-5 sm:py-6 border-b border-border">
                 <div className="flex items-center gap-3">
                     <ShieldCheck className="size-8 text-primary" />
                     <div>
@@ -328,8 +328,8 @@ export function AdminPage() {
                 </div>
             </header>
 
-            <div className="flex-shrink-0 px-6 py-4 border-b border-border">
-                <div className="flex gap-1 bg-surface-alt rounded-lg p-1 w-fit">
+            <div className="flex-shrink-0 px-4 sm:px-6 py-4 border-b border-border sticky top-0 z-10 bg-background/95 backdrop-blur">
+                <div className="flex gap-1 bg-surface-alt rounded-lg p-1 w-fit overflow-x-auto mobile-scroll max-w-full">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
@@ -345,7 +345,7 @@ export function AdminPage() {
                 </div>
             </div>
 
-            <main className="flex-1 overflow-y-auto p-6">
+            <main className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-6">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-48">
                         <Loader2 className="size-8 animate-spin text-primary" />
@@ -466,8 +466,8 @@ export function AdminPage() {
 
                         {activeTab === 'users' && (
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="relative flex-1 max-w-md">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="relative flex-1 w-full sm:max-w-md">
                                         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted size-5" />
                                         <input
                                             type="text"
@@ -477,10 +477,10 @@ export function AdminPage() {
                                             className="glass-input w-full pl-10 pr-4 py-2.5 rounded-lg"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                                         <button
                                             onClick={handleExportUsers}
-                                            className="flex items-center gap-2 px-4 py-2 bg-surface-alt border border-border-muted text-text-muted hover:text-text hover:border-border rounded-lg transition-all text-sm font-medium"
+                                            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface-alt border border-border-muted text-text-muted hover:text-text hover:border-border rounded-lg transition-all text-sm font-medium"
                                         >
                                             <DownloadSimple size={18} />
                                             {t('admin.export_csv')}
@@ -494,7 +494,47 @@ export function AdminPage() {
                                     </div>
                                 </div>
 
-                                <div className="glass-card rounded-2xl overflow-hidden">
+                                <div className="md:hidden space-y-3">
+                                    {users.map((user) => (
+                                        <div key={user.id} className="glass-card rounded-xl p-4 space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-medium">
+                                                    {user.full_name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-medium text-text truncate">{user.full_name}</p>
+                                                    <p className="text-sm text-text-muted truncate">{user.email}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center justify-between gap-3 text-sm">
+                                                <span className="text-text-muted">{t('admin.users.table.projects')}: {user.projectsOwned}</span>
+                                                <span className="text-text-muted">{new Date(user.created_at).toLocaleDateString()}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <select
+                                                    value={user.role}
+                                                    onChange={(e) => handleRoleChange(user.id, e.target.value as 'admin' | 'member')}
+                                                    disabled={actionLoading === user.id || user.id === currentUser?.id}
+                                                    className="glass-input px-3 py-2 rounded-lg text-sm flex-1"
+                                                >
+                                                    <option value="member">{t('common.member')}</option>
+                                                    <option value="admin">{t('common.admin')}</option>
+                                                </select>
+                                                {user.id !== currentUser?.id && (
+                                                    <button
+                                                        onClick={() => handleDeleteUser(user.id)}
+                                                        disabled={actionLoading === user.id}
+                                                        className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+                                                    >
+                                                        {actionLoading === user.id ? <Loader2 className="size-5 animate-spin" /> : <Trash className="size-5" />}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="glass-card rounded-2xl overflow-hidden hidden md:block">
                                     <table className="w-full">
                                         <thead className="bg-surface-alt">
                                             <tr>
@@ -581,8 +621,8 @@ export function AdminPage() {
 
                         {activeTab === 'projects' && (
                             <div className="space-y-4">
-                                <div className="flex items-center justify-between gap-4">
-                                    <div className="relative flex-1 max-w-md">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div className="relative flex-1 w-full sm:max-w-md">
                                         <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted size-5" />
                                         <input
                                             type="text"
@@ -592,10 +632,10 @@ export function AdminPage() {
                                             className="glass-input w-full pl-10 pr-4 py-2.5 rounded-lg"
                                         />
                                     </div>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                                         <button
                                             onClick={handleExportProjects}
-                                            className="flex items-center gap-2 px-4 py-2 bg-surface-alt border border-border-muted text-text-muted hover:text-text hover:border-border rounded-lg transition-all text-sm font-medium"
+                                            className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface-alt border border-border-muted text-text-muted hover:text-text hover:border-border rounded-lg transition-all text-sm font-medium"
                                         >
                                             <DownloadSimple size={18} />
                                             {t('admin.export_csv')}
@@ -609,7 +649,39 @@ export function AdminPage() {
                                     </div>
                                 </div>
 
-                                <div className="glass-card rounded-2xl overflow-hidden">
+                                <div className="md:hidden space-y-3">
+                                    {projects.map((project) => (
+                                        <div key={project.id} className="glass-card rounded-xl p-4 space-y-3">
+                                            <div className="flex items-start gap-3">
+                                                <div className="size-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-500 shrink-0">
+                                                    <Folder className="size-5" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-medium text-text truncate">{project.name}</p>
+                                                    {project.description && (
+                                                        <p className="text-sm text-text-muted truncate">{project.description}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="text-sm text-text-muted">
+                                                <p>{project.owner_name || t('common.unknown')}</p>
+                                                <p className="truncate">{project.owner_email || t('common.no_email')}</p>
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-text">{project.task_count} tasks</span>
+                                                <button
+                                                    onClick={() => handleDeleteProject(project.id)}
+                                                    disabled={actionLoading === project.id}
+                                                    className="p-2 rounded-lg text-red-500 hover:bg-red-500/10 disabled:opacity-50"
+                                                >
+                                                    {actionLoading === project.id ? <Loader2 className="size-5 animate-spin" /> : <Trash className="size-5" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="glass-card rounded-2xl overflow-hidden hidden md:block">
                                     <table className="w-full">
                                         <thead className="bg-surface-alt">
                                             <tr>
@@ -697,9 +769,9 @@ export function AdminPage() {
                         {activeTab === 'activities' && (
                             <div className="space-y-4">
                                 <div className="flex flex-col gap-4">
-                                    <div className="flex items-center justify-between gap-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                         <h2 className="text-lg font-bold text-text">{t('admin.activities.title')}</h2>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                             {(activityFilters.userId || activityFilters.action || activityFilters.startDate || activityFilters.endDate) && (
                                                 <button
                                                     onClick={() => {

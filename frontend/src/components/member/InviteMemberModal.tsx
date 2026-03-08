@@ -78,8 +78,8 @@ export function InviteMemberModal({ isOpen, onClose, projectId, projectName }: I
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="relative w-full max-w-[480px] flex flex-col rounded-xl border border-border bg-surface shadow-xl overflow-hidden">
-                <div className="flex items-center justify-between px-6 pt-6 pb-2">
+            <div className="relative w-full max-w-[480px] max-h-[92dvh] flex flex-col rounded-xl border border-border bg-surface shadow-xl overflow-hidden">
+                <div className="flex items-center justify-between px-4 sm:px-6 pt-5 sm:pt-6 pb-2">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-primary/10">
                             <UserPlus className="size-5 text-primary" />
@@ -108,7 +108,7 @@ export function InviteMemberModal({ isOpen, onClose, projectId, projectName }: I
                         </p>
                     </div>
                 ) : (
-                    <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                    <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 overflow-y-auto mobile-scroll">
                         {!projectId && (
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-text">Project</label>

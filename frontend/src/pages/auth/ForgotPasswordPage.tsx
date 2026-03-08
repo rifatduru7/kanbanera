@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Kanban, EnvelopeSimple as Mail, ArrowRight, CircleNotch as Loader2, CheckCircle, WarningCircle } from '@phosphor-icons/react';
+import { EnvelopeSimple as Mail, ArrowRight, CircleNotch as Loader2, CheckCircle, WarningCircle } from '@phosphor-icons/react';
 import { authApi } from '../../lib/api/client';
 import { useTranslation } from 'react-i18next';
+import { BrandLogoMark } from '../../components/ui/BrandLogoMark';
 
 export function ForgotPasswordPage() {
     const { t } = useTranslation();
@@ -36,15 +37,15 @@ export function ForgotPasswordPage() {
             <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-primary/20 blur-[120px]" />
             <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-teal-500/10 blur-[120px]" />
 
-            <header className="absolute top-0 left-0 w-full p-6 z-20">
+            <header className="absolute top-0 left-0 w-full p-4 sm:p-6 z-20">
                 <Link to="/login" className="flex items-center gap-3 text-text w-fit">
-                    <Kanban className="size-8 text-primary" />
+                    <BrandLogoMark className="size-8 text-primary" animated={true} />
                     <h2 className="text-xl font-bold tracking-tight">ERA KANBAN</h2>
                 </Link>
             </header>
 
             <main className="w-full max-w-lg relative z-10">
-                <div className="glass-card rounded-2xl p-8 md:p-10 flex flex-col items-center text-center">
+                <div className="glass-card rounded-2xl p-5 sm:p-8 md:p-10 flex flex-col items-center text-center">
                     {isSuccess ? (
                         <>
                             <div className="size-16 rounded-full bg-green-500/20 border border-green-500/20 flex items-center justify-center mb-6 text-green-500">

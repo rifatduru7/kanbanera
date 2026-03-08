@@ -75,17 +75,17 @@ export function ActivityFeed({ title = 'Recent Activity', compact = false, limit
 
     return (
         <div className={`glass-card rounded-2xl flex flex-col overflow-hidden ${compact ? 'max-h-[400px]' : 'h-full'}`}>
-            <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-surface/50 backdrop-blur-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-border bg-surface/50 backdrop-blur-sm">
                 <div className="flex flex-col gap-0.5">
                     <h3 className="text-text text-lg font-bold">{title}</h3>
                     <p className="text-text-muted text-xs">Real-time updates across the project</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Filter className="size-4 text-primary" />
                     <select
                         value={typeFilter}
                         onChange={(event) => setTypeFilter(event.target.value as ActivityType)}
-                        className="glass-input h-8 rounded-md px-2 text-xs"
+                        className="glass-input h-10 sm:h-8 rounded-md px-2 text-xs flex-1 sm:flex-none"
                     >
                         <option value="all">All</option>
                         <option value="task_created">Task created</option>
@@ -111,7 +111,7 @@ export function ActivityFeed({ title = 'Recent Activity', compact = false, limit
             )}
 
             {!isLoading && !error && (
-                <div className="overflow-y-auto p-6 flex-1 space-y-0">
+                <div className="overflow-y-auto p-4 sm:p-6 flex-1 space-y-0 mobile-scroll">
                     {activities.length === 0 ? (
                         <NoActivityState />
                     ) : (

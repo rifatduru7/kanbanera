@@ -183,8 +183,8 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask, onAddColumn
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex-1 overflow-x-auto pb-4">
-                <div className="flex gap-6 min-w-max">
+            <div className="flex-1 overflow-x-auto mobile-scroll pb-4">
+                <div className="flex gap-4 sm:gap-6 min-w-max snap-x snap-mandatory">
                     {localColumns.map((column) => (
                         <Column
                             key={column.id}
@@ -198,7 +198,7 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask, onAddColumn
                     ))}
 
                     {/* Add Column Button / Input */}
-                    <div className="w-80 flex-shrink-0">
+                    <div className="w-[85vw] sm:w-80 flex-shrink-0 snap-start">
                         {isAddingColumn ? (
                             <div className="bg-surface-dark border border-border rounded-xl p-3 flex flex-col gap-3">
                                 <input

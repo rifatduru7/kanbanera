@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Kanban, LockKey as Lock, Eye, EyeClosed as EyeOff, CircleNotch as Loader2, CheckCircle, WarningCircle as AlertCircle } from '@phosphor-icons/react';
+import { LockKey as Lock, Eye, EyeClosed as EyeOff, CircleNotch as Loader2, CheckCircle, WarningCircle as AlertCircle } from '@phosphor-icons/react';
 import { authApi } from '../../lib/api/client';
 import { useTranslation } from 'react-i18next';
+import { BrandLogoMark } from '../../components/ui/BrandLogoMark';
 
 export function ResetPasswordPage() {
     const { t } = useTranslation();
@@ -59,7 +60,7 @@ export function ResetPasswordPage() {
         return (
             <div className="relative flex min-h-screen w-full flex-col overflow-hidden justify-center items-center bg-background px-4">
                 <main className="w-full max-w-lg z-10">
-                    <div className="glass-card rounded-2xl p-8 md:p-10 flex flex-col items-center text-center">
+                    <div className="glass-card rounded-2xl p-5 sm:p-8 md:p-10 flex flex-col items-center text-center">
                         <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-6 text-red-500">
                             <AlertCircle className="size-8" />
                         </div>
@@ -84,15 +85,15 @@ export function ResetPasswordPage() {
             <div className="absolute top-[-10%] left-[-10%] h-[40%] w-[40%] rounded-full bg-primary/20 blur-[120px]" />
             <div className="absolute bottom-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full bg-teal-500/10 blur-[120px]" />
 
-            <header className="absolute top-0 left-0 w-full p-6 z-20">
+            <header className="absolute top-0 left-0 w-full p-4 sm:p-6 z-20">
                 <Link to="/login" className="flex items-center gap-3 text-text w-fit">
-                    <Kanban className="size-8 text-primary" />
+                    <BrandLogoMark className="size-8 text-primary" animated={true} />
                     <h2 className="text-xl font-bold">ERA KANBAN</h2>
                 </Link>
             </header>
 
             <main className="w-full max-w-lg z-10">
-                <div className="glass-card rounded-2xl p-8 md:p-10 flex flex-col items-center text-center">
+                <div className="glass-card rounded-2xl p-5 sm:p-8 md:p-10 flex flex-col items-center text-center">
                     {isSuccess ? (
                         <>
                             <div className="w-16 h-16 rounded-full bg-green-500/20 border border-green-500/20 flex items-center justify-center mb-6 text-green-500">

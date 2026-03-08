@@ -1,6 +1,7 @@
 import { ArrowsClockwise as RefreshCw, Bell, List as Menu, CaretRight as ChevronRight, CheckCircle, MagnifyingGlass as Search, Command } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AnimatedIcon } from '../ui/AnimatedIcon';
 
 interface HeaderProps {
     projectName?: string;
@@ -49,14 +50,14 @@ export function Header({
     };
 
     return (
-        <header className="glass-header h-16 shrink-0 flex items-center justify-between px-6 z-10 sticky top-0 w-full">
+        <header className="glass-header h-16 shrink-0 flex items-center justify-between px-3 sm:px-4 md:px-6 z-10 sticky top-0 w-full">
             <div className="flex items-center gap-4">
                 {/* Mobile Menu Button */}
                 <button
                     onClick={onMenuClick}
                     className="text-text-muted hover:text-text lg:hidden"
                 >
-                    <Menu className="size-6" />
+                    <AnimatedIcon icon={Menu} animation="wiggle" className="size-6" />
                 </button>
 
                 {/* Breadcrumbs */}
@@ -76,15 +77,15 @@ export function Header({
                 </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
                 {/* Search Button */}
                 <button
                     onClick={onSearchClick}
-                    className="flex items-center gap-2 h-9 px-3 rounded-lg bg-surface border border-border hover:bg-surface-alt transition-all text-text-muted hover:text-text"
+                    className="flex items-center justify-center sm:justify-start gap-2 h-11 sm:h-9 w-11 sm:w-auto px-0 sm:px-3 rounded-lg bg-surface border border-border hover:bg-surface-alt transition-all text-text-muted hover:text-text"
                 >
-                    <Search className="size-4" />
-                    <span className="hidden sm:inline text-sm">{t('common.search_dots')}</span>
-                    <div className="hidden sm:flex items-center gap-0.5 text-xs ml-2 text-text-muted/60">
+                    <AnimatedIcon icon={Search} animation="hover" className="size-4" />
+                    <span className="hidden md:inline text-sm">{t('common.search_dots')}</span>
+                    <div className="hidden md:flex items-center gap-0.5 text-xs ml-2 text-text-muted/60">
                         <Command className="size-3" />
                         <span>K</span>
                     </div>
@@ -92,7 +93,7 @@ export function Header({
 
                 {/* Sync Status */}
                 <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface border border-border shadow-sm cursor-default">
-                    <CheckCircle className="text-emerald-500 size-4" />
+                    <AnimatedIcon icon={CheckCircle} animation="pulse" className="text-emerald-500 size-4" />
                     <span className="text-xs text-text font-medium">
                         {getSyncText()}
                     </span>
@@ -100,11 +101,11 @@ export function Header({
 
                 {/* Notifications */}
                 <button
-                    className="flex items-center justify-center size-9 rounded-lg text-text-muted hover:text-text hover:bg-surface-alt transition-all"
+                    className="hidden sm:flex items-center justify-center size-11 sm:size-9 rounded-lg text-text-muted hover:text-text hover:bg-surface-alt transition-all"
                     title={t('common.notifications', 'Notifications')}
                 >
                     <div className="relative">
-                        <Bell className="size-5" />
+                        <AnimatedIcon icon={Bell} animation="wiggle" className="size-5" />
                         <span className="absolute -top-1 -right-1 size-2 bg-red-500 rounded-full border-2 border-surface" />
                     </div>
                 </button>
@@ -113,12 +114,14 @@ export function Header({
                 <button
                     onClick={handleRefresh}
                     disabled={isRefreshing}
-                    className="flex items-center gap-2 h-9 px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold transition-all shadow-lg shadow-primary/25 disabled:opacity-70"
+                    className="flex items-center justify-center gap-2 h-11 sm:h-9 w-11 sm:w-auto px-0 sm:px-4 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-semibold transition-all shadow-lg shadow-primary/25 disabled:opacity-70"
                 >
-                    <RefreshCw
-                        className={`size-4 ${isRefreshing ? 'animate-spin' : ''}`}
+                    <AnimatedIcon
+                        icon={RefreshCw}
+                        animation={isRefreshing ? 'spin' : 'hover'}
+                        className="size-4"
                     />
-                    <span className="hidden sm:inline">{t('common.refresh')}</span>
+                    <span className="hidden md:inline">{t('common.refresh')}</span>
                 </button>
             </div>
         </header>

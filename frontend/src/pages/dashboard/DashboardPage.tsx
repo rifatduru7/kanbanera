@@ -374,15 +374,15 @@ function StatRing({ label, value, color, icon, suffix = '' }: StatRingProps) {
     };
 
     return (
-        <div className="flex flex-col xs:flex-row items-center gap-2 xs:gap-3 p-2.5 xs:p-3 rounded-xl bg-surface/50 border border-border">
-            <div className={`p-1.5 xs:p-2 rounded-lg shrink-0 ${colorClasses[color]}`}>
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-xl bg-surface/50 border border-border">
+            <div className={`p-1.5 sm:p-2 rounded-lg shrink-0 ${colorClasses[color]}`}>
                 {icon}
             </div>
             <div className="min-w-0">
-                <p className="text-lg xs:text-xl md:text-2xl font-bold text-text truncate">
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-text truncate">
                     {value}{suffix}
                 </p>
-                <p className="text-[10px] xs:text-xs text-text-muted truncate">{label}</p>
+                <p className="text-[10px] sm:text-xs text-text-muted truncate">{label}</p>
             </div>
         </div>
     );

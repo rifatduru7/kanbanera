@@ -59,9 +59,9 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
             {/* Modal Card */}
-            <div className="relative w-full max-w-[480px] flex flex-col rounded-xl border border-border bg-surface/95 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(19,185,165,0.15)] ring-1 ring-border-muted overflow-hidden">
+            <div className="relative w-full max-w-[480px] max-h-[92dvh] flex flex-col rounded-xl border border-border bg-surface/95 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(19,185,165,0.15)] ring-1 ring-border-muted overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 pt-6 pb-2">
+                <div className="flex items-center justify-between px-4 sm:px-6 pt-5 sm:pt-6 pb-2">
                     <h2 className="text-text text-xl font-bold tracking-tight">{t('projects.create_new')}</h2>
                     <button
                         onClick={onClose}
@@ -72,7 +72,7 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
                 </div>
 
                 {/* Form Content */}
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 overflow-y-auto mobile-scroll">
                     {/* Project Name */}
                     <div className="space-y-2">
                         <label className="block text-sm font-medium text-text-muted">
@@ -150,7 +150,7 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
                 </form>
 
                 {/* Footer */}
-                <div className="flex items-center justify-end gap-3 px-6 py-5 border-t border-border-muted bg-surface-alt/50">
+                <div className="flex items-center justify-end gap-3 px-4 sm:px-6 py-4 border-t border-border-muted bg-surface-alt/50">
                     <button
                         type="button"
                         onClick={onClose}

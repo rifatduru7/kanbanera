@@ -110,7 +110,7 @@ export function ProjectSettingsModal({
                 </div>
 
                 {/* Tabs */}
-                <div className="flex px-6 space-x-4 border-b border-white/5 bg-black/20">
+                <div className="flex px-4 sm:px-6 space-x-4 border-b border-white/5 bg-black/20 overflow-x-auto mobile-scroll">
                     <button
                         onClick={() => setActiveTab('general')}
                         className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === 'general'
@@ -148,7 +148,7 @@ export function ProjectSettingsModal({
                 {/* Content Area */}
                 <div className="overflow-y-auto w-full custom-scrollbar">
                     {activeTab === 'general' ? (
-                        <form onSubmit={handleGeneralSubmit} className="p-6 space-y-6">
+                        <form onSubmit={handleGeneralSubmit} className="p-4 sm:p-6 space-y-6">
                             {/* Project Name */}
                             <div className="space-y-2">
                                 <label className="block text-sm font-medium text-text-muted">
@@ -235,7 +235,7 @@ export function ProjectSettingsModal({
                             )}
                         </form>
                     ) : activeTab === 'members' ? (
-                        <div className="p-6 space-y-6">
+                        <div className="p-4 sm:p-6 space-y-6">
                             {/* Invite Section */}
                             {isAdmin && (
                                 <div className="space-y-4">

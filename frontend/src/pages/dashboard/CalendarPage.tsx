@@ -4,6 +4,7 @@ import { CaretLeft as ChevronLeft, CaretRight as ChevronRight, CalendarBlank as 
 import { useTasksByDateRange, type CalendarTask, type CalendarFilters } from '../../hooks/useCalendarData';
 import { useProjects, useCreateTask, useProjectColumns } from '../../hooks/useKanbanData';
 import { toast } from 'react-hot-toast';
+import { useViewport } from '../../hooks/useViewport';
 
 // Date utilities keys
 const DAYS_OF_WEEK_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -30,6 +31,8 @@ interface CalendarColumnOption {
     name: string;
 }
 
+type CalendarMobileMode = 'month' | 'agenda';
+
 function getDaysInMonth(year: number, month: number) {
     return new Date(year, month + 1, 0).getDate();
 }
@@ -40,9 +43,18 @@ function getFirstDayOfMonth(year: number, month: number) {
 
 export function CalendarPage() {
     const { t } = useTranslation();
+    const { isMobile } = useViewport();
     const today = useMemo(() => new Date(), []);
     const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
     const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+    const [mobileMode, setMobileMode] = useState<CalendarMobileMode>('agenda');
+    const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
+    const [selectedMobileDate, setSelectedMobileDate] = useState(() => {
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    });
 
     // Filters State
     const [filters, setFilters] = useState<CalendarFilters>({
@@ -74,7 +86,7 @@ export function CalendarPage() {
 
     // Get date range for API call based on view mode
     const { from, to } = useMemo(() => {
-        if (viewMode === 'month') {
+        if (isMobile || viewMode === 'month') {
             const start = new Date(year, month, 1);
             const end = new Date(year, month + 1, 0);
             return {
@@ -92,7 +104,7 @@ export function CalendarPage() {
                 to: end.toISOString().split('T')[0],
             };
         }
-    }, [year, month, currentDate, viewMode]);
+    }, [isMobile, year, month, currentDate, viewMode]);
 
     // Fetch tasks from API
     const { data: tasks = [], isLoading } = useTasksByDateRange(from, to, {
@@ -246,8 +258,241 @@ export function CalendarPage() {
         return days;
     }, [year, month, daysInMonth, firstDayOfMonth, today, viewMode, currentDate, MONTHS]);
 
+    const mobileMonthDays = useMemo(() => {
+        const days: { day: number; isToday: boolean; date: string }[] = [];
+        const monthDays = getDaysInMonth(year, month);
+        for (let day = 1; day <= monthDays; day++) {
+            const date = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            days.push({
+                day,
+                isToday: date === selectedMobileDate,
+                date,
+            });
+        }
+        return days;
+    }, [month, selectedMobileDate, year]);
+
+    const selectedDateTasks = useMemo(() => {
+        return (tasksByDate[selectedMobileDate] || []).sort((a, b) => (a.title > b.title ? 1 : -1));
+    }, [selectedMobileDate, tasksByDate]);
+
+    if (isMobile) {
+        return (
+            <div className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
+                <div className="px-4 pt-4 pb-3 border-b border-border space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="glass-card p-3 rounded-xl">
+                            <p className="text-[10px] text-text-muted uppercase tracking-wider">{t('calendar.stats.total')}</p>
+                            <p className="text-lg font-bold text-text">{stats.total}</p>
+                        </div>
+                        <div className="glass-card p-3 rounded-xl">
+                            <p className="text-[10px] text-text-muted uppercase tracking-wider">{t('calendar.stats.overdue')}</p>
+                            <p className="text-lg font-bold text-red-500">{stats.overdue}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                        <button onClick={goToPrev} className="h-11 w-11 rounded-lg border border-border bg-surface flex items-center justify-center">
+                            <ChevronLeft className="size-5" />
+                        </button>
+                        <h2 className="text-lg font-bold text-text truncate">
+                            {MONTHS[month]} {year}
+                        </h2>
+                        <button onClick={goToNext} className="h-11 w-11 rounded-lg border border-border bg-surface flex items-center justify-center">
+                            <ChevronRight className="size-5" />
+                        </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={goToToday}
+                            className="h-10 px-4 rounded-lg border border-border bg-surface text-sm font-semibold"
+                        >
+                            {t('calendar.today')}
+                        </button>
+                        <button
+                            onClick={() => setIsMobileFiltersOpen((prev) => !prev)}
+                            className={`h-10 px-3 rounded-lg border text-sm font-medium flex items-center gap-2 ${isMobileFiltersOpen ? 'border-primary text-primary bg-primary/10' : 'border-border bg-surface text-text'}`}
+                        >
+                            <Funnel className="size-4" />
+                            {t('common.filter')}
+                        </button>
+                        <div className="ml-auto bg-surface p-1 rounded-lg border border-border flex">
+                            <button
+                                onClick={() => setMobileMode('agenda')}
+                                className={`px-3 py-1.5 rounded text-xs font-semibold ${mobileMode === 'agenda' ? 'bg-primary/20 text-primary' : 'text-text-muted'}`}
+                            >
+                                Agenda
+                            </button>
+                            <button
+                                onClick={() => setMobileMode('month')}
+                                className={`px-3 py-1.5 rounded text-xs font-semibold ${mobileMode === 'month' ? 'bg-primary/20 text-primary' : 'text-text-muted'}`}
+                            >
+                                {t('calendar.month')}
+                            </button>
+                        </div>
+                    </div>
+
+                    {isMobileFiltersOpen && (
+                        <div className="grid grid-cols-1 gap-2">
+                            <select
+                                value={filters.projectId}
+                                onChange={(e) => setFilters({ ...filters, projectId: e.target.value })}
+                                className="glass-input w-full h-10 px-3 rounded-lg text-sm"
+                            >
+                                <option value="">{t('calendar.filters.all_projects')}</option>
+                                {projects.map((p) => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                            <select
+                                value={filters.priority}
+                                onChange={(e) => setFilters({ ...filters, priority: e.target.value })}
+                                className="glass-input w-full h-10 px-3 rounded-lg text-sm"
+                            >
+                                <option value="">{t('calendar.filters.all_priorities')}</option>
+                                <option value="low">{t('common.priority.low')}</option>
+                                <option value="medium">{t('common.priority.medium')}</option>
+                                <option value="high">{t('common.priority.high')}</option>
+                                <option value="critical">{t('common.priority.critical')}</option>
+                            </select>
+                        </div>
+                    )}
+                </div>
+
+                <div className="px-4 py-3 overflow-x-auto mobile-scroll border-b border-border">
+                    <div className="flex items-center gap-2 min-w-max">
+                        {mobileMonthDays.map((day) => (
+                            <button
+                                key={day.date}
+                                onClick={() => setSelectedMobileDate(day.date)}
+                                className={`h-10 min-w-10 px-3 rounded-lg text-sm border ${selectedMobileDate === day.date ? 'border-primary bg-primary/20 text-primary' : 'border-border text-text-muted bg-surface'}`}
+                            >
+                                {day.day}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4">
+                    {isLoading && (
+                        <div className="flex items-center justify-center py-8">
+                            <Loader2 className="size-6 text-primary animate-spin" />
+                        </div>
+                    )}
+
+                    {!isLoading && mobileMode === 'month' && (
+                        <div className="space-y-2">
+                            {mobileMonthDays.map((day) => {
+                                const count = (tasksByDate[day.date] || []).length;
+                                return (
+                                    <button
+                                        key={day.date}
+                                        onClick={() => {
+                                            setSelectedMobileDate(day.date);
+                                            setMobileMode('agenda');
+                                        }}
+                                        className="w-full flex items-center justify-between p-3 rounded-xl border border-border bg-surface/60 text-left"
+                                    >
+                                        <span className="text-sm font-medium text-text">{day.date}</span>
+                                        <span className="text-xs px-2 py-1 rounded-full bg-surface-alt text-text-muted">{count}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {!isLoading && mobileMode === 'agenda' && (
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-text">{selectedMobileDate}</h3>
+                                <button
+                                    onClick={() => handleCellClick(selectedMobileDate)}
+                                    className="h-9 px-3 rounded-lg bg-primary text-black text-xs font-bold flex items-center gap-1.5"
+                                >
+                                    <Plus className="size-4" />
+                                    {t('calendar.quick_add.title')}
+                                </button>
+                            </div>
+                            {selectedDateTasks.length === 0 ? (
+                                <div className="p-4 rounded-xl border border-border bg-surface/50 text-sm text-text-muted">
+                                    {t('calendar.more_tasks', { count: 0 })}
+                                </div>
+                            ) : (
+                                selectedDateTasks.map((task) => (
+                                    <div key={task.id} className="p-3 rounded-xl border border-border bg-surface/70">
+                                        <div className="flex items-center gap-2">
+                                            <div className={`size-2 rounded-full ${priorityColors[task.priority] || 'bg-gray-500'}`} />
+                                            <p className="text-sm font-semibold text-text truncate">{task.title}</p>
+                                        </div>
+                                        <p className="text-xs text-text-muted mt-1 truncate">{task.projectName}</p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    )}
+                </div>
+
+                {/* Quick Add Modal */}
+                {isQuickAddOpen && (
+                    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="glass-card w-full max-w-none rounded-t-2xl border border-white/10 shadow-2xl overflow-hidden animate-in slide-in-from-bottom duration-200">
+                            <div className="flex items-center justify-between p-4 border-b border-white/5">
+                                <h3 className="text-lg font-bold text-text">{t('calendar.quick_add.title')}</h3>
+                                <button onClick={() => setIsQuickAddOpen(false)} className="p-2 hover:bg-white/5 rounded-full text-text-muted transition-colors">
+                                    <X className="size-5" />
+                                </button>
+                            </div>
+                            <form onSubmit={handleQuickAdd} className="p-4 space-y-3">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={quickTaskTitle}
+                                    onChange={(e) => setQuickTaskTitle(e.target.value)}
+                                    placeholder={t('calendar.quick_add.task_title_placeholder')}
+                                    className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-text"
+                                    required
+                                />
+                                <select
+                                    value={quickProjectId}
+                                    onChange={(e) => setQuickProjectId(e.target.value)}
+                                    className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-text"
+                                    required
+                                >
+                                    <option value="">{t('calendar.quick_add.select_project')}</option>
+                                    {projects.map((p) => (
+                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                    ))}
+                                </select>
+                                <select
+                                    value={quickColumnId}
+                                    onChange={(e) => setQuickColumnId(e.target.value)}
+                                    className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-text"
+                                    required
+                                    disabled={!quickProjectId}
+                                >
+                                    <option value="">{t('calendar.quick_add.select_column')}</option>
+                                    {projectColumns.map((c) => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                                <button
+                                    type="submit"
+                                    disabled={createTaskMutation.isPending}
+                                    className="w-full px-4 py-3 rounded-xl bg-primary text-black font-bold flex items-center justify-center gap-2"
+                                >
+                                    {createTaskMutation.isPending ? <Loader2 className="size-5 animate-spin" /> : t('calendar.quick_add.create_button')}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
     return (
-        <div className="flex flex-col h-full overflow-hidden bg-background">
+        <div className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
             {/* Quick Stats Bar */}
             <div className="flex-shrink-0 grid grid-cols-2 md:grid-cols-4 gap-4 px-6 pt-6 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="glass-card p-3 rounded-xl border-l-4 border-l-primary flex items-center gap-3">
@@ -385,7 +630,7 @@ export function CalendarPage() {
             </header>
 
             {/* Calendar Grid */}
-            <div className="flex-1 overflow-y-auto p-6 pt-0">
+            <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-6 pt-0">
                 <div className="flex flex-col bg-surface/50 border border-border rounded-2xl backdrop-blur-sm overflow-hidden shadow-2xl h-full min-h-[600px]">
                     {/* Days Header */}
                     <div className="grid grid-cols-7 border-b border-border bg-surface/80">

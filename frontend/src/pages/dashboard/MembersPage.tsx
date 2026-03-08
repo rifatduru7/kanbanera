@@ -87,7 +87,7 @@ export function MembersPage() {
 
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-3xl font-bold text-text">{t('members.title')}</h2>
                     <p className="text-text-muted text-sm mt-1">{t('members.subtitle')}</p>
@@ -95,7 +95,7 @@ export function MembersPage() {
                 <select
                     value={effectiveProjectId}
                     onChange={(event) => setSelectedProjectId(event.target.value)}
-                    className="glass-input rounded-lg px-3 py-2 min-w-[240px]"
+                    className="glass-input rounded-lg px-3 py-2 w-full sm:w-auto min-w-[240px]"
                 >
                     {projects.map((project) => (
                         <option key={project.id} value={project.id}>

@@ -87,7 +87,7 @@ interface ErrorToastProps {
 
 export function ErrorToast({ message, onClose }: ErrorToastProps) {
     return (
-        <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
+        <div className="fixed z-50 animate-slide-up" style={{ bottom: 'max(1rem, var(--safe-bottom))', right: 'max(1rem, var(--safe-right))' }}>
             <div className="glass-panel !bg-red-950/80 !border-red-500/30 rounded-lg px-4 py-3 flex items-center gap-3 shadow-lg shadow-red-500/10">
                 <AlertCircle className="size-5 text-red-400 flex-shrink-0" />
                 <span className="text-sm text-text">{message}</span>
@@ -96,7 +96,7 @@ export function ErrorToast({ message, onClose }: ErrorToastProps) {
                         onClick={onClose}
                         className="text-red-400 hover:text-text transition-colors ml-2"
                     >
-                        ×
+                        x
                     </button>
                 )}
             </div>
@@ -125,3 +125,4 @@ export function NotFound() {
         </div>
     );
 }
+
