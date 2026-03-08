@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -18,6 +19,7 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onClick }: TaskCardProps) {
+    const { t } = useTranslation();
     const {
         attributes,
         listeners,
@@ -55,11 +57,11 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         const diff = date.getTime() - now.getTime();
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
-        if (days < 0) return { text: 'Overdue', color: 'text-red-400' };
-        if (days === 0) return { text: 'Today', color: 'text-yellow-400' };
-        if (days === 1) return { text: 'Tomorrow', color: 'text-yellow-400' };
-        if (days <= 7) return { text: `${days}d left`, color: 'text-primary' };
-        return { text: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), color: 'text-slate-400' };
+        if (days < 0) return { text: t('tasks.overdue'), color: 'text-error' };
+        if (days === 0) return { text: t('tasks.today'), color: 'text-warning' };
+        if (days === 1) return { text: t('tasks.tomorrow'), color: 'text-warning' };
+        if (days <= 7) return { text: t('tasks.days_left', { count: days }), color: 'text-primary' };
+        return { text: date.toLocaleDateString(t('common.locale', 'en-US'), { month: 'short', day: 'numeric' }), color: 'text-text-muted' };
     };
 
     const dueInfo = formatDueDate(task.dueDate);
@@ -89,7 +91,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                 )}
                 <button
                     onClick={(e) => e.stopPropagation()}
-                    className="text-slate-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="text-text-muted hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                     <MoreHorizontal className="size-4" />
                 </button>
@@ -97,11 +99,11 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
 
             {/* Title */}
             <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-medium leading-snug text-slate-200 group-hover:text-white">
+                <h3 className="text-sm font-medium leading-snug text-text group-hover:text-primary transition-colors">
                     {task.title}
                 </h3>
                 {task.description && (
-                    <p className="text-xs text-slate-500 line-clamp-2">
+                    <p className="text-xs text-text-muted line-clamp-2">
                         {task.description}
                     </p>
                 )}
@@ -112,7 +114,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                 {task.priority !== 'medium' && (
                     <div className={`flex items-center gap-1 px-2 py-0.5 rounded ${priorityStyle.bg} ${priorityStyle.text} text-xs font-medium`}>
                         <Flag className="size-3" />
-                        <span className="capitalize">{task.priority}</span>
+                        <span className="capitalize">{t(`board.filters.${task.priority}`)}</span>
                     </div>
                 )}
                 {dueInfo && (
@@ -124,26 +126,26 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
             </div>
 
             {/* Divider */}
-            <div className="h-px w-full bg-white/5" />
+            <div className="h-px w-full bg-border-muted" />
 
             {/* Bottom Row: Metadata & Assignee */}
             <div className="flex items-center justify-between">
                 {/* Reaction/Metadata Bar */}
                 <div className="flex items-center gap-3">
                     {subtaskProgress && (
-                        <div className="flex items-center gap-1.5 text-slate-500 hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors">
                             <CheckCircle className="size-4" />
                             <span className="text-xs font-bold">{subtaskProgress}</span>
                         </div>
                     )}
                     {task.commentCount && task.commentCount > 0 && (
-                        <div className="flex items-center gap-1.5 text-slate-500 hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors">
                             <MessageCircle className="size-4" />
                             <span className="text-xs font-bold">{task.commentCount}</span>
                         </div>
                     )}
                     {task.attachmentCount && task.attachmentCount > 0 && (
-                        <div className="flex items-center gap-1.5 text-slate-500 hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1.5 text-text-muted hover:text-primary transition-colors">
                             <Paperclip className="size-4" />
                             <span className="text-xs font-bold">{task.attachmentCount}</span>
                         </div>
@@ -153,7 +155,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                 {/* Assignee Avatar */}
                 {task.assigneeName && (
                     <div
-                        className="size-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-semibold text-primary border border-white/10"
+                        className="size-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-semibold text-primary border border-border"
                         title={task.assigneeName}
                     >
                         {task.assigneeName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}

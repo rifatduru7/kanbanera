@@ -25,7 +25,7 @@ export function ErrorDisplay({
                     <AlertCircle className="size-8 text-red-400" />
                 </div>
 
-                <h2 className="text-xl font-bold text-white mb-2">{title}</h2>
+                <h2 className="text-xl font-bold text-text mb-2">{title}</h2>
                 <p className="text-text-muted text-sm mb-6">{message}</p>
 
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -42,7 +42,7 @@ export function ErrorDisplay({
                     {showBackButton && (
                         <button
                             onClick={() => navigate(-1)}
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm font-medium border border-white/10 transition-all"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-surface-alt hover:bg-surface-alt text-text text-sm font-medium border border-border transition-all"
                         >
                             <ArrowLeft className="size-4" />
                             Go Back
@@ -52,7 +52,7 @@ export function ErrorDisplay({
                     {showHomeButton && (
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm font-medium border border-white/10 transition-all"
+                            className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-surface-alt hover:bg-surface-alt text-text text-sm font-medium border border-border transition-all"
                         >
                             <Home className="size-4" />
                             Dashboard
@@ -90,11 +90,11 @@ export function ErrorToast({ message, onClose }: ErrorToastProps) {
         <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
             <div className="glass-panel !bg-red-950/80 !border-red-500/30 rounded-lg px-4 py-3 flex items-center gap-3 shadow-lg shadow-red-500/10">
                 <AlertCircle className="size-5 text-red-400 flex-shrink-0" />
-                <span className="text-sm text-white">{message}</span>
+                <span className="text-sm text-text">{message}</span>
                 {onClose && (
                     <button
                         onClick={onClose}
-                        className="text-red-400 hover:text-white transition-colors ml-2"
+                        className="text-red-400 hover:text-text transition-colors ml-2"
                     >
                         ×
                     </button>
@@ -111,7 +111,7 @@ export function NotFound() {
     return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
             <div className="text-9xl font-bold text-primary/20 mb-4">404</div>
-            <h1 className="text-2xl font-bold text-white mb-2">Page Not Found</h1>
+            <h1 className="text-2xl font-bold text-text mb-2">Page Not Found</h1>
             <p className="text-text-muted mb-8">
                 The page you're looking for doesn't exist or has been moved.
             </p>

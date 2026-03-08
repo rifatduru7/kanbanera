@@ -81,19 +81,19 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
             <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] rounded-full bg-teal-500/10 blur-[120px] pointer-events-none" />
 
             {/* Main Card */}
-            <div className="relative w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto lg:overflow-visible rounded-2xl bg-surface/90 backdrop-blur-xl border border-white/10 shadow-2xl flex flex-col lg:flex-row scrollbar-hide">
+            <div className="relative w-[95%] max-w-5xl max-h-[90vh] overflow-y-auto lg:overflow-visible rounded-2xl bg-surface/90 backdrop-blur-xl border border-border shadow-2xl flex flex-col lg:flex-row scrollbar-hide">
                 {/* Left Panel: Visual Hero */}
-                <div className="relative w-full lg:w-1/2 bg-gradient-to-br from-white/5 to-transparent p-6 lg:p-8 flex flex-col justify-center items-center min-h-[300px] lg:min-h-[550px] border-b lg:border-b-0 lg:border-r border-white/10 shrink-0">
+                <div className="relative w-full lg:w-1/2 bg-gradient-to-br from-text/5 to-transparent p-6 lg:p-8 flex flex-col justify-center items-center min-h-[300px] lg:min-h-[550px] border-b lg:border-b-0 lg:border-r border-border shrink-0">
                     {/* Grid Pattern Background */}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
 
                     {/* Animated Icon */}
                     {/* Animated Image */}
                     <div className={`relative transition-all duration-300 ${isAnimating ? 'scale-90 opacity-50' : 'scale-100 opacity-100'}`}>
-                        <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl group mx-auto">
+                        <div className="relative rounded-2xl overflow-hidden border border-border shadow-2xl group mx-auto">
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                             <img
-                                src={(step as any).image}
+                                src={step.image}
                                 alt={step.title}
                                 className="w-[260px] lg:w-[320px] aspect-[4/3] object-cover transform transition-transform duration-700 group-hover:scale-110"
                             />
@@ -109,14 +109,14 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                         <p className="text-primary font-bold text-sm tracking-wider uppercase mb-2">
                             Step {step.step} of {TOUR_STEPS.length}
                         </p>
-                        <h3 className="text-white text-2xl font-bold">{step.title}</h3>
+                        <h3 className="text-text text-2xl font-bold">{step.title}</h3>
                         <p className="text-text-muted text-sm mt-2 max-w-xs mx-auto">{step.tip}</p>
                     </div>
 
                     {/* Badge */}
-                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center gap-2">
+                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-border flex items-center gap-2">
                         <span className="text-primary"><Zap className="size-[18px]" fill="currentColor" /></span>
-                        <span className="text-xs font-semibold text-white tracking-wide">Cloudflare Edge Optimized</span>
+                        <span className="text-xs font-semibold text-text tracking-wide">Cloudflare Edge Optimized</span>
                     </div>
                 </div>
 
@@ -125,7 +125,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                     {/* Close Button */}
                     <button
                         onClick={onSkip}
-                        className="absolute top-6 right-6 text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5"
+                        className="absolute top-6 right-6 text-text-muted hover:text-text transition-colors p-2 rounded-full hover:bg-surface-alt"
                     >
                         <X className="size-5" />
                     </button>
@@ -133,7 +133,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                     <div className="flex flex-col gap-8">
                         {/* Header */}
                         <div className="flex flex-col gap-2">
-                            <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
+                            <h1 className="text-3xl lg:text-4xl font-extrabold text-text tracking-tight">
                                 Meet <span className="text-primary">Era Kanban</span>
                             </h1>
                             <p className="text-text-muted text-base">
@@ -148,8 +148,8 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                                     key={feature.step}
                                     className={`group flex items-start gap-4 p-4 rounded-xl border transition-all duration-300 cursor-pointer
                                         ${currentStep === index
-                                            ? 'bg-white/10 border-primary/30'
-                                            : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-primary/20'
+                                            ? 'bg-surface-alt border-primary/30'
+                                            : 'bg-surface-alt border-white/5 hover:bg-surface-alt hover:border-primary/20'
                                         }`}
                                     onClick={() => handleDotClick(index)}
                                 >
@@ -162,7 +162,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                                         <feature.Icon className="size-6" />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <h2 className="text-white text-base font-bold">{feature.subtitle}</h2>
+                                        <h2 className="text-text text-base font-bold">{feature.subtitle}</h2>
                                         <p className="text-text-muted text-sm">{feature.description}</p>
                                     </div>
                                 </div>
@@ -171,7 +171,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                     </div>
 
                     {/* Footer Navigation */}
-                    <div className="flex flex-col-reverse gap-6 sm:flex-row sm:items-center sm:justify-between pt-8 mt-8 border-t border-white/10">
+                    <div className="flex flex-col-reverse gap-6 sm:flex-row sm:items-center sm:justify-between pt-8 mt-8 border-t border-border">
                         {/* Pagination Indicators */}
                         <div className="flex items-center justify-center gap-2">
                             {TOUR_STEPS.map((_, index) => (
@@ -191,7 +191,7 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                         <div className="flex items-center justify-center gap-3">
                             <button
                                 onClick={onSkip}
-                                className="flex items-center gap-2 px-6 h-10 rounded-lg text-text-muted hover:text-white hover:bg-white/5 transition-colors text-sm font-semibold"
+                                className="flex items-center gap-2 px-6 h-10 rounded-lg text-text-muted hover:text-text hover:bg-surface-alt transition-colors text-sm font-semibold"
                             >
                                 <SkipForward className="size-4" />
                                 Skip
@@ -214,34 +214,4 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
             </div>
         </div>
     );
-}
-
-// Hook to manage features tour visibility
-export function useFeaturesTour() {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const checkAndShow = () => {
-        const hasSeen = localStorage.getItem('era-kanban-tour-seen');
-        if (!hasSeen) {
-            setTimeout(() => setIsOpen(true), 300);
-        }
-    };
-
-    const complete = () => {
-        localStorage.setItem('era-kanban-tour-seen', 'true');
-        setIsOpen(false);
-    };
-
-    const skip = () => {
-        localStorage.setItem('era-kanban-tour-seen', 'true');
-        setIsOpen(false);
-    };
-
-    return {
-        isOpen,
-        show: () => setIsOpen(true),
-        checkAndShow,
-        complete,
-        skip,
-    };
 }

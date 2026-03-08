@@ -44,7 +44,7 @@ export function TagBadge({ tag, onRemove, size = 'md' }: TagBadgeProps) {
                         e.stopPropagation();
                         onRemove(tag.id);
                     }}
-                    className={`flex items-center justify-center ${size === 'sm' ? 'size-4' : 'size-5'} rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors ml-0.5`}
+                    className={`flex items-center justify-center ${size === 'sm' ? 'size-4' : 'size-5'} rounded-full hover:bg-surface-alt text-text-muted hover:text-text transition-colors ml-0.5`}
                 >
                     <X className={size === 'sm' ? 'size-2.5' : 'size-3.5'} />
                 </button>
@@ -53,14 +53,3 @@ export function TagBadge({ tag, onRemove, size = 'md' }: TagBadgeProps) {
     );
 }
 
-// Export color options for use in TagSelector
-export const TAG_COLORS = [
-    { name: 'Red', value: '#ef4444' },
-    { name: 'Orange', value: '#f97316' },
-    { name: 'Yellow', value: '#eab308' },
-    { name: 'Green', value: '#22c55e' },
-    { name: 'Teal', value: '#14b8a6' },
-    { name: 'Blue', value: '#3b82f6' },
-    { name: 'Purple', value: '#8b5cf6' },
-    { name: 'Pink', value: '#ec4899' },
-];

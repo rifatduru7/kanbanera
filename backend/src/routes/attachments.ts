@@ -18,12 +18,64 @@ function getS3Client(env: Env) {
     });
 }
 
+type TaskAccess = {
+    task_id: string;
+    project_id: string;
+    owner_id: string;
+    member_role: 'owner' | 'admin' | 'member' | 'viewer' | null;
+};
+
+type AttachmentAccess = Attachment & {
+    project_id: string;
+    owner_id: string;
+    member_role: 'owner' | 'admin' | 'member' | 'viewer' | null;
+};
+
+async function getTaskAccess(env: Env, taskId: string, userId: string) {
+    return env.DB.prepare(
+        `SELECT
+            t.id as task_id,
+            t.project_id,
+            p.owner_id,
+            pm.role as member_role
+         FROM tasks t
+         JOIN projects p ON t.project_id = p.id
+         LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+         WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id IS NOT NULL)`
+    )
+        .bind(userId, taskId, userId)
+        .first<TaskAccess>();
+}
+
+async function getAttachmentAccess(env: Env, attachmentId: string, userId: string) {
+    return env.DB.prepare(
+        `SELECT
+            a.*,
+            t.project_id,
+            p.owner_id,
+            pm.role as member_role
+         FROM attachments a
+         JOIN tasks t ON a.task_id = t.id
+         JOIN projects p ON t.project_id = p.id
+         LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+         WHERE a.id = ? AND (p.owner_id = ? OR pm.user_id IS NOT NULL)`
+    )
+        .bind(userId, attachmentId, userId)
+        .first<AttachmentAccess>();
+}
+
 // GET /api/attachments/task/:taskId - Get all attachments for a task
 attachments.get('/task/:taskId', async (c) => {
     const { taskId } = c.req.param();
     const env = c.env;
+    const userId = c.get('userId');
 
     try {
+        const access = await getTaskAccess(env, taskId, userId);
+        if (!access) {
+            return c.json({ success: false, error: 'Task not found or access denied' }, 404);
+        }
+
         const attachmentsList = await env.DB.prepare(`
             SELECT a.*, u.full_name as uploader_name
             FROM attachments a
@@ -55,13 +107,14 @@ attachments.post('/task/:taskId', async (c) => {
     const userId = c.get('userId');
 
     try {
-        // Check if task exists
-        const task = await env.DB.prepare(
-            'SELECT id, project_id FROM tasks WHERE id = ?'
-        ).bind(taskId).first();
+        const task = await getTaskAccess(env, taskId, userId);
 
         if (!task) {
-            return c.json({ success: false, error: 'Task not found' }, 404);
+            return c.json({ success: false, error: 'Task not found or access denied' }, 404);
+        }
+
+        if (task.owner_id !== userId && task.member_role === 'viewer') {
+            return c.json({ success: false, error: 'Viewers cannot upload attachments' }, 403);
         }
 
         // Parse multipart form data
@@ -151,16 +204,15 @@ attachments.post('/task/:taskId', async (c) => {
 // GET /api/attachments/:id/download - Get download URL for attachment
 // GET /api/attachments/:id/download - Get/Proxy attachment content
 attachments.get('/:id/download', async (c) => {
-    const { id } = c.req.param();
-    const env = c.env;
+        const { id } = c.req.param();
+        const env = c.env;
+        const userId = c.get('userId');
 
     try {
-        const attachment = await env.DB.prepare(
-            'SELECT * FROM attachments WHERE id = ?'
-        ).bind(id).first<Attachment>();
+        const attachment = await getAttachmentAccess(env, id, userId);
 
         if (!attachment) {
-            return c.json({ success: false, error: 'Attachment not found' }, 404);
+            return c.json({ success: false, error: 'Attachment not found or access denied' }, 404);
         }
 
         // Proxy file from B2
@@ -201,16 +253,14 @@ attachments.delete('/:id', async (c) => {
     const userId = c.get('userId');
 
     try {
-        const attachment = await env.DB.prepare(
-            'SELECT * FROM attachments WHERE id = ?'
-        ).bind(id).first<Attachment>();
+        const attachment = await getAttachmentAccess(env, id, userId);
 
         if (!attachment) {
-            return c.json({ success: false, error: 'Attachment not found' }, 404);
+            return c.json({ success: false, error: 'Attachment not found or access denied' }, 404);
         }
 
-        // Check permission (owner or admin)
-        if (attachment.user_id !== userId) {
+        const isProjectAdmin = attachment.owner_id === userId || attachment.member_role === 'owner' || attachment.member_role === 'admin';
+        if (attachment.user_id !== userId && !isProjectAdmin) {
             return c.json({ success: false, error: 'Not authorized to delete this attachment' }, 403);
         }
 

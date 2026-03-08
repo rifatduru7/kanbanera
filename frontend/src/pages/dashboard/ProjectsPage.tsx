@@ -1,17 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FolderOpen, MagnifyingGlass as Search, SquaresFour as LayoutGrid, List, Funnel as Filter, Plus } from '@phosphor-icons/react';
 import { useProjects } from '../../hooks/useKanbanData';
 import { ProjectCard } from '../../components/project/ProjectCard';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';
 import { PageLoader } from '../../components/ui/Loading';
 import { ErrorDisplay } from '../../components/ui/Error';
+import { NoSearchResultsState } from '../../components/ui/EmptyState';
 import { FirstProjectPrompt } from '../../components/onboarding/FirstProjectPrompt';
 import { OnboardingComplete } from '../../components/onboarding/OnboardingComplete';
 
 export function ProjectsPage() {
+    const { t } = useTranslation();
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [showArchived, setShowArchived] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isOnboardingSuccessOpen, setIsOnboardingSuccessOpen] = useState(false);
 
@@ -20,18 +24,20 @@ export function ProjectsPage() {
 
     const projects = data?.projects ?? [];
 
-    // Filter projects by search
-    const filteredProjects = projects.filter((project) =>
-        project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    // Filter projects by search and archive status
+    const filteredProjects = projects.filter((project) => {
+        const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            project.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesArchive = showArchived ? true : !project.is_archived;
+        return matchesSearch && matchesArchive;
+    });
 
     if (isLoading) {
         return <PageLoader />;
     }
 
     if (isError) {
-        return <ErrorDisplay onRetry={refetch} message="Failed to load projects" />;
+        return <ErrorDisplay onRetry={refetch} message={t('projects.load_failed_all')} />;
     }
 
     return (
@@ -40,17 +46,17 @@ export function ProjectsPage() {
             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none z-0" />
 
             {/* Header */}
-            <header className="flex-shrink-0 z-10 px-6 py-6 md:px-8 border-b border-white/5 bg-background/95 backdrop-blur-xl">
+            <header className="flex-shrink-0 z-10 px-6 py-6 md:px-8 border-b border-border bg-background/95 backdrop-blur-xl">
                 <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full">
                     {/* Title Row */}
                     <div className="flex justify-between items-start">
                         <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-3">
                                 <FolderOpen className="size-8 text-primary" />
-                                <h2 className="text-3xl font-bold text-white tracking-tight">My Projects</h2>
+                                <h2 className="text-3xl font-bold text-text tracking-tight">{t('projects.title')}</h2>
                             </div>
                             <p className="text-text-muted text-sm md:text-base">
-                                Manage and track your ongoing projects across all teams.
+                                {t('projects.subtitle')}
                             </p>
                         </div>
                     </div>
@@ -66,20 +72,20 @@ export function ProjectsPage() {
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="glass-input w-full py-2.5 pl-10 pr-3 rounded-xl"
-                                placeholder="Search projects by name, tag, or owner..."
+                                className="glass-input w-full py-2.5 pl-10 pr-3 rounded-xl border-border"
+                                placeholder={t('projects.search_placeholder')}
                             />
                         </div>
 
                         {/* Actions */}
                         <div className="flex items-center gap-3">
                             {/* View Toggle */}
-                            <div className="bg-surface p-1 rounded-xl flex items-center border border-white/5">
+                            <div className="bg-surface p-1 rounded-xl flex items-center border border-border mt-0.5">
                                 <button
                                     onClick={() => setViewMode('grid')}
                                     className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
-                                        ? 'bg-background shadow-sm text-primary'
-                                        : 'text-text-muted hover:text-white'
+                                        ? 'bg-surface-alt shadow-sm text-primary'
+                                        : 'text-text-muted hover:text-text'
                                         }`}
                                 >
                                     <LayoutGrid className="size-5" />
@@ -87,8 +93,8 @@ export function ProjectsPage() {
                                 <button
                                     onClick={() => setViewMode('list')}
                                     className={`p-2 rounded-lg transition-all ${viewMode === 'list'
-                                        ? 'bg-background shadow-sm text-primary'
-                                        : 'text-text-muted hover:text-white'
+                                        ? 'bg-surface-alt shadow-sm text-primary'
+                                        : 'text-text-muted hover:text-text'
                                         }`}
                                 >
                                     <List className="size-5" />
@@ -96,8 +102,16 @@ export function ProjectsPage() {
                             </div>
 
                             {/* Filter Button */}
-                            <button className="p-2.5 h-full rounded-xl bg-surface border border-white/5 text-text-muted hover:text-white hover:bg-surface-hover transition-colors flex items-center justify-center">
+                            <button className="p-2.5 h-full rounded-xl bg-surface border border-border text-text-muted hover:text-text hover:bg-surface-alt transition-colors flex items-center justify-center hidden">
                                 <Filter className="size-5" />
+                            </button>
+
+                            {/* Archive Toggle */}
+                            <button
+                                onClick={() => setShowArchived(!showArchived)}
+                                className={`px-4 py-2 text-sm rounded-xl border transition-colors ${showArchived ? 'bg-primary/20 text-primary border-primary/50' : 'bg-surface border-border text-text-muted hover:text-text'}`}
+                            >
+                                {showArchived ? t('projects.hide_archived') : t('projects.show_archived')}
                             </button>
 
                             {/* New Project CTA */}
@@ -106,7 +120,7 @@ export function ProjectsPage() {
                                 className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(19,185,165,0.3)]"
                             >
                                 <Plus className="size-5" />
-                                <span className="whitespace-nowrap">New Project</span>
+                                <span className="whitespace-nowrap">{t('projects.create_new')}</span>
                             </button>
                         </div>
                     </div>
@@ -119,15 +133,7 @@ export function ProjectsPage() {
                     {filteredProjects.length === 0 ? (
                         /* Empty State */
                         searchQuery ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-center">
-                                <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                                    <Search className="size-10 text-text-muted" />
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-2">No projects found</h3>
-                                <p className="text-text-muted mb-6 max-w-md">
-                                    Try adjusting your search or filters
-                                </p>
-                            </div>
+                            <NoSearchResultsState onClearFilters={() => setSearchQuery('')} />
                         ) : (
                             <FirstProjectPrompt
                                 onCreateProject={() => setIsCreateModalOpen(true)}

@@ -1,17 +1,26 @@
 import { Hono } from 'hono';
 import type { Env, Task, Subtask, Comment } from '../types';
 import { authMiddleware } from '../middleware/auth';
+import { dispatchOutgoingWebhooks } from '../services/dispatcher';
 
 export const taskRoutes = new Hono<{ Bindings: Env }>();
 
 // All routes require authentication
 taskRoutes.use('*', authMiddleware);
 
+interface CommentWithAuthor extends Comment {
+    full_name: string | null;
+    avatar_url: string | null;
+}
+
 // GET /api/tasks/calendar - Get tasks by date range for calendar view
 taskRoutes.get('/calendar', async (c) => {
     const userId = c.get('userId');
     const from = c.req.query('from');
     const to = c.req.query('to');
+    const projectId = c.req.query('projectId') || c.req.query('project_id');
+    const priority = c.req.query('priority');
+    const assigneeId = c.req.query('assigneeId') || c.req.query('assignee_id');
 
     try {
         let query = `
@@ -19,8 +28,8 @@ taskRoutes.get('/calendar', async (c) => {
             FROM tasks t
             JOIN projects p ON t.project_id = p.id
             JOIN columns c ON t.column_id = c.id
-            LEFT JOIN project_members pm ON p.id = pm.project_id
-            WHERE (p.owner_id = ? OR pm.user_id = ?)
+            LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+            WHERE (p.owner_id = ? OR pm.user_id IS NOT NULL)
             AND t.due_date IS NOT NULL
         `;
         const params: (string | null)[] = [userId, userId];
@@ -32,6 +41,18 @@ taskRoutes.get('/calendar', async (c) => {
         if (to) {
             query += ' AND t.due_date <= ?';
             params.push(to);
+        }
+        if (projectId) {
+            query += ' AND t.project_id = ?';
+            params.push(projectId);
+        }
+        if (priority) {
+            query += ' AND t.priority = ?';
+            params.push(priority);
+        }
+        if (assigneeId) {
+            query += ' AND t.assignee_id = ?';
+            params.push(assigneeId);
         }
 
         query += ' ORDER BY t.due_date ASC';
@@ -81,17 +102,34 @@ taskRoutes.post('/', async (c) => {
 
         // Check project access
         const access = await c.env.DB.prepare(
-            `SELECT p.id FROM projects p
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+            `SELECT p.id, p.owner_id, pm.role FROM projects p
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE p.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(project_id, userId, userId)
-            .first();
+            .bind(userId, project_id, userId, userId)
+            .first<{ id: string; owner_id: string; role: string | null }>();
 
         if (!access) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Project not found or access denied' },
                 404
+            );
+        }
+
+        if (access.owner_id !== userId && access.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot create tasks' }, 403);
+        }
+
+        const column = await c.env.DB.prepare(
+            'SELECT id FROM columns WHERE id = ? AND project_id = ?'
+        )
+            .bind(column_id, project_id)
+            .first<{ id: string }>();
+
+        if (!column) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'column_id does not belong to project_id' },
+                400
             );
         }
 
@@ -132,9 +170,20 @@ taskRoutes.post('/', async (c) => {
             .bind(crypto.randomUUID(), project_id, taskId, userId, JSON.stringify({ title }))
             .run();
 
+        const user = await c.env.DB.prepare('SELECT full_name as name FROM users WHERE id = ?').bind(userId).first<{ name: string }>();
+
         const task = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')
             .bind(taskId)
             .first<Task>();
+
+        if (user) {
+            await dispatchOutgoingWebhooks(c.env, {
+                event: 'task_created',
+                project_id,
+                user,
+                task: { title }
+            }, c.executionCtx);
+        }
 
         return c.json({
             success: true,
@@ -161,10 +210,10 @@ taskRoutes.get('/:id', async (c) => {
        FROM tasks t
        LEFT JOIN users u ON t.assignee_id = u.id
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+       WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id IS NOT NULL)`
         )
-            .bind(taskId, userId, userId)
+            .bind(userId, taskId, userId)
             .first();
 
         if (!task) {
@@ -227,19 +276,23 @@ taskRoutes.put('/:id', async (c) => {
     try {
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Task not found or access denied' },
                 404
             );
+        }
+
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
         const body = await c.req.json();
@@ -310,13 +363,13 @@ taskRoutes.put('/:id/move', async (c) => {
 
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
@@ -325,8 +378,25 @@ taskRoutes.put('/:id/move', async (c) => {
             );
         }
 
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
+        }
+
         const oldColumnId = task.column_id;
         const oldPosition = task.position;
+
+        const destinationColumn = await c.env.DB.prepare(
+            'SELECT id FROM columns WHERE id = ? AND project_id = ?'
+        )
+            .bind(column_id, task.project_id)
+            .first<{ id: string }>();
+
+        if (!destinationColumn) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'Target column does not belong to this task project' },
+                400
+            );
+        }
 
         // If moving to a different column
         if (column_id !== oldColumnId) {
@@ -385,6 +455,23 @@ taskRoutes.put('/:id/move', async (c) => {
             )
             .run();
 
+        const user = await c.env.DB.prepare('SELECT full_name as name FROM users WHERE id = ?').bind(userId).first<{ name: string }>();
+        const fromCol = await c.env.DB.prepare('SELECT name FROM columns WHERE id = ?').bind(oldColumnId).first<{ name: string }>();
+        const toCol = await c.env.DB.prepare('SELECT name FROM columns WHERE id = ?').bind(column_id).first<{ name: string }>();
+
+        if (user) {
+            await dispatchOutgoingWebhooks(c.env, {
+                event: 'task_moved',
+                project_id: task.project_id,
+                task: { title: task.title },
+                user,
+                details: {
+                    from_column: fromCol?.name || 'Unknown',
+                    to_column: toCol?.name || 'Unknown'
+                }
+            }, c.executionCtx);
+        }
+
         return c.json({
             success: true,
             message: 'Task moved successfully',
@@ -406,19 +493,23 @@ taskRoutes.delete('/:id', async (c) => {
     try {
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Task not found or access denied' },
                 404
             );
+        }
+
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
         // Delete task (cascades to subtasks, comments, attachments)
@@ -467,19 +558,23 @@ taskRoutes.post('/:id/subtasks', async (c) => {
 
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Task not found or access denied' },
                 404
             );
+        }
+
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
         // Get max position
@@ -525,19 +620,23 @@ taskRoutes.put('/:id/subtasks/:subtaskId', async (c) => {
     try {
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Task not found or access denied' },
                 404
             );
+        }
+
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
         const body = await c.req.json();
@@ -578,19 +677,23 @@ taskRoutes.delete('/:id/subtasks/:subtaskId', async (c) => {
     try {
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Task not found or access denied' },
                 404
             );
+        }
+
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
         await c.env.DB.prepare('DELETE FROM subtasks WHERE id = ? AND task_id = ?')
@@ -630,19 +733,23 @@ taskRoutes.post('/:id/comments', async (c) => {
 
         // Check access
         const task = await c.env.DB.prepare(
-            `SELECT t.* FROM tasks t
+            `SELECT t.*, p.owner_id, pm.role FROM tasks t
        JOIN projects p ON t.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE t.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(taskId, userId, userId)
-            .first<Task>();
+            .bind(userId, taskId, userId, userId)
+            .first<Task & { owner_id: string; role: string | null }>();
 
         if (!task) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Task not found or access denied' },
                 404
             );
+        }
+
+        if (task.owner_id !== userId && task.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
         const commentId = crypto.randomUUID();
@@ -670,7 +777,18 @@ taskRoutes.post('/:id/comments', async (c) => {
        WHERE c.id = ?`
         )
             .bind(commentId)
-            .first();
+            .first<CommentWithAuthor>();
+
+        // Dispatch webhooks
+        if (comment) {
+            await dispatchOutgoingWebhooks(c.env, {
+                event: 'comment_added',
+                project_id: task.project_id,
+                task: { title: task.title },
+                user: { name: comment.full_name || 'Unknown' },
+                details: { comment: comment.content }
+            }, c.executionCtx);
+        }
 
         return c.json({
             success: true,

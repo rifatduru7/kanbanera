@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
     SquaresFour as LayoutDashboard,
     Folder as FolderKanban,
@@ -11,26 +12,30 @@ import {
     CaretRight as ChevronRight,
     CalendarBlank as Calendar,
     ChartBar as BarChart3,
+    ShieldCheck as Shield,
+    User,
+    SignOut,
 } from '@phosphor-icons/react';
+import { useAuthStore } from '../../stores/authStore';
 
 interface NavItem {
-    label: string;
+    labelKey: string;
     icon: React.ElementType;
     href: string;
-    badge?: number;
 }
 
 const menuItems: NavItem[] = [
-    { label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
-    { label: 'Projects', icon: FolderKanban, href: '/projects' },
-    { label: 'Kanban Board', icon: Kanban, href: '/board' },
-    { label: 'Calendar', icon: Calendar, href: '/calendar' },
-    { label: 'Metrics', icon: BarChart3, href: '/metrics' },
-    { label: 'Settings', icon: Settings, href: '/settings' },
+    { labelKey: 'nav.dashboard', icon: LayoutDashboard, href: '/dashboard' },
+    { labelKey: 'nav.projects', icon: FolderKanban, href: '/projects' },
+    { labelKey: 'nav.board', icon: Kanban, href: '/board' },
+    { labelKey: 'nav.calendar', icon: Calendar, href: '/calendar' },
+    { labelKey: 'nav.metrics', icon: BarChart3, href: '/metrics' },
+    { labelKey: 'nav.settings', icon: Settings, href: '/settings' },
 ];
 
 const teamItems: NavItem[] = [
-    { label: 'Members', icon: Users, href: '/members' },
+    { labelKey: 'nav.members', icon: Users, href: '/members' },
+    { labelKey: 'nav.admin', icon: Shield, href: '/admin' },
 ];
 
 interface SidebarProps {
@@ -39,8 +44,33 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
+    const { t } = useTranslation();
     const location = useLocation();
+    const navigate = useNavigate();
+    const { user, logout } = useAuthStore();
     const [collapsed, setCollapsed] = useState(isCollapsed);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
+
+    const filteredTeamItems = teamItems.filter(item =>
+        item.href !== '/admin' || user?.role === 'admin'
+    );
 
     const handleToggle = () => {
         setCollapsed(!collapsed);
@@ -58,14 +88,14 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             {/* Logo & Brand */}
             <div className="p-6 flex items-center gap-3">
                 <div className="relative flex items-center justify-center size-10 rounded-xl bg-gradient-to-br from-primary to-blue-600 shadow-lg shadow-primary/20">
-                    <Kanban className="text-white size-6" />
+                    <Kanban className="text-text size-6" />
                 </div>
                 {!collapsed && (
                     <div className="flex flex-col">
-                        <h1 className="text-white text-lg font-bold leading-none tracking-tight">
+                        <h1 className="text-text text-lg font-bold leading-none tracking-tight">
                             Era Kanban
                         </h1>
-                        <p className="text-slate-400 text-xs font-medium mt-1">Workspace</p>
+                        <p className="text-text-muted text-xs font-medium mt-1">{t('common.workspace')}</p>
                     </div>
                 )}
             </div>
@@ -73,8 +103,8 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             {/* Navigation */}
             <nav className="flex-1 flex flex-col gap-2 px-4 py-2 overflow-y-auto">
                 {!collapsed && (
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-1">
-                        Menu
+                    <p className="text-text-muted text-[10px] font-bold uppercase tracking-wider px-3 mb-1">
+                        {t('common.menu')}
                     </p>
                 )}
 
@@ -89,12 +119,12 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                             className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group
                 ${isActive
-                                    ? 'bg-primary/10 text-primary border border-primary/10 shadow-[0_0_15px_rgba(19,146,236,0.1)]'
-                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    ? 'bg-primary/10 text-primary border border-primary/10 shadow-[0_0_15px_rgba(19,146,236,0.05)]'
+                                    : 'text-text-muted hover:text-text hover:bg-surface-alt'
                                 }
                 ${collapsed ? 'justify-center' : ''}
               `}
-                            title={collapsed ? item.label : undefined}
+                            title={collapsed ? t(item.labelKey) : undefined}
                         >
                             <Icon
                                 className={`size-5 ${isActive ? '' : 'group-hover:text-primary'}`}
@@ -102,7 +132,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                             />
                             {!collapsed && (
                                 <span className={`text-sm ${isActive ? 'font-bold' : 'font-medium'}`}>
-                                    {item.label}
+                                    {t(item.labelKey)}
                                 </span>
                             )}
                         </Link>
@@ -111,14 +141,14 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
 
                 {!collapsed && (
                     <>
-                        <div className="my-2 border-t border-white/5 mx-3" />
-                        <p className="text-slate-500 text-xs font-bold uppercase tracking-wider px-3 mb-1 mt-2">
-                            Team
+                        <div className="my-2 border-t border-border-muted mx-3" />
+                        <p className="text-text-muted text-[10px] font-bold uppercase tracking-wider px-3 mb-1 mt-2">
+                            {t('common.team')}
                         </p>
                     </>
                 )}
 
-                {teamItems.map((item) => {
+                {filteredTeamItems.map((item) => {
                     const isActive = location.pathname === item.href;
                     const Icon = item.icon;
 
@@ -130,15 +160,15 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                 flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group
                 ${isActive
                                     ? 'bg-primary/10 text-primary'
-                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    : 'text-text-muted hover:text-text hover:bg-surface-alt'
                                 }
                 ${collapsed ? 'justify-center' : ''}
               `}
-                            title={collapsed ? item.label : undefined}
+                            title={collapsed ? t(item.labelKey) : undefined}
                         >
                             <Icon className="size-5 group-hover:text-primary" />
                             {!collapsed && (
-                                <span className="text-sm font-medium">{item.label}</span>
+                                <span className="text-sm font-medium">{t(item.labelKey)}</span>
                             )}
                         </Link>
                     );
@@ -146,18 +176,55 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             </nav>
 
             {/* User Profile */}
-            <div className="p-4 mt-auto">
-                <div className="glass-panel !bg-white/5 !border-white/5 rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-white/10 transition-colors">
+            <div className="p-4 mt-auto relative" ref={profileMenuRef}>
+                {isProfileMenuOpen && (
+                    <div className="absolute bottom-full left-4 right-4 mb-2 glass-panel !bg-surface !border-border-muted rounded-xl p-1.5 shadow-xl shadow-black/20 z-50 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                        {!collapsed && (
+                            <>
+                                <Link
+                                    to="/profile"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-alt rounded-lg transition-colors w-full text-left"
+                                >
+                                    <User className="size-4" />
+                                    {t('profile.title', 'Profile')}
+                                </Link>
+                                <Link
+                                    to="/settings"
+                                    onClick={() => setIsProfileMenuOpen(false)}
+                                    className="flex items-center gap-2 px-3 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-alt rounded-lg transition-colors w-full text-left"
+                                >
+                                    <Settings className="size-4" />
+                                    {t('nav.settings', 'Settings')}
+                                </Link>
+                                <div className="h-px bg-border-muted my-1 mx-1" />
+                            </>
+                        )}
+                        <button
+                            onClick={handleLogout}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors w-full text-left ${collapsed ? 'justify-center' : ''}`}
+                            title={collapsed ? t('nav.logout', 'Logout') : undefined}
+                        >
+                            <SignOut className="size-4" />
+                            {!collapsed && t('nav.logout', 'Logout')}
+                        </button>
+                    </div>
+                )}
+
+                <div
+                    onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                    className="glass-panel !bg-surface-alt !border-border-muted rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-surface-alt/80 transition-colors"
+                >
                     <div className="size-9 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-primary font-semibold text-sm">
-                        AM
+                        {user?.fullName ? `${user.fullName.split(' ')[0][0]}${user.fullName.split(' ')[1]?.[0] || ''}`.toUpperCase() : 'U'}
                     </div>
                     {!collapsed && (
                         <>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">Alex Morgan</p>
-                                <p className="text-xs text-slate-400 truncate">Pro Plan</p>
+                                <p className="text-sm font-semibold text-text truncate">{user?.fullName || t('common.user')}</p>
+                                <p className="text-xs text-text-muted truncate capitalize">{t(`common.roles.${user?.role || 'member'}`)}</p>
                             </div>
-                            <ChevronDown className="text-slate-400 size-4" />
+                            <ChevronDown className={`text-text-muted size-4 transition-transform duration-200 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />
                         </>
                     )}
                 </div>
@@ -166,7 +233,7 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
             {/* Collapse Toggle */}
             <button
                 onClick={handleToggle}
-                className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-surface-dark border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-30"
+                className="absolute -right-3 top-1/2 -translate-y-1/2 size-6 rounded-full bg-surface border border-border flex items-center justify-center text-text-muted hover:text-text hover:bg-surface-alt transition-colors z-30 shadow-sm"
             >
                 {collapsed ? (
                     <ChevronRight className="size-3" />

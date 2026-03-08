@@ -1,49 +1,42 @@
-import { useQuery } from '@tanstack/react-query';
-import { api, type ApiResponse } from '../lib/api/client';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { activitiesApi, type ActivityResponseItem } from '../lib/api/client';
 
-// Query keys
 export const activityKeys = {
     all: ['activities'] as const,
-    list: (limit: number) => [...activityKeys.all, 'list', limit] as const,
+    list: (limit: number, type: string, projectId?: string) => [...activityKeys.all, 'list', limit, type, projectId] as const,
 };
 
-// Types
-export interface ActivityUser {
-    id: string;
-    name: string;
-    avatar?: string;
-    initials: string;
-}
+export type ActivityType = 'all' | 'task_created' | 'task_moved' | 'comment' | 'file_uploaded' | 'member_joined';
 
-export interface Activity {
-    id: string;
-    type: 'task_created' | 'task_moved' | 'task_completed' | 'comment' | 'file_uploaded' | 'member_joined';
-    user: ActivityUser;
-    taskId?: string;
-    taskName?: string;
-    projectId?: string;
-    projectName?: string;
-    details?: Record<string, unknown>;
-    timestamp: string;
-    createdAt: string;
-}
+export type Activity = ActivityResponseItem;
 
-/**
- * Hook to fetch recent activities
- */
-export function useActivities(limit = 20) {
-    return useQuery({
-        queryKey: activityKeys.list(limit),
-        queryFn: async (): Promise<Activity[]> => {
-            const response = await api.get<ApiResponse<{ activities: Activity[] }>>(`/api/activities?limit=${limit}`);
+export function useActivities(options?: { limit?: number; type?: ActivityType; projectId?: string }) {
+    const limit = options?.limit ?? 20;
+    const type = options?.type ?? 'all';
+    const projectId = options?.projectId;
 
-            if (!response.data.success) {
-                throw new Error(response.data.message || 'Failed to fetch activities');
+    return useInfiniteQuery({
+        queryKey: activityKeys.list(limit, type, projectId),
+        initialPageParam: undefined as string | undefined,
+        queryFn: async ({ pageParam }) => {
+            const response = await activitiesApi.getActivities({
+                limit,
+                cursor: pageParam,
+                type,
+                projectId,
+            });
+
+            if (!response.success || !response.data) {
+                throw new Error(response.message || 'Failed to fetch activities');
             }
 
-            return response.data.data?.activities || [];
+            return {
+                activities: response.data.activities || [],
+                nextCursor: response.data.nextCursor,
+            };
         },
-        staleTime: 30 * 1000, // 30 seconds
-        refetchInterval: 60 * 1000, // Refetch every minute
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        staleTime: 30 * 1000,
+        refetchInterval: 60 * 1000,
     });
 }

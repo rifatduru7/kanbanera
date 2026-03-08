@@ -24,18 +24,22 @@ columnRoutes.post('/', async (c) => {
 
         // Check project access
         const access = await c.env.DB.prepare(
-            `SELECT p.id FROM projects p
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+            `SELECT p.id, p.owner_id, pm.role FROM projects p
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE p.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(project_id, userId, userId)
-            .first();
+            .bind(userId, project_id, userId, userId)
+            .first<{ id: string; owner_id: string; role: string | null }>();
 
         if (!access) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Project not found or access denied' },
                 404
             );
+        }
+
+        if (access.owner_id !== userId && access.role !== 'admin') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Only admins or owners can create columns' }, 403);
         }
 
         // Get max position
@@ -80,19 +84,23 @@ columnRoutes.put('/:id', async (c) => {
     try {
         // Check access
         const column = await c.env.DB.prepare(
-            `SELECT c.* FROM columns c
+            `SELECT c.*, p.owner_id, pm.role FROM columns c
        JOIN projects p ON c.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
        WHERE c.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(columnId, userId, userId)
-            .first<Column>();
+            .bind(userId, columnId, userId, userId)
+            .first<Column & { owner_id: string; role: string | null }>();
 
         if (!column) {
             return c.json(
                 { success: false, error: 'Not Found', message: 'Column not found or access denied' },
                 404
             );
+        }
+
+        if (column.owner_id !== userId && column.role !== 'admin') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Only admins or owners can modify columns' }, 403);
         }
 
         const body = await c.req.json();
@@ -214,18 +222,23 @@ columnRoutes.delete('/:id', async (c) => {
     try {
         // Check access and ownership
         const column = await c.env.DB.prepare(
-            `SELECT c.* FROM columns c
+            `SELECT c.*, p.owner_id, pm.role FROM columns c
        JOIN projects p ON c.project_id = p.id
-       WHERE c.id = ? AND p.owner_id = ?`
+       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+       WHERE c.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(columnId, userId)
-            .first<Column>();
+            .bind(userId, columnId, userId, userId)
+            .first<Column & { owner_id: string; role: string | null }>();
 
         if (!column) {
             return c.json(
-                { success: false, error: 'Not Found', message: 'Column not found or not project owner' },
+                { success: false, error: 'Not Found', message: 'Column not found or access denied' },
                 404
             );
+        }
+
+        if (column.owner_id !== userId && column.role !== 'admin') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Only admins or owners can delete columns' }, 403);
         }
 
         // Check if column has tasks

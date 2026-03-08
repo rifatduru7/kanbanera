@@ -6,6 +6,9 @@ export interface Env {
     JWT_SECRET: string;
     JWT_REFRESH_SECRET: string;
     CORS_ORIGIN: string;
+    APP_BASE_URL?: string;
+    EMAIL_FROM?: string;
+    RESEND_API_KEY?: string;
     // Backblaze B2 Settings
     B2_BUCKET_NAME: string;
     B2_ENDPOINT: string;
@@ -21,11 +24,23 @@ export interface User {
     full_name: string;
     avatar_url: string | null;
     role: 'admin' | 'member';
+    two_factor_secret?: string | null;
+    two_factor_enabled?: number;
+    email_notifications?: number;
+    push_notifications?: number;
     created_at: string;
     updated_at: string;
 }
 
 export type UserPublic = Omit<User, 'password_hash'>;
+
+export interface UserPreferences {
+    user_id: string;
+    email_notifications: number;
+    push_notifications: number;
+    created_at: string;
+    updated_at: string;
+}
 
 // Project Types
 export interface Project {
@@ -142,6 +157,7 @@ export interface JWTPayload {
     sub: string; // user id
     email: string;
     role: string;
+    mfa_pending?: boolean;
     iat: number;
     exp: number;
 }
@@ -189,4 +205,16 @@ export interface CreateColumnRequest {
     name: string;
     wip_limit?: number;
     color?: string;
+}
+
+export interface Integration {
+    id: string;
+    project_id: string;
+    provider: 'slack' | 'teams' | 'telegram' | 'webhook';
+    name: string;
+    webhook_url: string | null;
+    incoming_token: string;
+    is_active: number;
+    created_at: string;
+    updated_at: string;
 }

@@ -1,6 +1,7 @@
 import { Context, Next } from 'hono';
 import { getCookie } from 'hono/cookie';
 import * as jose from 'jose';
+import { hash, compare } from 'bcrypt-ts';
 import type { Env, JWTPayload } from '../types';
 
 // Extend Hono context with user
@@ -34,6 +35,12 @@ export async function authMiddleware(
         const { payload } = await jose.jwtVerify(token, secret);
 
         const user = payload as unknown as JWTPayload;
+        if (user.mfa_pending) {
+            return c.json(
+                { success: false, error: 'Unauthorized', message: 'MFA verification required' },
+                401
+            );
+        }
         c.set('user', user);
         c.set('userId', user.sub);
 
@@ -69,8 +76,10 @@ export async function optionalAuth(
             const { payload } = await jose.jwtVerify(token, secret);
 
             const user = payload as unknown as JWTPayload;
-            c.set('user', user);
-            c.set('userId', user.sub);
+            if (!user.mfa_pending) {
+                c.set('user', user);
+                c.set('userId', user.sub);
+            }
         } catch {
             // Token invalid, continue without user
         }
@@ -84,14 +93,15 @@ export async function optionalAuth(
  */
 export async function generateAccessToken(
     secret: string,
-    payload: Omit<JWTPayload, 'iat' | 'exp'>
+    payload: Omit<JWTPayload, 'iat' | 'exp'>,
+    expiresIn: string = '15m'
 ): Promise<string> {
     const secretKey = new TextEncoder().encode(secret);
 
     const token = await new jose.SignJWT(payload as unknown as jose.JWTPayload)
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
-        .setExpirationTime('15m')
+        .setExpirationTime(expiresIn)
         .sign(secretKey);
 
     return token;
@@ -137,23 +147,47 @@ export async function verifyRefreshToken(
 }
 
 /**
- * Hash password using Web Crypto API
+ * Verify access token from Authorization header and return userId
  */
-export async function hashPassword(password: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+export async function verifyAccessToken(
+    c: Context<{ Bindings: Env }>,
+    tokenOverride?: string,
+    options?: { allowMfaPending?: boolean }
+): Promise<JWTPayload | null> {
+    const authHeader = c.req.header('Authorization');
+    const token = tokenOverride || (authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null);
+
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const secret = new TextEncoder().encode(c.env.JWT_SECRET);
+        const { payload } = await jose.jwtVerify(token, secret);
+        const jwtPayload = payload as unknown as JWTPayload;
+        if (!options?.allowMfaPending && jwtPayload.mfa_pending) {
+            return null;
+        }
+        return jwtPayload;
+    } catch {
+        return null;
+    }
 }
 
 /**
- * Verify password
+ * Hash password using bcrypt (10 rounds)
+ */
+export async function hashPassword(password: string): Promise<string> {
+    return await hash(password, 10);
+}
+
+/**
+ * Verify password against bcrypt hash
  */
 export async function verifyPassword(
     password: string,
-    hash: string
+    hashedPassword: string
 ): Promise<boolean> {
-    const passwordHash = await hashPassword(password);
-    return passwordHash === hash;
+    return await compare(password, hashedPassword);
 }
+

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useMemo, useState } from 'react';
 import { X, CircleNotch as Loader2 } from '@phosphor-icons/react';
 import { useProjects, useProject, useCreateTask } from '../../hooks/useKanbanData';
 
@@ -16,6 +16,16 @@ const PRIORITY_OPTIONS = [
     { value: 'critical', label: 'Critical', color: 'bg-red-500' },
 ];
 
+interface ProjectOption {
+    id: string;
+    name: string;
+}
+
+interface ProjectColumn {
+    id: string;
+    name: string;
+}
+
 export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColumnId }: CreateTaskModalProps) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -25,39 +35,33 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
     const [dueDate, setDueDate] = useState('');
 
     const { data: projectsData, isLoading: isLoadingProjects } = useProjects();
-    const projects = projectsData?.projects || [];
+    const projects = useMemo<ProjectOption[]>(
+        () => (projectsData?.projects ?? []) as ProjectOption[],
+        [projectsData?.projects]
+    );
+
+    const effectiveProjectId = selectedProjectId || defaultProjectId || projects[0]?.id || '';
 
     // Fetch project details with columns when a project is selected
-    const { data: projectData, isLoading: isLoadingProject } = useProject(selectedProjectId);
-    const columns = projectData?.columns || [];
-
-    // Auto-select first project when loaded
-    useEffect(() => {
-        if (!selectedProjectId && projects.length > 0) {
-            setSelectedProjectId(projects[0].id);
-        }
-    }, [projects, selectedProjectId]);
-
-    // Auto-select first column when project data is loaded
-    useEffect(() => {
-        if (columns.length > 0) {
-            setSelectedColumnId(columns[0].id);
-        } else {
-            setSelectedColumnId('');
-        }
-    }, [columns]);
+    const { data: projectData, isLoading: isLoadingProject } = useProject(effectiveProjectId);
+    const columns = useMemo<ProjectColumn[]>(
+        () => (projectData?.columns ?? []) as ProjectColumn[],
+        [projectData?.columns]
+    );
+    const shouldApplyDefaultColumn = !selectedProjectId && !!defaultProjectId && defaultProjectId === effectiveProjectId;
+    const effectiveColumnId = selectedColumnId || (shouldApplyDefaultColumn ? (defaultColumnId || '') : '') || columns[0]?.id || '';
 
     const createTask = useCreateTask();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!title.trim() || !selectedProjectId || !selectedColumnId) return;
+        if (!title.trim() || !effectiveProjectId || !effectiveColumnId) return;
 
         createTask.mutate(
             {
-                project_id: selectedProjectId,
-                column_id: selectedColumnId,
+                project_id: effectiveProjectId,
+                column_id: effectiveColumnId,
                 title: title.trim(),
                 description: description.trim() || undefined,
                 priority,
@@ -80,13 +84,13 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm transition-all duration-300">
             {/* Modal Card */}
-            <div className="relative w-full max-w-[520px] flex flex-col rounded-xl border border-white/10 bg-surface/95 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(19,185,165,0.15)] ring-1 ring-white/5 overflow-hidden">
+            <div className="relative w-full max-w-[520px] flex flex-col rounded-xl border border-border bg-surface/95 backdrop-blur-md shadow-[0_0_40px_-10px_rgba(19,185,165,0.15)] ring-1 ring-white/5 overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pt-6 pb-2">
-                    <h2 className="text-white text-xl font-bold tracking-tight">Add New Task</h2>
+                    <h2 className="text-text text-xl font-bold tracking-tight">Add New Task</h2>
                     <button
                         onClick={onClose}
-                        className="group text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                        className="group text-text-muted hover:text-text transition-colors p-2 rounded-full hover:bg-surface-alt focus:outline-none focus:ring-2 focus:ring-primary/50"
                     >
                         <X className="size-5" />
                     </button>
@@ -96,14 +100,14 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     {/* Task Title */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-slate-300">
+                        <label className="block text-sm font-medium text-text-muted">
                             Task Title <span className="text-primary">*</span>
                         </label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            className="w-full rounded-lg bg-background/50 border border-border text-white placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors"
+                            className="w-full rounded-lg bg-background/50 border border-border text-text placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors"
                             placeholder="e.g., Design landing page mockups"
                             required
                         />
@@ -112,7 +116,7 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                     {/* Project & Column Selection */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-slate-300">
+                            <label className="block text-sm font-medium text-text-muted">
                                 Project <span className="text-primary">*</span>
                             </label>
                             <select
@@ -121,12 +125,12 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                                     setSelectedProjectId(e.target.value);
                                     setSelectedColumnId('');
                                 }}
-                                className="w-full rounded-lg bg-background/50 border border-border text-white focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors appearance-none cursor-pointer"
+                                className="w-full rounded-lg bg-background/50 border border-border text-text focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors appearance-none cursor-pointer"
                                 required
                                 disabled={isLoadingProjects}
                             >
                                 <option value="">Select project</option>
-                                {projects.map((project: any) => (
+                                {projects.map((project) => (
                                     <option key={project.id} value={project.id}>
                                         {project.name}
                                     </option>
@@ -135,20 +139,20 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                         </div>
 
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-slate-300">
+                            <label className="block text-sm font-medium text-text-muted">
                                 Column <span className="text-primary">*</span>
                             </label>
                             <select
-                                value={selectedColumnId}
+                                value={effectiveColumnId}
                                 onChange={(e) => setSelectedColumnId(e.target.value)}
-                                className="w-full rounded-lg bg-background/50 border border-border text-white focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors appearance-none cursor-pointer"
+                                className="w-full rounded-lg bg-background/50 border border-border text-text focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors appearance-none cursor-pointer"
                                 required
-                                disabled={!selectedProjectId || isLoadingProject}
+                                disabled={!effectiveProjectId || isLoadingProject}
                             >
                                 <option value="">
                                     {isLoadingProject ? 'Loading columns...' : 'Select column'}
                                 </option>
-                                {columns.map((col: any) => (
+                                {columns.map((col) => (
                                     <option key={col.id} value={col.id}>
                                         {col.name}
                                     </option>
@@ -159,11 +163,11 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
 
                     {/* Description */}
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-slate-300">Description</label>
+                        <label className="block text-sm font-medium text-text-muted">Description</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            className="w-full rounded-lg bg-background/50 border border-border text-white placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary min-h-[84px] p-4 text-base resize-none transition-colors"
+                            className="w-full rounded-lg bg-background/50 border border-border text-text placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary min-h-[84px] p-4 text-base resize-none transition-colors"
                             placeholder="Add details about this task..."
                             rows={3}
                         />
@@ -172,7 +176,7 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                     {/* Priority & Due Date */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-slate-300">Priority</label>
+                            <label className="block text-sm font-medium text-text-muted">Priority</label>
                             <div className="flex gap-2">
                                 {PRIORITY_OPTIONS.map((opt) => (
                                     <label
@@ -189,8 +193,8 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                                         />
                                         <div className={`px-2 py-2 rounded-lg text-center text-xs font-medium border transition-all
                                             ${priority === opt.value
-                                                ? `${opt.color} text-white border-transparent`
-                                                : 'bg-background/50 text-text-muted border-border hover:border-white/20'
+                                                ? `${opt.color} text-text border-transparent`
+                                                : 'bg-background/50 text-text-muted border-border hover:border-border'
                                             }`}
                                         >
                                             {opt.label}
@@ -201,12 +205,12 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                         </div>
 
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-slate-300">Due Date</label>
+                            <label className="block text-sm font-medium text-text-muted">Due Date</label>
                             <input
                                 type="date"
                                 value={dueDate}
                                 onChange={(e) => setDueDate(e.target.value)}
-                                className="w-full rounded-lg bg-background/50 border border-border text-white focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors"
+                                className="w-full rounded-lg bg-background/50 border border-border text-text focus:border-primary focus:ring-1 focus:ring-primary h-12 px-4 text-base transition-colors"
                             />
                         </div>
                     </div>
@@ -216,13 +220,13 @@ export function CreateTaskModal({ isOpen, onClose, defaultProjectId, defaultColu
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/5 transition-all focus:outline-none"
+                            className="px-5 py-2.5 rounded-lg text-sm font-medium text-text-muted hover:text-text hover:bg-surface-alt transition-all focus:outline-none"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            disabled={createTask.isPending || !title.trim() || !selectedProjectId || !selectedColumnId}
+                            disabled={createTask.isPending || !title.trim() || !effectiveProjectId || !effectiveColumnId}
                             className="px-6 py-2.5 rounded-lg text-sm font-semibold bg-primary text-background hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface focus:ring-primary transition-all shadow-md shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                         >
                             {createTask.isPending && <Loader2 className="size-4 animate-spin" />}

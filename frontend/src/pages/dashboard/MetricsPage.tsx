@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { ChartBar as BarChart3, CheckCircle, Clock, Warning as AlertTriangle, TrendUp as TrendingUp, Users, CircleNotch as Loader2 } from '@phosphor-icons/react';
 import { useMetrics, useCompletionRate } from '../../hooks/useMetrics';
 
@@ -28,7 +29,7 @@ function StatCard({ title, value, icon, trend, color }: StatCardProps) {
                 </div>
             </div>
             <div className="flex items-end justify-between">
-                <span className="text-3xl font-bold text-white">{value}</span>
+                <span className="text-3xl font-bold text-text">{value}</span>
                 {trend && (
                     <div className={`flex items-center gap-1 text-sm ${trend.isPositive ? 'text-green-400' : 'text-red-400'}`}>
                         <TrendingUp className={`size-4 ${!trend.isPositive && 'rotate-180'}`} />
@@ -53,13 +54,13 @@ function ProgressBar({ label, value, max, color }: ProgressBarProps) {
     return (
         <div className="flex items-center gap-4">
             <span className="text-sm text-text-muted w-24 truncate capitalize">{label}</span>
-            <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
+            <div className="flex-1 h-2 bg-surface-alt rounded-full overflow-hidden">
                 <div
                     className={`h-full rounded-full transition-all duration-500 ${color}`}
                     style={{ width: `${percentage}%` }}
                 />
             </div>
-            <span className="text-sm font-medium text-white w-12 text-right">{value}</span>
+            <span className="text-sm font-medium text-text w-12 text-right">{value}</span>
         </div>
     );
 }
@@ -75,6 +76,7 @@ const priorityColors: Record<string, string> = {
 const teamColors = ['bg-primary', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'];
 
 export function MetricsPage() {
+    const { t } = useTranslation();
     const { data, isLoading, error } = useMetrics();
     const completionRate = useCompletionRate();
 
@@ -90,7 +92,7 @@ export function MetricsPage() {
         return (
             <div className="flex items-center justify-center h-64 text-red-400">
                 <AlertTriangle className="size-6 mr-2" />
-                Failed to load metrics
+                {t('metrics.failed_load')}
             </div>
         );
     }
@@ -109,8 +111,8 @@ export function MetricsPage() {
                 <div className="flex items-center gap-3">
                     <BarChart3 className="size-8 text-primary" />
                     <div>
-                        <h2 className="text-3xl font-bold text-white tracking-tight">Metrics & Analytics</h2>
-                        <p className="text-text-muted text-sm">Track your project performance and team productivity</p>
+                        <h2 className="text-3xl font-bold text-text tracking-tight">{t('metrics.title')}</h2>
+                        <p className="text-text-muted text-sm">{t('metrics.subtitle')}</p>
                     </div>
                 </div>
             </header>
@@ -120,26 +122,26 @@ export function MetricsPage() {
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard
-                        title="Total Tasks"
+                        title={t('metrics.total_tasks')}
                         value={stats.totalTasks}
                         icon={<CheckCircle className="size-5" />}
                         color="primary"
                     />
                     <StatCard
-                        title="Completed"
+                        title={t('metrics.completed')}
                         value={stats.completedTasks}
                         icon={<CheckCircle className="size-5" />}
                         trend={{ value: 12, isPositive: true }}
                         color="green"
                     />
                     <StatCard
-                        title="In Progress"
+                        title={t('metrics.in_progress')}
                         value={stats.inProgressTasks}
                         icon={<Clock className="size-5" />}
                         color="blue"
                     />
                     <StatCard
-                        title="Overdue"
+                        title={t('metrics.overdue')}
                         value={stats.overdueTasks}
                         icon={<AlertTriangle className="size-5" />}
                         trend={stats.overdueTasks > 0 ? { value: stats.overdueTasks, isPositive: false } : undefined}
@@ -151,9 +153,9 @@ export function MetricsPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Completion Rate Card */}
                     <div className="glass-card p-6 rounded-xl">
-                        <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-text mb-6 flex items-center gap-2">
                             <TrendingUp className="size-5 text-primary" />
-                            Project Completion
+                            {t('metrics.project_completion')}
                         </h3>
 
                         <div className="flex items-center justify-center mb-6">
@@ -177,8 +179,8 @@ export function MetricsPage() {
                                     />
                                 </svg>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span className="text-4xl font-bold text-white">{completionRate}%</span>
-                                    <span className="text-sm text-text-muted">Complete</span>
+                                    <span className="text-4xl font-bold text-text">{completionRate}%</span>
+                                    <span className="text-sm text-text-muted">{t('metrics.complete_label')}</span>
                                 </div>
                             </div>
                         </div>
@@ -186,20 +188,20 @@ export function MetricsPage() {
                         <div className="flex justify-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
                                 <div className="size-3 rounded-full bg-primary" />
-                                <span className="text-text-muted">Completed ({stats.completedTasks})</span>
+                                <span className="text-text-muted">{t('metrics.completed_count', { count: stats.completedTasks })}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <div className="size-3 rounded-full bg-white/10" />
-                                <span className="text-text-muted">Remaining ({stats.totalTasks - stats.completedTasks})</span>
+                                <div className="size-3 rounded-full bg-surface-alt" />
+                                <span className="text-text-muted">{t('metrics.remaining_label', { count: stats.totalTasks - stats.completedTasks })}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Priority Distribution */}
                     <div className="glass-card p-6 rounded-xl">
-                        <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-text mb-6 flex items-center gap-2">
                             <AlertTriangle className="size-5 text-primary" />
-                            Priority Distribution
+                            {t('metrics.priority_distribution')}
                         </h3>
 
                         <div className="space-y-4">
@@ -207,14 +209,14 @@ export function MetricsPage() {
                                 data.priorityDistribution.map((item) => (
                                     <ProgressBar
                                         key={item.priority}
-                                        label={item.priority}
+                                        label={t(`common.priority.${item.priority}`)}
                                         value={item.count}
                                         max={stats.totalTasks}
                                         color={priorityColors[item.priority] || 'bg-gray-500'}
                                     />
                                 ))
                             ) : (
-                                <p className="text-text-muted text-sm">No priority data available</p>
+                                <p className="text-text-muted text-sm">{t('metrics.no_priority_data')}</p>
                             )}
                         </div>
                     </div>
@@ -222,32 +224,32 @@ export function MetricsPage() {
 
                 {/* Team Performance */}
                 <div className="glass-card p-6 rounded-xl">
-                    <h3 className="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-text mb-6 flex items-center gap-2">
                         <Users className="size-5 text-primary" />
-                        Team Performance
+                        {t('metrics.team_performance')}
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         {data?.teamPerformance.length ? (
                             data.teamPerformance.map((member, index) => (
-                                <div key={member.userId} className="bg-white/5 rounded-xl p-4 border border-white/5">
+                                <div key={member.userId} className="bg-surface rounded-xl p-4 border border-border">
                                     <div className="flex items-center gap-3 mb-3">
-                                        <div className={`size-10 rounded-full ${teamColors[index % teamColors.length]} flex items-center justify-center text-white font-bold`}>
+                                        <div className={`size-10 rounded-full ${teamColors[index % teamColors.length]} flex items-center justify-center text-text font-bold`}>
                                             {member.name.charAt(0)}
                                         </div>
                                         <div>
-                                            <p className="text-white font-medium text-sm">{member.name}</p>
-                                            <p className="text-text-muted text-xs">#{index + 1} Contributor</p>
+                                            <p className="text-text font-medium text-sm">{member.name}</p>
+                                            <p className="text-text-muted text-xs">#{index + 1} {t('metrics.contributor')}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-2xl font-bold text-white">{member.completed}</span>
-                                        <span className="text-xs text-text-muted">tasks completed</span>
+                                        <span className="text-2xl font-bold text-text">{member.completed}</span>
+                                        <span className="text-xs text-text-muted">{t('metrics.tasks_completed')}</span>
                                     </div>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-text-muted text-sm col-span-4">No team data available. Assign tasks to team members to see performance.</p>
+                            <p className="text-text-muted text-sm col-span-4">{t('metrics.no_team_data')}</p>
                         )}
                     </div>
                 </div>

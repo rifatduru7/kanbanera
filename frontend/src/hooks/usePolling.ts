@@ -18,6 +18,13 @@ export function usePolling(projectId: string, options: UsePollingOptions = {}) {
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const isVisible = useRef(true);
 
+    const stopPolling = useCallback(() => {
+        if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+        }
+    }, []);
+
     const refetch = useCallback(async () => {
         if (!projectId || !isVisible.current) return;
 
@@ -31,19 +38,21 @@ export function usePolling(projectId: string, options: UsePollingOptions = {}) {
         }
     }, [projectId, queryClient, onUpdate]);
 
+    const startPolling = useCallback(() => {
+        if (!enabled || !projectId || intervalRef.current) return;
+        intervalRef.current = setInterval(refetch, interval);
+    }, [enabled, interval, projectId, refetch]);
+
     // Set up polling interval
     useEffect(() => {
         if (!enabled || !projectId) return;
 
-        intervalRef.current = setInterval(refetch, interval);
+        startPolling();
 
         return () => {
-            if (intervalRef.current) {
-                clearInterval(intervalRef.current);
-                intervalRef.current = null;
-            }
+            stopPolling();
         };
-    }, [enabled, interval, projectId, refetch]);
+    }, [enabled, interval, projectId, startPolling, stopPolling]);
 
     // Pause polling when tab is not visible
     useEffect(() => {
@@ -52,16 +61,11 @@ export function usePolling(projectId: string, options: UsePollingOptions = {}) {
 
             if (document.hidden) {
                 // Pause polling
-                if (intervalRef.current) {
-                    clearInterval(intervalRef.current);
-                    intervalRef.current = null;
-                }
+                stopPolling();
             } else {
                 // Resume polling and refetch immediately
                 refetch();
-                if (enabled && projectId) {
-                    intervalRef.current = setInterval(refetch, interval);
-                }
+                startPolling();
             }
         };
 
@@ -69,7 +73,7 @@ export function usePolling(projectId: string, options: UsePollingOptions = {}) {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [enabled, interval, projectId, refetch]);
+    }, [refetch, startPolling, stopPolling]);
 
     // Refetch on window focus
     useEffect(() => {
@@ -85,7 +89,7 @@ export function usePolling(projectId: string, options: UsePollingOptions = {}) {
 
     return {
         refetch,
-        isPolling: !!intervalRef.current,
+        isPolling: enabled && !!projectId,
     };
 }
 

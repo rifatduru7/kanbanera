@@ -21,11 +21,16 @@ interface BoardProps {
     onTaskMove?: (taskId: string, toColumnId: string, newPosition: number) => void;
     onTaskClick?: (task: Task) => void;
     onAddTask?: (columnId: string) => void;
+    onAddColumn?: (name: string) => void;
+    onUpdateColumn?: (id: string, data: { name: string; wip_limit?: number | null; color?: string }) => void;
+    onDeleteColumn?: (id: string) => void;
 }
 
-export function Board({ columns, onTaskMove, onTaskClick, onAddTask }: BoardProps) {
+export function Board({ columns, onTaskMove, onTaskClick, onAddTask, onAddColumn, onUpdateColumn, onDeleteColumn }: BoardProps) {
     const [activeTask, setActiveTask] = useState<Task | null>(null);
     const [localColumns, setLocalColumns] = useState(columns);
+    const [isAddingColumn, setIsAddingColumn] = useState(false);
+    const [newColumnName, setNewColumnName] = useState('');
 
     // Track drag destination with a ref to avoid stale closure issues
     const dragDestinationRef = useRef<{ columnId: string; position: number } | null>(null);
@@ -187,8 +192,68 @@ export function Board({ columns, onTaskMove, onTaskClick, onAddTask }: BoardProp
                             tasks={column.tasks}
                             onAddTask={() => onAddTask?.(column.id)}
                             onTaskClick={onTaskClick}
+                            onUpdateColumn={onUpdateColumn}
+                            onDeleteColumn={onDeleteColumn}
                         />
                     ))}
+
+                    {/* Add Column Button / Input */}
+                    <div className="w-80 flex-shrink-0">
+                        {isAddingColumn ? (
+                            <div className="bg-surface-dark border border-border rounded-xl p-3 flex flex-col gap-3">
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    placeholder="Enter column name..."
+                                    value={newColumnName}
+                                    onChange={(e) => setNewColumnName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && newColumnName.trim()) {
+                                            onAddColumn?.(newColumnName.trim());
+                                            setNewColumnName('');
+                                            setIsAddingColumn(false);
+                                        }
+                                        if (e.key === 'Escape') {
+                                            setNewColumnName('');
+                                            setIsAddingColumn(false);
+                                        }
+                                    }}
+                                    className="w-full bg-black/20 border border-primary/50 text-text text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                                />
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => {
+                                            if (newColumnName.trim()) {
+                                                onAddColumn?.(newColumnName.trim());
+                                                setNewColumnName('');
+                                            }
+                                            setIsAddingColumn(false);
+                                        }}
+                                        className="bg-primary text-black text-xs font-semibold px-3 py-1.5 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                        disabled={!newColumnName.trim()}
+                                    >
+                                        Add
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setNewColumnName('');
+                                            setIsAddingColumn(false);
+                                        }}
+                                        className="text-text-muted hover:text-text px-3 py-1.5 text-xs font-medium transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setIsAddingColumn(true)}
+                                className="w-full flex items-center gap-2 px-4 py-3 bg-surface-alt hover:bg-surface-alt text-text-muted font-medium text-sm border border-dashed border-border hover:border-border rounded-xl transition-all"
+                            >
+                                <span className="text-xl leading-none font-light mb-0.5">+</span> Add another column
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 

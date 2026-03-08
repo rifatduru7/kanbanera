@@ -12,19 +12,37 @@ import { userRoutes } from './routes/users';
 import attachmentRoutes from './routes/attachments';
 import metricsRoutes from './routes/metrics';
 import activitiesRoutes from './routes/activities';
-import { authRateLimit, apiRateLimit, uploadRateLimit } from './middleware/rateLimit';
+import searchRoutes from './routes/search';
+import { adminRoutes } from './routes/admin';
+import { webhookRoutes } from './routes/webhooks';
+import { maintenanceMiddleware } from './middleware/maintenance';
+import { apiRateLimit, uploadRateLimit } from './middleware/rateLimit';
 
 const app = new Hono<{ Bindings: Env }>();
 
 // Global Middleware
 app.use('*', logger());
 app.use('*', secureHeaders());
+app.use('*', maintenanceMiddleware);
 app.use(
     '*',
     cors({
         origin: (_origin, c) => {
-            const allowed = c.env.CORS_ORIGIN || 'http://localhost:5173';
-            return allowed;
+            const requestOrigin = _origin || '';
+            const configuredOrigins = (c.env.CORS_ORIGIN || 'http://localhost:5173')
+                .split(',')
+                .map((value: string) => value.trim())
+                .filter(Boolean);
+
+            if (!requestOrigin) {
+                return configuredOrigins[0];
+            }
+
+            if (configuredOrigins.includes(requestOrigin)) {
+                return requestOrigin;
+            }
+
+            return configuredOrigins[0];
         },
         credentials: true,
         allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -52,9 +70,9 @@ app.get('/api/health', (c) => {
 });
 
 // Apply rate limiting per route group
-// Auth routes - strict rate limiting (5 attempts per 15 min for login/register)
-app.use('/api/auth/login', authRateLimit);
-app.use('/api/auth/register', authRateLimit);
+// Auth routes - strict rate limiting (Disabled temporarily for testing)
+// app.use('/api/auth/login', authRateLimit);
+// app.use('/api/auth/register', authRateLimit);
 
 // Standard API rate limiting
 app.use('/api/projects/*', apiRateLimit);
@@ -63,6 +81,8 @@ app.use('/api/tasks/*', apiRateLimit);
 app.use('/api/users/*', apiRateLimit);
 app.use('/api/metrics', apiRateLimit);
 app.use('/api/activities', apiRateLimit);
+app.use('/api/search', apiRateLimit);
+app.use('/api/admin/*', apiRateLimit);
 
 // Upload rate limiting - stricter
 app.use('/api/attachments/*', uploadRateLimit);
@@ -76,6 +96,9 @@ app.route('/api/users', userRoutes);
 app.route('/api/attachments', attachmentRoutes);
 app.route('/api/metrics', metricsRoutes);
 app.route('/api/activities', activitiesRoutes);
+app.route('/api/search', searchRoutes);
+app.route('/api/admin', adminRoutes);
+app.route('/api/webhooks', webhookRoutes);
 
 // 404 Handler
 app.notFound((c) => {

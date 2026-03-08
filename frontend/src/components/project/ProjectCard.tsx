@@ -40,7 +40,7 @@ export function ProjectCard({
     return (
         <div
             onClick={onClick}
-            className={`group relative flex flex-col bg-surface hover:bg-surface-hover rounded-xl overflow-hidden border border-white/5 hover:${colorClasses.border} transition-all duration-300 hover:shadow-xl hover:shadow-black/20 hover:-translate-y-1 cursor-pointer`}
+            className={`group relative flex flex-col bg-surface hover:bg-surface-alt rounded-xl overflow-hidden border border-border hover:${colorClasses.border} transition-all duration-300 hover:shadow-xl hover:shadow-black/5 hover:-translate-y-1 cursor-pointer`}
         >
             {/* Color Stripe */}
             <div className={`h-1.5 w-full ${colorClasses.bg}`} />
@@ -48,12 +48,12 @@ export function ProjectCard({
             <div className="p-5 flex flex-col h-full">
                 {/* Header */}
                 <div className="flex justify-between items-start mb-3">
-                    <h3 className={`text-xl font-bold text-white group-hover:${colorClasses.text} transition-colors`}>
+                    <h3 className={`text-xl font-bold text-text group-hover:${colorClasses.text} transition-colors`}>
                         {name}
                     </h3>
                     <button
                         onClick={(e) => e.stopPropagation()}
-                        className="text-text-muted hover:text-white p-1 hover:bg-white/10 rounded-full transition-colors"
+                        className="text-text-muted hover:text-text p-1 hover:bg-surface-alt rounded-full transition-colors"
                     >
                         <MoreVertical className="size-5" />
                     </button>
@@ -66,13 +66,13 @@ export function ProjectCard({
 
                 <div className="mt-auto">
                     {/* Stats */}
-                    <div className="flex items-center gap-4 mb-4 text-xs font-medium text-gray-400">
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
+                    <div className="flex items-center gap-4 mb-4 text-xs font-medium text-text-muted">
+                        <div className="flex items-center gap-1.5 bg-surface-alt/50 px-2 py-1 rounded-md">
                             <CheckCircle className={`size-4 ${colorClasses.text}`} />
                             <span>{taskCount} Tasks</span>
                         </div>
-                        <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md">
-                            <Users className="size-4 text-blue-400" />
+                        <div className="flex items-center gap-1.5 bg-surface-alt/50 px-2 py-1 rounded-md">
+                            <Users className="size-4 text-primary" />
                             <span>{memberCount} Members</span>
                         </div>
                     </div>
@@ -81,7 +81,7 @@ export function ProjectCard({
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex -space-x-2">
                             {/* Placeholder avatars */}
-                            <div className="size-8 rounded-full border-2 border-surface bg-gradient-to-br from-primary/50 to-primary/30 flex items-center justify-center text-xs font-bold text-white">
+                            <div className="size-8 rounded-full border-2 border-surface bg-gradient-to-br from-primary/50 to-primary/30 flex items-center justify-center text-xs font-bold text-text">
                                 {name.charAt(0).toUpperCase()}
                             </div>
                         </div>
@@ -91,7 +91,7 @@ export function ProjectCard({
                     </div>
 
                     {/* Progress Bar */}
-                    <div className="w-full bg-white/10 rounded-full h-1.5">
+                    <div className="w-full bg-border-muted rounded-full h-1.5">
                         <div
                             className={`${colorClasses.bg} h-1.5 rounded-full transition-all duration-500`}
                             style={{ width: `${completedPercent}%` }}

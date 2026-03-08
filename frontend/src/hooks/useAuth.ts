@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../lib/api/client';
@@ -8,26 +9,39 @@ export const authKeys = {
     me: ['auth', 'me'] as const,
 };
 
+interface AuthSuccessData {
+    user: ReturnType<typeof useAuthStore.getState>['user'];
+    accessToken: string;
+}
+
 // Get current user hook
 export function useCurrentUser() {
     const { setUser, setLoading, accessToken } = useAuthStore();
 
+    useEffect(() => {
+        if (!accessToken) {
+            setLoading(false);
+        }
+    }, [accessToken, setLoading]);
+
     return useQuery({
         queryKey: authKeys.me,
         queryFn: async () => {
-            const response = await authApi.getMe();
-            if (response.success && response.data) {
-                setUser(response.data.user);
-                return response.data.user;
+            try {
+                const response = await authApi.getMe();
+                if (response.success && response.data) {
+                    const user = response.data.user;
+                    setUser(user || null);
+                    return user;
+                }
+                throw new Error(response.message || 'Failed to fetch user');
+            } finally {
+                setLoading(false);
             }
-            throw new Error(response.message || 'Failed to fetch user');
         },
         enabled: !!accessToken,
         retry: false,
         staleTime: 1000 * 60 * 5, // 5 minutes
-        meta: {
-            onSettled: () => setLoading(false),
-        },
     });
 }
 
@@ -46,9 +60,10 @@ export function useLogin() {
             return response.data;
         },
         onSuccess: (data) => {
-            if (data) {
-                setAccessToken(data.accessToken);
-                setUser(data.user);
+            if (data && 'accessToken' in data && 'user' in data) {
+                const payload = data as AuthSuccessData;
+                setAccessToken(payload.accessToken || null);
+                setUser(payload.user || null);
                 queryClient.invalidateQueries({ queryKey: authKeys.me });
                 navigate('/dashboard');
             }
@@ -71,9 +86,10 @@ export function useRegister() {
             return response.data;
         },
         onSuccess: (data) => {
-            if (data) {
-                setAccessToken(data.accessToken);
-                setUser(data.user);
+            if (data && 'accessToken' in data && 'user' in data) {
+                const payload = data as AuthSuccessData;
+                setAccessToken(payload.accessToken || null);
+                setUser(payload.user || null);
                 queryClient.invalidateQueries({ queryKey: authKeys.me });
                 navigate('/dashboard');
             }

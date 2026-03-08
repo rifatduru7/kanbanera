@@ -1,12 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { projectsApi, tasksApi, columnsApi } from '../lib/api/client';
+import type { TaskDetail } from '../types/task-detail';
 
 // Query keys
 export const kanbanKeys = {
     projects: ['projects'] as const,
     project: (id: string) => ['projects', id] as const,
     board: (projectId: string) => ['board', projectId] as const,
+    task: (id: string) => ['tasks', id] as const,
 };
+
+interface ProjectTaskForOptimisticUpdate {
+    id: string;
+    column_id: string;
+    position: number;
+}
+
+interface ProjectBoardForOptimisticUpdate {
+    tasks?: ProjectTaskForOptimisticUpdate[];
+    [key: string]: unknown;
+}
 
 // Get all projects
 export function useProjects() {
@@ -55,6 +68,59 @@ export function useCreateProject() {
     });
 }
 
+// Update project
+export function useUpdateProject() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; is_archived?: boolean }) => {
+            const response = await projectsApi.updateProject(id, data);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to update project');
+            }
+            return response.data?.project;
+        },
+        onSuccess: (_data, variables) => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.projects });
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(variables.id) });
+        },
+    });
+}
+
+// Delete project
+export function useDeleteProject() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const response = await projectsApi.deleteProject(id);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to delete project');
+            }
+            return true;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.projects });
+            // Optionally redirect to /dashboard via component
+        },
+    });
+}
+
+// Get project columns
+export function useProjectColumns(projectId: string) {
+    return useQuery({
+        queryKey: ['projects', projectId, 'columns'],
+        queryFn: async () => {
+            const response = await projectsApi.getProjectColumns(projectId);
+            if (response.success && response.data) {
+                return { columns: response.data.columns };
+            }
+            throw new Error(response.message || 'Failed to fetch columns');
+        },
+        enabled: !!projectId,
+    });
+}
+
 // Move task with optimistic update
 export function useMoveTask(projectId: string) {
     const queryClient = useQueryClient();
@@ -73,14 +139,14 @@ export function useMoveTask(projectId: string) {
             await queryClient.cancelQueries({ queryKey: kanbanKeys.project(projectId) });
 
             // Snapshot previous value
-            const previousData = queryClient.getQueryData(kanbanKeys.project(projectId));
+            const previousData = queryClient.getQueryData<ProjectBoardForOptimisticUpdate>(kanbanKeys.project(projectId));
 
             // Optimistically update the flat tasks array
-            queryClient.setQueryData(kanbanKeys.project(projectId), (old: any) => {
+            queryClient.setQueryData<ProjectBoardForOptimisticUpdate>(kanbanKeys.project(projectId), (old) => {
                 if (!old?.tasks) return old;
 
                 // Update the column_id and position of the moved task
-                const updatedTasks = old.tasks.map((t: any) => {
+                const updatedTasks = old.tasks.map((t) => {
                     if (t.id === taskId) {
                         return { ...t, column_id: columnId, position };
                     }
@@ -141,6 +207,21 @@ export function useUpdateTask(projectId: string) {
     });
 }
 
+// Get task details
+export function useTask(taskId: string) {
+    return useQuery({
+        queryKey: kanbanKeys.task(taskId),
+        queryFn: async () => {
+            const response = await tasksApi.getTask(taskId);
+            if (response.success && response.data) {
+                return response.data.task as unknown as TaskDetail;
+            }
+            throw new Error(response.message || 'Failed to fetch task details');
+        },
+        enabled: !!taskId,
+    });
+}
+
 // Delete task
 export function useDeleteTask(projectId: string) {
     const queryClient = useQueryClient();
@@ -194,6 +275,24 @@ export function useToggleSubtask(projectId: string) {
     });
 }
 
+// Delete subtask
+export function useDeleteSubtask(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ taskId, subtaskId }: { taskId: string; subtaskId: string }) => {
+            const response = await tasksApi.deleteSubtask(taskId, subtaskId);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to delete subtask');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
 // Add comment
 export function useAddComment(projectId: string) {
     const queryClient = useQueryClient();
@@ -212,6 +311,24 @@ export function useAddComment(projectId: string) {
     });
 }
 
+// Delete comment
+export function useDeleteComment(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ taskId, commentId }: { taskId: string; commentId: string }) => {
+            const response = await tasksApi.deleteComment(taskId, commentId);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to delete comment');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
 // Create column
 export function useCreateColumn(projectId: string) {
     const queryClient = useQueryClient();
@@ -223,6 +340,60 @@ export function useCreateColumn(projectId: string) {
                 throw new Error(response.message || 'Failed to create column');
             }
             return response.data?.column;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Add column
+export function useAddColumn(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ name }: { name: string }) => {
+            const response = await columnsApi.createColumn(projectId, { name });
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to create column');
+            }
+            return response.data?.column;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Update column
+export function useUpdateColumn(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, ...data }: { id: string; name?: string; wip_limit?: number | null; color?: string }) => {
+            const response = await columnsApi.updateColumn(id, data);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to update column');
+            }
+            return response.data?.column;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Delete column
+export function useDeleteColumn(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (columnId: string) => {
+            const response = await columnsApi.deleteColumn(columnId);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to delete column');
+            }
+            return response;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
@@ -264,6 +435,128 @@ export function useDeleteAttachment(projectId: string) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Add member
+export function useAddMember(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ email, role }: { email: string; role: string }) => {
+            const response = await projectsApi.addMember(projectId, email, role);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to add member');
+            }
+            return response.data?.member;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Update member role
+export function useUpdateMemberRole(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+            const response = await projectsApi.updateMemberRole(projectId, userId, role);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to update member role');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Remove member
+export function useRemoveMember(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (userId: string) => {
+            const response = await projectsApi.removeMember(projectId, userId);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to remove member');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Get integrations
+export function useIntegrations(projectId: string) {
+    return useQuery({
+        queryKey: [...kanbanKeys.project(projectId), 'integrations'],
+        queryFn: async () => {
+            const response = await projectsApi.getIntegrations(projectId);
+            if (response.success && response.data) {
+                return response.data.integrations;
+            }
+            throw new Error(response.message || 'Failed to fetch integrations');
+        },
+        enabled: !!projectId,
+    });
+}
+
+// Add integration
+export function useAddIntegration(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: { provider: string; webhook_url: string; name: string }) => {
+            const response = await projectsApi.addIntegration(projectId, data);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to add integration');
+            }
+            return response.data?.integration;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [...kanbanKeys.project(projectId), 'integrations'] });
+        },
+    });
+}
+
+// Remove integration
+export function useRemoveIntegration(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (integrationId: string) => {
+            const response = await projectsApi.removeIntegration(projectId, integrationId);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to remove integration');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [...kanbanKeys.project(projectId), 'integrations'] });
+        },
+    });
+}
+// Update integration
+export function useUpdateIntegration(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ id, ...data }: { id: string; name?: string; webhook_url?: string; is_active?: boolean }) => {
+            const response = await projectsApi.updateIntegration(projectId, id, data);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to update integration');
+            }
+            return response.data?.integration;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: [...kanbanKeys.project(projectId), 'integrations'] });
         },
     });
 }

@@ -46,7 +46,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Left Side - Decorative (Hidden on mobile) */}
-            <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 z-10 border-r border-border/30">
+            <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 z-10 border-r border-border">
                 {/* Logo */}
                 <div className="flex items-center gap-3">
                     <div className="size-10 text-primary">
@@ -60,12 +60,12 @@ export default function RegisterPage() {
                             </defs>
                         </svg>
                     </div>
-                    <h2 className="text-white text-xl font-bold tracking-tight">ERA KANBAN</h2>
+                    <h2 className="text-text text-xl font-bold tracking-tight">ERA KANBAN</h2>
                 </div>
 
                 {/* Hero Content */}
                 <div className="mb-20">
-                    <h1 className="text-5xl font-bold leading-tight tracking-tight mb-6 bg-gradient-to-br from-white to-text-muted bg-clip-text text-transparent">
+                    <h1 className="text-5xl font-bold leading-tight tracking-tight mb-6 bg-gradient-to-br from-text to-text-muted bg-clip-text text-transparent">
                         Visualize workflow,<br />maximize efficiency.
                     </h1>
                     <p className="text-xl text-text-muted max-w-lg leading-relaxed">
@@ -76,16 +76,16 @@ export default function RegisterPage() {
                     <div className="mt-12 flex gap-4 opacity-80">
                         <div className="h-32 w-24 rounded-lg bg-gradient-to-b from-border to-transparent border border-border flex flex-col p-3 gap-2">
                             <div className="h-2 w-8 bg-primary rounded-full mb-2" />
-                            <div className="h-12 w-full bg-white/5 rounded" />
-                            <div className="h-8 w-full bg-white/5 rounded" />
+                            <div className="h-12 w-full bg-surface-alt rounded" />
+                            <div className="h-8 w-full bg-surface-alt rounded" />
                         </div>
                         <div className="h-32 w-24 rounded-lg bg-gradient-to-b from-border to-transparent border border-border flex flex-col p-3 gap-2 mt-8">
                             <div className="h-2 w-8 bg-orange-400 rounded-full mb-2" />
-                            <div className="h-10 w-full bg-white/5 rounded" />
+                            <div className="h-10 w-full bg-surface-alt rounded" />
                         </div>
                         <div className="h-32 w-24 rounded-lg bg-gradient-to-b from-border to-transparent border border-border flex flex-col p-3 gap-2 mt-4">
                             <div className="h-2 w-8 bg-purple-400 rounded-full mb-2" />
-                            <div className="h-14 w-full bg-white/5 rounded" />
+                            <div className="h-14 w-full bg-surface-alt rounded" />
                         </div>
                     </div>
                 </div>
@@ -106,13 +106,13 @@ export default function RegisterPage() {
                                 <path d="M42.1739 20.1739L27.8261 5.82609C29.1366 7.13663 28.3989 10.1876 26.2002 13.7654C24.8538 15.9564 22.9595 18.3449 20.6522 20.6522C18.3449 22.9595 15.9564 24.8538 13.7654 26.2002C10.1876 28.3989 7.13663 29.1366 5.82609 27.8261L20.1739 42.1739C21.4845 43.4845 24.5355 42.7467 28.1133 40.548C30.3042 39.2016 32.6927 37.3073 35 35C37.3073 32.6927 39.2016 30.3042 40.548 28.1133C42.7467 24.5355 43.4845 21.4845 42.1739 20.1739Z" fill="currentColor" />
                             </svg>
                         </div>
-                        <h2 className="text-white text-lg font-bold">ERA KANBAN</h2>
+                        <h2 className="text-text text-lg font-bold">ERA KANBAN</h2>
                     </div>
 
                     {/* Glass Card */}
                     <div className="glass-card rounded-2xl overflow-hidden p-8 sm:p-10">
                         <div className="mb-8 text-center">
-                            <h3 className="text-3xl font-bold text-white mb-2">Create your account</h3>
+                            <h3 className="text-3xl font-bold text-text mb-2">Create your account</h3>
                             <p className="text-text-muted">Join thousands of teams managing projects.</p>
                         </div>
 
@@ -125,9 +125,9 @@ export default function RegisterPage() {
 
                             {/* Full Name */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                                <label className="block text-sm font-medium text-text-muted mb-2">Full Name</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted group-focus-within:text-primary transition-colors">
                                         <User className="size-5" />
                                     </div>
                                     <input
@@ -143,9 +143,9 @@ export default function RegisterPage() {
 
                             {/* Email */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                                <label className="block text-sm font-medium text-text-muted mb-2">Email Address</label>
                                 <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary transition-colors">
+                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted group-focus-within:text-primary transition-colors">
                                         <Mail className="size-5" />
                                     </div>
                                     <input
@@ -162,7 +162,7 @@ export default function RegisterPage() {
                             {/* Passwords */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                                    <label className="block text-sm font-medium text-text-muted mb-2">Password</label>
                                     <div className="relative group">
                                         <input
                                             type={showPassword ? 'text' : 'password'}
@@ -176,14 +176,14 @@ export default function RegisterPage() {
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-muted transition-colors"
                                         >
                                             {showPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                                         </button>
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">Confirm Password</label>
+                                    <label className="block text-sm font-medium text-text-muted mb-2">Confirm Password</label>
                                     <div className="relative group">
                                         <input
                                             type={showConfirmPassword ? 'text' : 'password'}
@@ -196,7 +196,7 @@ export default function RegisterPage() {
                                         <button
                                             type="button"
                                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300 transition-colors"
+                                            className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-muted hover:text-text-muted transition-colors"
                                         >
                                             {showConfirmPassword ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
                                         </button>
@@ -211,7 +211,7 @@ export default function RegisterPage() {
                                         type="checkbox"
                                         checked={agreedToTerms}
                                         onChange={(e) => setAgreedToTerms(e.target.checked)}
-                                        className="w-4 h-4 rounded border-slate-600 bg-surface text-primary focus:ring-offset-surface focus:ring-primary cursor-pointer"
+                                        className="w-4 h-4 rounded border-border bg-surface text-primary focus:ring-offset-surface focus:ring-primary cursor-pointer"
                                     />
                                 </div>
                                 <label className="ml-2 text-sm text-text-muted">
@@ -232,16 +232,16 @@ export default function RegisterPage() {
                         {/* Divider */}
                         <div className="relative my-8">
                             <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-slate-600/50" />
+                                <div className="w-full border-t border-border/50" />
                             </div>
                             <div className="relative flex justify-center">
-                                <span className="px-3 bg-surface text-xs font-medium text-slate-400 rounded-full">or continue with</span>
+                                <span className="px-3 bg-surface text-xs font-medium text-text-muted rounded-full">or continue with</span>
                             </div>
                         </div>
 
                         {/* Social Buttons */}
                         <div className="grid grid-cols-2 gap-4">
-                            <button className="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-600 rounded-lg hover:bg-white/5 transition-colors text-sm font-medium text-white">
+                            <button className="flex items-center justify-center gap-2 py-2.5 px-4 border border-border rounded-lg hover:bg-surface-alt transition-colors text-sm font-medium text-text">
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
                                     <path d="M23.766 12.2764C23.766 11.4607 23.6999 10.6406 23.5588 9.83807H12.24V14.4591H18.7217C18.4528 15.9494 17.5885 17.2678 16.323 18.1056V21.1039H20.19C22.4608 19.0139 23.766 15.9274 23.766 12.2764Z" fill="#4285F4" />
                                     <path d="M12.24 24.0008C15.4765 24.0008 18.2059 22.9382 20.1945 21.1039L16.3275 18.1055C15.2517 18.8375 13.8627 19.252 12.2445 19.252C9.11388 19.252 6.45946 17.1399 5.50705 14.3003H1.5166V17.3912C3.55371 21.4434 7.7029 24.0008 12.24 24.0008Z" fill="#34A853" />
@@ -250,8 +250,8 @@ export default function RegisterPage() {
                                 </svg>
                                 Google
                             </button>
-                            <button className="flex items-center justify-center gap-2 py-2.5 px-4 border border-slate-600 rounded-lg hover:bg-white/5 transition-colors text-sm font-medium text-white">
-                                <svg className="w-5 h-5 fill-white" viewBox="0 0 24 24">
+                            <button className="flex items-center justify-center gap-2 py-2.5 px-4 border border-border rounded-lg hover:bg-surface-alt transition-colors text-sm font-medium text-text">
+                                <svg className="w-5 h-5 fill-current" viewBox="0 0 24 24">
                                     <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.285 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                                 </svg>
                                 GitHub

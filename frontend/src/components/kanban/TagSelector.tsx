@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Plus, MagnifyingGlass as Search, Check } from '@phosphor-icons/react';
-import { TagBadge, TAG_COLORS } from '../ui/TagBadge';
+import { TagBadge } from '../ui/TagBadge';
+import { TAG_COLORS } from '../ui/tagColors';
 
 interface Tag {
     id: string;
@@ -77,7 +78,7 @@ export function TagSelector({
                 {/* Trigger Button */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-transparent hover:bg-surface border border-dashed border-slate-600 hover:border-primary text-slate-400 hover:text-primary transition-all text-xs font-medium group"
+                    className="flex items-center gap-1.5 h-7 px-3 rounded-full bg-transparent hover:bg-surface border border-dashed border-border hover:border-primary text-text-muted hover:text-primary transition-all text-xs font-medium group"
                 >
                     <Plus className="size-4 group-hover:scale-110 transition-transform" />
                     <span>Add Tag</span>
@@ -90,7 +91,7 @@ export function TagSelector({
                     {/* Search Header */}
                     <div className="p-3 border-b border-border">
                         <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 size-5" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted size-5" />
                             <input
                                 type="text"
                                 value={searchQuery}
@@ -104,12 +105,12 @@ export function TagSelector({
 
                     {/* Tags List */}
                     <div className="flex flex-col max-h-[240px] overflow-y-auto py-1">
-                        <div className="px-4 py-2 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        <div className="px-4 py-2 text-[11px] font-bold text-text-muted uppercase tracking-wider">
                             Select an option
                         </div>
 
                         {filteredTags.length === 0 ? (
-                            <div className="px-4 py-3 text-sm text-slate-500">
+                            <div className="px-4 py-3 text-sm text-text-muted">
                                 No tags found. Create a new one below.
                             </div>
                         ) : (
@@ -124,7 +125,7 @@ export function TagSelector({
                                             className="size-3 rounded-full"
                                             style={{ backgroundColor: tag.color }}
                                         />
-                                        <span className="text-sm font-medium text-white">{tag.name}</span>
+                                        <span className="text-sm font-medium text-text">{tag.name}</span>
                                     </div>
                                     {isTagSelected(tag.id) && <Check className="size-5 text-primary" />}
                                 </button>
@@ -136,7 +137,7 @@ export function TagSelector({
                     {onCreateTag && (
                         <div className="border-t border-border p-4 bg-background/30">
                             <div className="flex flex-col gap-3">
-                                <span className="text-xs font-semibold text-slate-400 uppercase">
+                                <span className="text-xs font-semibold text-text-muted uppercase">
                                     Create New Tag
                                 </span>
 

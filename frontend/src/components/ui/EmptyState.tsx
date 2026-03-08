@@ -31,41 +31,57 @@ export function EmptyState({
     const IconComponent = iconMap[type];
 
     return (
-        <div className="flex flex-col items-center justify-center p-12 text-center group">
+        <div className="flex flex-col items-center justify-center p-12 text-center group animate-in fade-in zoom-in-95 duration-700">
             {/* Illustration Area */}
             <div className="relative mb-8 size-48 flex items-center justify-center">
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-primary/5 rounded-full blur-2xl scale-75 group-hover:scale-100 transition-transform duration-500" />
+                {/* Magnetic Glow Effect */}
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-[60px] scale-75 group-hover:scale-100 group-hover:bg-primary/20 transition-all duration-700 animate-pulse-slow" />
 
-                {/* Icon */}
-                {icon || (
-                    <IconComponent
-                        className="size-28 text-primary/80 drop-shadow-[0_0_15px_rgba(19,185,165,0.3)] relative z-10 transition-transform duration-300 group-hover:scale-110"
-                    />
-                )}
+                {/* Floating Element */}
+                <div className="relative z-10 glass-card size-32 rounded-[2.5rem] flex items-center justify-center border border-border shadow-2xl transition-transform duration-500 group-hover:scale-105 group-hover:-rotate-3 group-hover:shadow-primary/20">
+                    {icon || (
+                        <IconComponent
+                            className="size-16 text-primary drop-shadow-[0_0_15px_rgba(40,170,226,0.4)] transition-all duration-500 group-hover:scale-110"
+                        />
+                    )}
+                </div>
+
+                {/* Decorative particles */}
+                <div className="absolute top-1/4 right-1/4 size-2 bg-primary/40 rounded-full blur-sm animate-float delay-150" />
+                <div className="absolute bottom-1/4 left-1/4 size-3 bg-cyan-400/30 rounded-full blur-sm animate-float delay-500" />
             </div>
 
-            {/* Text */}
-            <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-            <p className="text-text-muted max-w-xs mb-8 leading-relaxed">{description}</p>
+            {/* Content Section */}
+            <div className="space-y-3 max-w-sm">
+                <h3 className="text-2xl font-bold text-text tracking-tight group-hover:text-primary transition-colors duration-500">{title}</h3>
+                <p className="text-text-muted leading-relaxed text-sm">
+                    {description}
+                </p>
+            </div>
 
             {/* Action Button */}
             {actionLabel && onAction && (
-                <button
-                    onClick={onAction}
-                    className={`
-                        font-bold py-2.5 px-6 rounded-xl flex items-center gap-2 transition-all transform hover:scale-105
-                        ${variant === 'primary'
-                            ? 'bg-primary hover:bg-primary/90 text-background shadow-[0_0_20px_rgba(19,185,165,0.2)]'
-                            : variant === 'secondary'
-                                ? 'bg-transparent hover:bg-white/5 border border-white/20 hover:border-white/40 text-white'
-                                : 'text-primary hover:text-primary/80 border-b border-primary/30 hover:border-primary pb-0.5 rounded-none'
-                        }
-                    `}
-                >
-                    {variant !== 'subtle' && <Plus className="size-5" />}
-                    {actionLabel}
-                </button>
+                <div className="mt-8 pt-4">
+                    <button
+                        onClick={onAction}
+                        className={`
+                            group/btn font-bold py-3 px-8 rounded-2xl flex items-center gap-2.5 transition-all transform hover:scale-105 active:scale-95 shadow-lg
+                            ${variant === 'primary'
+                                ? 'bg-primary text-black shadow-primary/25 hover:shadow-primary/40'
+                                : variant === 'secondary'
+                                    ? 'bg-surface/80 backdrop-blur-md border border-border text-text hover:bg-surface hover:border-border'
+                                    : 'text-primary hover:text-text border-b-2 border-primary/20 hover:border-primary pb-1 rounded-none shadow-none'
+                            }
+                        `}
+                    >
+                        {variant !== 'subtle' && (
+                            <div className="bg-black/10 rounded-full p-1 group-hover/btn:bg-black/20 transition-colors">
+                                <Plus weight="bold" className="size-4" />
+                            </div>
+                        )}
+                        <span className="tracking-wide uppercase text-xs">{actionLabel}</span>
+                    </button>
+                </div>
             )}
         </div>
     );
@@ -89,7 +105,7 @@ export function EmptyColumnState({ onAddTask }: { onAddTask?: () => void }) {
     return (
         <div className="flex flex-col items-center justify-center py-8 text-center opacity-60 hover:opacity-100 transition-opacity">
             <div className="relative mb-4">
-                <div className="absolute inset-0 border-2 border-dashed border-white/10 rounded-lg w-16 h-20 rotate-6" />
+                <div className="absolute inset-0 border-2 border-dashed border-border rounded-lg w-16 h-20 rotate-6" />
                 <ClipboardList className="size-12 text-text-muted relative z-10" />
             </div>
             <p className="text-text-muted text-sm mb-3">No tasks yet</p>
