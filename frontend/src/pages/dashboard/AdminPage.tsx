@@ -60,6 +60,21 @@ export function AdminPage() {
     // System Settings
     const [settings, setSettings] = useState<Record<string, string>>({});
     const [isSettingsLoading, setIsSettingsLoading] = useState(false);
+    const [smtpTestEmail, setSmtpTestEmail] = useState('');
+    const [isSmtpTesting, setIsSmtpTesting] = useState(false);
+
+    const formatBytes = (value: number | null | undefined) => {
+        if (value === null || value === undefined) return t('common.unknown');
+        if (value === 0) return '0 B';
+        const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        let size = value;
+        let index = 0;
+        while (size >= 1024 && index < units.length - 1) {
+            size /= 1024;
+            index += 1;
+        }
+        return `${size.toFixed(size >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
+    };
 
     useEffect(() => {
         if (currentUser?.role !== 'admin') {
@@ -80,6 +95,12 @@ export function AdminPage() {
         loadData();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser, activeTab, activityFilters.userId, activityFilters.action, activityFilters.startDate, activityFilters.endDate, page, userSearch, projectSearch]);
+
+    useEffect(() => {
+        if (!smtpTestEmail && currentUser?.email) {
+            setSmtpTestEmail(currentUser.email);
+        }
+    }, [currentUser?.email, smtpTestEmail]);
 
     const fetchSettings = async () => {
         setIsSettingsLoading(true);
@@ -102,6 +123,49 @@ export function AdminPage() {
             toast.success(t('admin.settings_updated', 'Settings updated successfully'));
         } catch {
             toast.error(t('admin.settings_update_failed', 'Failed to update settings'));
+        }
+    };
+
+    const handleTestSmtp = async () => {
+        const recipient = smtpTestEmail.trim();
+        if (!recipient) {
+            toast.error(t('admin.smtp_test_email_required', 'Please enter a test recipient email'));
+            return;
+        }
+
+        setIsSmtpTesting(true);
+        try {
+            const response = await adminApi.testSmtp(recipient);
+            if (response.success && response.data?.delivered) {
+                toast.success(response.message || t('admin.smtp_test_success', 'Test email sent successfully'));
+            } else if (response.success && response.data && !response.data.delivered) {
+                toast.error(response.message || t('admin.smtp_test_logged_only', 'SMTP test was logged only. Provider is not configured for real delivery.'));
+            } else {
+                toast.error(response.message || t('admin.smtp_test_failed', 'SMTP test failed'));
+            }
+        } catch (error) {
+            const apiError = error as { code?: string; response?: { status?: number; data?: { message?: string } } };
+            if (apiError.response?.status === 404) {
+                toast.error(t('admin.smtp_test_endpoint_missing', 'SMTP test endpoint is not available on backend. Please deploy latest backend.'));
+                return;
+            }
+            if (apiError.response?.status === 504) {
+                toast.error(
+                    apiError.response?.data?.message ||
+                    t('admin.smtp_test_timeout', 'SMTP test timed out. Try SMTP port 465 for Gmail and check network/firewall.')
+                );
+                return;
+            }
+            if (apiError.code === 'ECONNABORTED') {
+                toast.error(t('admin.smtp_test_timeout', 'SMTP test timed out. Try SMTP port 465 for Gmail and check network/firewall.'));
+                return;
+            }
+            toast.error(
+                apiError.response?.data?.message ||
+                t('admin.smtp_test_failed', 'SMTP test failed')
+            );
+        } finally {
+            setIsSmtpTesting(false);
         }
     };
 
@@ -317,7 +381,7 @@ export function AdminPage() {
     ] as const;
 
     return (
-        <div className="flex flex-col h-full min-h-0 overflow-hidden">
+        <div className="flex flex-col lg:h-full min-h-0 overflow-visible lg:overflow-hidden">
             <header className="flex-shrink-0 px-4 sm:px-6 py-5 sm:py-6 border-b border-border">
                 <div className="flex items-center gap-3">
                     <ShieldCheck className="size-8 text-primary" />
@@ -345,7 +409,7 @@ export function AdminPage() {
                 </div>
             </div>
 
-            <main className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-6">
+            <main className="p-4 sm:p-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto mobile-scroll">
                 {isLoading ? (
                     <div className="flex items-center justify-center h-48">
                         <Loader2 className="size-8 animate-spin text-primary" />
@@ -355,7 +419,7 @@ export function AdminPage() {
                         {activeTab === 'overview' && stats && platformStats && (
                             <div className="space-y-6">
                                 {/* Main Stats Row */}
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                                     <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
                                         <div className="p-3 bg-primary/10 rounded-xl">
                                             <Users className="size-7 text-primary" />
@@ -384,6 +448,20 @@ export function AdminPage() {
                                             <p className="text-text-muted text-sm">{t('admin.stats.total_tasks')}</p>
                                             <p className="text-2xl font-bold text-text">{stats.totalTasks}</p>
                                             <p className="text-xs text-green-500">{t('admin.stats.completed_today', { count: platformStats.tasks.completedToday })}</p>
+                                        </div>
+                                    </div>
+                                    <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
+                                        <div className="p-3 bg-purple-500/10 rounded-xl">
+                                            <Database className="size-7 text-purple-400" />
+                                        </div>
+                                        <div>
+                                            <p className="text-text-muted text-sm">{t('admin.stats.storage_used')}</p>
+                                            <p className="text-2xl font-bold text-text">{formatBytes(platformStats.storage.usedBytes)}</p>
+                                            <p className="text-xs text-text-muted">
+                                                {platformStats.storage.remainingBytes !== null
+                                                    ? t('admin.stats.storage_remaining', { value: formatBytes(platformStats.storage.remainingBytes) })
+                                                    : t('admin.stats.storage_no_quota')}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -668,7 +746,7 @@ export function AdminPage() {
                                                 <p className="truncate">{project.owner_email || t('common.no_email')}</p>
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-sm text-text">{project.task_count} tasks</span>
+                                                <span className="text-sm text-text">{t('admin.projects.task_count', { count: project.task_count })}</span>
                                                 <button
                                                     onClick={() => handleDeleteProject(project.id)}
                                                     disabled={actionLoading === project.id}
@@ -712,7 +790,7 @@ export function AdminPage() {
                                                         <p className="font-medium text-text text-sm">{project.owner_name || t('common.unknown')}</p>
                                                         <p className="text-xs text-text-muted truncate">{project.owner_email || t('common.no_email')}</p>
                                                     </td>
-                                                    <td className="px-6 py-4 text-text">{project.task_count}</td>
+                                                    <td className="px-6 py-4 text-text">{t('admin.projects.task_count', { count: project.task_count })}</td>
                                                     <td className="px-6 py-4 text-text-muted text-sm">
                                                         {new Date(project.created_at).toLocaleDateString()}
                                                     </td>
@@ -1060,6 +1138,24 @@ export function AdminPage() {
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                <div className="space-y-1.5 lg:col-span-3">
+                                                    <label className="text-xs font-medium text-text-muted ml-1">
+                                                        {t('admin.email_provider', 'Email Provider')}
+                                                    </label>
+                                                    <select
+                                                        value={settings.email_provider || 'smtp'}
+                                                        onChange={(e) => setSettings(prev => ({ ...prev, email_provider: e.target.value }))}
+                                                        className="glass-input w-full px-4 py-2 rounded-lg text-sm"
+                                                    >
+                                                        <option value="smtp">{t('admin.provider_smtp')}</option>
+                                                        <option value="resend">{t('admin.provider_resend')}</option>
+                                                    </select>
+                                                    <p className="text-xs text-text-muted">
+                                                        {(settings.email_provider || 'smtp') === 'smtp'
+                                                            ? t('admin.provider_smtp_hint')
+                                                            : t('admin.provider_resend_hint')}
+                                                    </p>
+                                                </div>
                                                 <div className="space-y-1.5">
                                                     <label className="text-xs font-medium text-text-muted ml-1">{t('admin.smtp_host', 'SMTP Host')}</label>
                                                     <input
@@ -1110,19 +1206,44 @@ export function AdminPage() {
                                                         placeholder="noreply@erakanban.com"
                                                     />
                                                 </div>
-                                                <div className="flex items-end">
-                                                    <button
-                                                        onClick={() => handleUpdateSettings({
-                                                            smtp_host: settings.smtp_host,
-                                                            smtp_port: settings.smtp_port,
-                                                            smtp_user: settings.smtp_user,
-                                                            smtp_pass: settings.smtp_pass,
-                                                            smtp_from: settings.smtp_from,
-                                                        })}
-                                                        className="w-full py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg text-sm font-bold transition-all"
-                                                    >
-                                                        {t('admin.save_smtp', 'Save SMTP Settings')}
-                                                    </button>
+                                                <div className="space-y-1.5 lg:col-span-3">
+                                                    <label className="text-xs font-medium text-text-muted ml-1">
+                                                        {t('admin.smtp_test_email', 'Test Recipient Email')}
+                                                    </label>
+                                                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-3">
+                                                        <input
+                                                            type="email"
+                                                            value={smtpTestEmail}
+                                                            onChange={(e) => setSmtpTestEmail(e.target.value)}
+                                                            className="glass-input w-full px-4 py-2 rounded-lg text-sm"
+                                                            placeholder="you@example.com"
+                                                        />
+                                                        <button
+                                                            onClick={() => handleUpdateSettings({
+                                                                email_provider: settings.email_provider || 'smtp',
+                                                                smtp_host: settings.smtp_host,
+                                                                smtp_port: settings.smtp_port,
+                                                                smtp_user: settings.smtp_user,
+                                                                smtp_pass: settings.smtp_pass,
+                                                                smtp_from: settings.smtp_from,
+                                                            })}
+                                                            className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 rounded-lg text-sm font-bold transition-all whitespace-nowrap"
+                                                        >
+                                                            {t('admin.save_smtp', 'Save SMTP Settings')}
+                                                        </button>
+                                                        <button
+                                                            onClick={handleTestSmtp}
+                                                            disabled={isSmtpTesting}
+                                                            className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 border border-blue-500/30 rounded-lg text-sm font-bold transition-all whitespace-nowrap disabled:opacity-60"
+                                                        >
+                                                            {isSmtpTesting
+                                                                ? t('admin.smtp_testing')
+                                                                : t('admin.smtp_test_button')}
+                                                        </button>
+                                                    </div>
+                                                    <p className="text-xs text-text-muted">
+                                                        {t('admin.smtp_test_hint')}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </div>

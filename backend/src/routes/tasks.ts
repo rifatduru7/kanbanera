@@ -170,6 +170,13 @@ taskRoutes.post('/', async (c) => {
             .bind(crypto.randomUUID(), project_id, taskId, userId, JSON.stringify({ title }))
             .run();
 
+        if (assignee_id && assignee_id !== userId) {
+            await c.env.DB.prepare(
+                `INSERT INTO notifications (id, user_id, type, title, message, link, metadata)
+                 VALUES (?, ?, 'task_assigned', ?, ?, ?, ?)`
+            ).bind(crypto.randomUUID(), assignee_id, 'task_assigned', `You have been assigned to task: ${title}`, `/projects/${project_id}`, JSON.stringify({ task_id: taskId, project_id })).run();
+        }
+
         const user = await c.env.DB.prepare('SELECT full_name as name FROM users WHERE id = ?').bind(userId).first<{ name: string }>();
 
         const task = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')
@@ -327,6 +334,13 @@ taskRoutes.put('/:id', async (c) => {
         )
             .bind(crypto.randomUUID(), task.project_id, taskId, userId, JSON.stringify({ changes: Object.keys(body) }))
             .run();
+
+        if (assignee_id && assignee_id !== task.assignee_id && assignee_id !== userId) {
+            await c.env.DB.prepare(
+                `INSERT INTO notifications (id, user_id, type, title, message, link, metadata)
+                 VALUES (?, ?, 'task_assigned', ?, ?, ?, ?)`
+            ).bind(crypto.randomUUID(), assignee_id, 'task_assigned', `You have been assigned to task: ${title || task.title}`, `/projects/${task.project_id}`, JSON.stringify({ task_id: taskId, project_id: task.project_id })).run();
+        }
 
         const updatedTask = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')
             .bind(taskId)

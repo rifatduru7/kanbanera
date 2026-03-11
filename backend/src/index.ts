@@ -15,6 +15,7 @@ import activitiesRoutes from './routes/activities';
 import searchRoutes from './routes/search';
 import { adminRoutes } from './routes/admin';
 import { webhookRoutes } from './routes/webhooks';
+import { notificationRoutes } from './routes/notifications';
 import { maintenanceMiddleware } from './middleware/maintenance';
 import { apiRateLimit, uploadRateLimit } from './middleware/rateLimit';
 
@@ -83,6 +84,7 @@ app.use('/api/metrics', apiRateLimit);
 app.use('/api/activities', apiRateLimit);
 app.use('/api/search', apiRateLimit);
 app.use('/api/admin/*', apiRateLimit);
+app.use('/api/notifications/*', apiRateLimit);
 
 // Upload rate limiting - stricter
 app.use('/api/attachments/*', uploadRateLimit);
@@ -99,6 +101,7 @@ app.route('/api/activities', activitiesRoutes);
 app.route('/api/search', searchRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/webhooks', webhookRoutes);
+app.route('/api/notifications', notificationRoutes);
 
 // 404 Handler
 app.notFound((c) => {

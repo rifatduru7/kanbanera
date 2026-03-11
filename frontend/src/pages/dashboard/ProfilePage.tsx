@@ -44,6 +44,7 @@ export function ProfilePage() {
     // 2FA States
     const [isSettingUp2FA, setIsSettingUp2FA] = useState(false);
     const [isEnabling2FA, setIsEnabling2FA] = useState(false);
+    const [isTogglingEmail2FA, setIsTogglingEmail2FA] = useState(false);
     const [show2FASetup, setShow2FASetup] = useState(false);
     const [twoFactorCode, setTwoFactorCode] = useState('');
     const [mfaSetupData, setMfaSetupData] = useState<{ qrCode: string; secret: string } | null>(null);
@@ -71,6 +72,15 @@ export function ProfilePage() {
                 ? raw.avatarUrl
                 : undefined;
         const twoFactorEnabled = raw.two_factor_enabled === 1 || raw.twoFactorEnabled === true;
+        const twoFactorMethod = raw.two_factor_method === 'email'
+            ? 'email'
+            : raw.two_factor_method === 'totp'
+                ? 'totp'
+                : raw.twoFactorMethod === 'email'
+                    ? 'email'
+                    : raw.twoFactorMethod === 'totp'
+                        ? 'totp'
+                        : null;
 
         return {
             id,
@@ -79,6 +89,7 @@ export function ProfilePage() {
             avatarUrl,
             role,
             twoFactorEnabled,
+            twoFactorMethod,
         };
     };
 
@@ -204,6 +215,40 @@ export function ProfilePage() {
             }
         } catch {
             toast.error('Failed to disable 2FA');
+        }
+    };
+
+    const handleEnableEmail2FA = async () => {
+        setIsTogglingEmail2FA(true);
+        try {
+            const response = await authApi.enableEmail2FA();
+            if (response.success && response.data) {
+                setUser(toAppUser(response.data.user));
+                toast.success(t('profile.email_2fa_enabled', 'Email-based 2FA enabled'));
+            } else {
+                toast.error(response.message || t('profile.email_2fa_enable_failed', 'Failed to enable email 2FA'));
+            }
+        } catch {
+            toast.error(t('profile.email_2fa_enable_failed', 'Failed to enable email 2FA'));
+        } finally {
+            setIsTogglingEmail2FA(false);
+        }
+    };
+
+    const handleDisableEmail2FA = async () => {
+        setIsTogglingEmail2FA(true);
+        try {
+            const response = await authApi.disableEmail2FA();
+            if (response.success && response.data) {
+                setUser(toAppUser(response.data.user));
+                toast.success(t('profile.email_2fa_disabled', 'Email-based 2FA disabled'));
+            } else {
+                toast.error(response.message || t('profile.email_2fa_disable_failed', 'Failed to disable email 2FA'));
+            }
+        } catch {
+            toast.error(t('profile.email_2fa_disable_failed', 'Failed to disable email 2FA'));
+        } finally {
+            setIsTogglingEmail2FA(false);
         }
     };
 
@@ -454,27 +499,56 @@ export function ProfilePage() {
                                                     ? t('profile.two_factor_enabled_desc')
                                                     : t('profile.two_factor_disabled_desc')}
                                             </p>
+                                            {user?.twoFactorEnabled && (
+                                                <p className="text-xs text-text-muted mt-1">
+                                                    {user.twoFactorMethod === 'email'
+                                                        ? t('profile.two_factor_method_email', 'Current method: Email code')
+                                                        : t('profile.two_factor_method_totp', 'Current method: Authenticator app')}
+                                                </p>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-3">
                                             {user?.twoFactorEnabled ? (
-                                                <button
-                                                    onClick={() => {
-                                                        const code = window.prompt(t('profile.enter_2fa_to_disable'));
-                                                        if (code) handleDisable2FA(code);
-                                                    }}
-                                                    className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
-                                                >
-                                                    {t('profile.disable')}
-                                                </button>
+                                                user.twoFactorMethod === 'email' ? (
+                                                    <button
+                                                        onClick={handleDisableEmail2FA}
+                                                        disabled={isTogglingEmail2FA}
+                                                        className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20 disabled:opacity-60"
+                                                    >
+                                                        {isTogglingEmail2FA
+                                                            ? t('profile.disabling', 'Disabling...')
+                                                            : t('profile.disable')}
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            const code = window.prompt(t('profile.enter_2fa_to_disable'));
+                                                            if (code) handleDisable2FA(code);
+                                                        }}
+                                                        className="rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-500/20"
+                                                    >
+                                                        {t('profile.disable')}
+                                                    </button>
+                                                )
                                             ) : (
-                                                <button
-                                                    onClick={handleSetup2FA}
-                                                    disabled={isSettingUp2FA}
-                                                    className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 flex items-center gap-2"
-                                                >
-                                                    {isSettingUp2FA && <Loader2 className="size-4 animate-spin" />}
-                                                    {t('profile.enable')}
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={handleSetup2FA}
+                                                        disabled={isSettingUp2FA}
+                                                        className="rounded-lg border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary hover:bg-primary/20 flex items-center gap-2"
+                                                    >
+                                                        {isSettingUp2FA && <Loader2 className="size-4 animate-spin" />}
+                                                        {t('profile.enable')}
+                                                    </button>
+                                                    <button
+                                                        onClick={handleEnableEmail2FA}
+                                                        disabled={isTogglingEmail2FA}
+                                                        className="rounded-lg border border-blue-500/20 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400 hover:bg-blue-500/20 flex items-center gap-2 disabled:opacity-60"
+                                                    >
+                                                        {isTogglingEmail2FA && <Loader2 className="size-4 animate-spin" />}
+                                                        {t('profile.enable_email_2fa', 'Enable Email 2FA')}
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </div>

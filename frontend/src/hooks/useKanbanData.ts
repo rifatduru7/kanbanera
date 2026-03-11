@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { projectsApi, tasksApi, columnsApi } from '../lib/api/client';
+import { projectsApi, tasksApi, columnsApi, notificationsApi } from '../lib/api/client';
 import type { TaskDetail } from '../types/task-detail';
 
 // Query keys
@@ -55,7 +55,7 @@ export function useCreateProject() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: { name: string; description?: string }) => {
+        mutationFn: async (data: { name: string; description?: string; color?: string }) => {
             const response = await projectsApi.createProject(data);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to create project');
@@ -73,7 +73,7 @@ export function useUpdateProject() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; is_archived?: boolean }) => {
+        mutationFn: async ({ id, ...data }: { id: string; name?: string; description?: string; is_archived?: boolean; color?: string }) => {
             const response = await projectsApi.updateProject(id, data);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to update project');
@@ -194,7 +194,7 @@ export function useUpdateTask(projectId: string) {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, ...data }: { id: string; title?: string; description?: string; priority?: string; due_date?: string; assignee_id?: string; labels?: string[] }) => {
+        mutationFn: async ({ id, ...data }: { id: string; title?: string; description?: string; priority?: string; due_date?: string | null; assignee_id?: string | null; labels?: string[] }) => {
             const response = await tasksApi.updateTask(id, data);
             if (!response.success) {
                 throw new Error(response.message || 'Failed to update task');
@@ -557,6 +557,55 @@ export function useUpdateIntegration(projectId: string) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: [...kanbanKeys.project(projectId), 'integrations'] });
+        },
+    });
+}
+
+// Notifications
+export function useNotifications() {
+    return useQuery({
+        queryKey: ['notifications'],
+        queryFn: async () => {
+            const response = await notificationsApi.getNotifications();
+            if (response.success && response.data) {
+                return response.data;
+            }
+            throw new Error(response.message || 'Failed to fetch notifications');
+        },
+        refetchInterval: 30000, // Poll every 30 seconds
+    });
+}
+
+export function useMarkNotificationRead() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const response = await notificationsApi.markAsRead(id);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to mark notification as read');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        },
+    });
+}
+
+export function useMarkAllNotificationsRead() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async () => {
+            const response = await notificationsApi.markAllAsRead();
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to mark all notifications as read');
+            }
+            return response;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
         },
     });
 }

@@ -50,7 +50,7 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         return `${task.subtaskCompleted || 0}/${task.subtaskCount}`;
     }, [task.subtaskCount, task.subtaskCompleted]);
 
-    const formatDueDate = (dateStr?: string) => {
+    const formatDueDate = (dateStr?: string | null) => {
         if (!dateStr) return null;
         const date = new Date(dateStr);
         const now = new Date();

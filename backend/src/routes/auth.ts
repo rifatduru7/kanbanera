@@ -23,6 +23,7 @@ interface TwoFactorUserRow {
     avatar_url: string | null;
     role: 'admin' | 'member';
     two_factor_enabled: number;
+    two_factor_method: 'totp' | 'email' | null;
 }
 
 // POST /api/auth/register
@@ -97,7 +98,7 @@ authRoutes.post('/register', async (c) => {
         setCookie(c, 'refresh_token', refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: 'Strict',
+            sameSite: 'None',
             maxAge: 60 * 60 * 24 * 7, // 7 days
             path: '/',
         });
@@ -161,22 +162,49 @@ authRoutes.post('/login', async (c) => {
         }
 
         // Check 2FA
-        const twoFactorResult = await c.env.DB.prepare('SELECT two_factor_enabled FROM users WHERE id = ?').bind(user.id).first<{ two_factor_enabled: number }>();
+        const twoFactorResult = await c.env.DB.prepare('SELECT two_factor_enabled, two_factor_method FROM users WHERE id = ?').bind(user.id).first<{ two_factor_enabled: number; two_factor_method: 'totp' | 'email' | null }>();
 
         if (twoFactorResult?.two_factor_enabled) {
+            const method = twoFactorResult.two_factor_method || 'totp';
+            let mfaCodeHash: string | undefined;
+            let mfaSentTo: string | undefined;
+
+            if (method === 'email') {
+                const code = generateMfaCode();
+                mfaCodeHash = await hashToken(code);
+                mfaSentTo = user.email;
+
+                try {
+                    const emailService = await getEmailService(c.env);
+                    await emailService.sendTwoFactorCodeEmail({
+                        to: user.email,
+                        name: user.full_name,
+                        code: code,
+                        expiresInMinutes: 5
+                    });
+                } catch (emailError) {
+                    console.error('Failed to send 2FA email:', emailError);
+                }
+            }
+
             // Generate a temporary MFA token (short-lived JWT)
             const mfaToken = await generateAccessToken(c.env.JWT_SECRET, {
                 sub: user.id,
                 email: user.email,
                 role: user.role,
-                mfa_pending: true
+                mfa_pending: true,
+                mfa_method: method as 'totp' | 'email',
+                mfa_code_hash: mfaCodeHash,
+                mfa_sent_to: mfaSentTo
             }, '5m');
 
             return c.json({
                 success: true,
                 data: {
                     mfa_required: true,
-                    mfa_token: mfaToken
+                    mfa_token: mfaToken,
+                    mfa_method: method,
+                    mfa_sent_to: mfaSentTo ? maskEmail(mfaSentTo) : undefined
                 }
             });
         }
@@ -194,7 +222,7 @@ authRoutes.post('/login', async (c) => {
         setCookie(c, 'refresh_token', refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: 'Strict',
+            sameSite: 'None',
             maxAge: 60 * 60 * 24 * 7,
             path: '/',
         });
@@ -239,25 +267,40 @@ authRoutes.post('/login/verify', async (c) => {
 
         const userId = payload.sub;
 
-        // Get user secret
+        // Get user for verification and tokens
         const user = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId).first<User>();
-        if (!user || !user.two_factor_secret) {
-            return c.json({ success: false, error: 'Unauthorized', message: '2FA not set up' }, 401);
+        if (!user) {
+            return c.json({ success: false, error: 'Unauthorized', message: 'User not found' }, 401);
         }
 
-        // Verify TOTP
-        const totp = new OTPAuth.TOTP({
-            issuer: 'ERA KANBAN',
-            label: user.email,
-            algorithm: 'SHA1',
-            digits: 6,
-            period: 30,
-            secret: user.two_factor_secret,
-        });
+        // Verify code
+        if (payload.mfa_method === 'email') {
+            if (!payload.mfa_code_hash) {
+                return c.json({ success: false, error: 'Unauthorized', message: 'Invalid MFA session' }, 401);
+            }
+            const providedCodeHash = await hashToken(code);
+            if (providedCodeHash !== payload.mfa_code_hash) {
+                return c.json({ success: false, error: 'Unauthorized', message: 'Invalid verification code' }, 401);
+            }
+        } else {
+            if (!user.two_factor_secret) {
+                return c.json({ success: false, error: 'Unauthorized', message: '2FA not set up' }, 401);
+            }
 
-        const delta = totp.validate({ token: code, window: 1 });
-        if (delta === null) {
-            return c.json({ success: false, error: 'Unauthorized', message: 'Invalid 2FA code' }, 401);
+            // Verify TOTP
+            const totp = new OTPAuth.TOTP({
+                issuer: 'ERA KANBAN',
+                label: user.email,
+                algorithm: 'SHA1',
+                digits: 6,
+                period: 30,
+                secret: user.two_factor_secret,
+            });
+
+            const delta = totp.validate({ token: code, window: 1 });
+            if (delta === null) {
+                return c.json({ success: false, error: 'Unauthorized', message: 'Invalid 2FA code' }, 401);
+            }
         }
 
         // Generate final tokens
@@ -272,7 +315,7 @@ authRoutes.post('/login/verify', async (c) => {
         setCookie(c, 'refresh_token', refreshToken, {
             httpOnly: true,
             secure: true,
-            sameSite: 'Strict',
+            sameSite: 'None',
             maxAge: 60 * 60 * 24 * 7,
             path: '/',
         });
@@ -449,13 +492,69 @@ authRoutes.post('/2fa/disable', async (c) => {
                     full_name: updatedUser.full_name,
                     avatar_url: updatedUser.avatar_url,
                     role: updatedUser.role,
-                    two_factor_enabled: updatedUser.two_factor_enabled === 1
+                    two_factor_enabled: updatedUser.two_factor_enabled === 1,
+                    two_factor_method: updatedUser.two_factor_method
                 }
             },
             message: 'Two-factor authentication disabled successfully'
         });
     } catch (error) {
         console.error('2FA disable error:', error);
+        return c.json({ success: false, error: 'Server Error' }, 500);
+    }
+});
+
+// Email 2FA Routes
+authRoutes.post('/2fa/email/enable', async (c) => {
+    const payload = await verifyAccessToken(c);
+    if (!payload) return c.json({ success: false, error: 'Unauthorized' }, 401);
+    const userId = payload.sub;
+
+    try {
+        await c.env.DB.prepare('UPDATE users SET two_factor_enabled = 1, two_factor_method = \'email\', updated_at = (datetime(\'now\')) WHERE id = ?')
+            .bind(userId)
+            .run();
+
+        const updatedUser = await c.env.DB.prepare('SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method FROM users WHERE id = ?')
+            .bind(userId)
+            .first<User>();
+
+        return c.json({
+            success: true,
+            data: {
+                user: updatedUser
+            },
+            message: 'Email-based two-factor authentication enabled successfully'
+        });
+    } catch (error) {
+        console.error('Email 2FA enable error:', error);
+        return c.json({ success: false, error: 'Server Error' }, 500);
+    }
+});
+
+authRoutes.post('/2fa/email/disable', async (c) => {
+    const payload = await verifyAccessToken(c);
+    if (!payload) return c.json({ success: false, error: 'Unauthorized' }, 401);
+    const userId = payload.sub;
+
+    try {
+        await c.env.DB.prepare('UPDATE users SET two_factor_enabled = 0, two_factor_method = NULL, updated_at = (datetime(\'now\')) WHERE id = ?')
+            .bind(userId)
+            .run();
+
+        const updatedUser = await c.env.DB.prepare('SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method FROM users WHERE id = ?')
+            .bind(userId)
+            .first<User>();
+
+        return c.json({
+            success: true,
+            data: {
+                user: updatedUser
+            },
+            message: 'Email-based two-factor authentication disabled successfully'
+        });
+    } catch (error) {
+        console.error('Email 2FA disable error:', error);
         return c.json({ success: false, error: 'Server Error' }, 500);
     }
 });
@@ -811,4 +910,18 @@ function resolveAppBaseUrl(appBaseUrl?: string): string {
     } catch {
         return fallbackUrl;
     }
+}
+
+function generateMfaCode(): string {
+    const bytes = new Uint8Array(3);
+    crypto.getRandomValues(bytes);
+    const code = (bytes[0] << 16 | bytes[1] << 8 | bytes[2]) % 1000000;
+    return code.toString().padStart(6, '0');
+}
+
+function maskEmail(email: string): string {
+    const [user, domain] = email.split('@');
+    if (!user || !domain) return email;
+    if (user.length <= 2) return `${user[0]}***@${domain}`;
+    return `${user[0]}${user[1]}***${user[user.length - 1]}@${domain}`;
 }

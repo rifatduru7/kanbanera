@@ -94,7 +94,7 @@ export async function optionalAuth(
 export async function generateAccessToken(
     secret: string,
     payload: Omit<JWTPayload, 'iat' | 'exp'>,
-    expiresIn: string = '15m'
+    expiresIn: string = '7d'
 ): Promise<string> {
     const secretKey = new TextEncoder().encode(secret);
 

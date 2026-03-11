@@ -13,9 +13,10 @@ interface ProjectSettingsModalProps {
         id: string;
         name: string;
         description?: string;
+        color?: string;
         isArchived?: boolean;
     };
-    onUpdate: (data: { name: string; description?: string; is_archived?: boolean }) => void;
+    onUpdate: (data: { name: string; description?: string; is_archived?: boolean; color?: string }) => void;
     onDelete: () => void;
     isUpdating?: boolean;
     isDeleting?: boolean;
@@ -32,6 +33,17 @@ interface ProjectMember {
     role: MemberRole;
 }
 
+const PROJECT_COLORS = [
+    { name: 'teal', value: '#14b8a6', className: 'bg-teal-500' },
+    { name: 'blue', value: '#3b82f6', className: 'bg-blue-500' },
+    { name: 'purple', value: '#8b5cf6', className: 'bg-purple-500' },
+    { name: 'pink', value: '#ec4899', className: 'bg-pink-500' },
+    { name: 'red', value: '#ef4444', className: 'bg-red-500' },
+    { name: 'orange', value: '#f97316', className: 'bg-orange-500' },
+    { name: 'yellow', value: '#eab308', className: 'bg-yellow-500' },
+    { name: 'green', value: '#22c55e', className: 'bg-green-500' },
+];
+
 export function ProjectSettingsModal({
     isOpen,
     onClose,
@@ -45,6 +57,7 @@ export function ProjectSettingsModal({
     const [activeTab, setActiveTab] = useState<'general' | 'members' | 'integrations'>('general');
     const [name, setName] = useState(project.name);
     const [description, setDescription] = useState(project.description || '');
+    const [selectedColor, setSelectedColor] = useState(project.color || '#14b8a6');
     const [isArchived, setIsArchived] = useState(project.isArchived || false);
 
     // Member invite state
@@ -65,7 +78,12 @@ export function ProjectSettingsModal({
     const handleGeneralSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) return;
-        onUpdate({ name: name.trim(), description: description.trim() || undefined, is_archived: isArchived });
+        onUpdate({
+            name: name.trim(),
+            description: description.trim() || undefined,
+            is_archived: isArchived,
+            color: selectedColor,
+        });
     };
 
     const handleInvite = async (e: React.FormEvent) => {
@@ -78,7 +96,7 @@ export function ProjectSettingsModal({
             setInviteEmail('');
             setInviteRole('member');
         } catch (err: unknown) {
-            setInviteError(err instanceof Error ? err.message : t('projects.settings.invite_failed', 'Failed to invite member'));
+            setInviteError(err instanceof Error ? err.message : t('projects.settings.invite_failed'));
         }
     };
 
@@ -176,6 +194,33 @@ export function ProjectSettingsModal({
                                     rows={3}
                                     disabled={!isAdmin}
                                 />
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-text-muted">
+                                    {t('projects.settings.color_label')}
+                                </label>
+                                <p className="text-xs text-text-muted">
+                                    {t('projects.settings.color_help')}
+                                </p>
+                                <div className="flex flex-wrap gap-3">
+                                    {PROJECT_COLORS.map((color) => (
+                                        <label key={color.name} className={`relative size-8 rounded-full ${isAdmin ? 'cursor-pointer' : 'cursor-not-allowed'}`}>
+                                            <input
+                                                type="radio"
+                                                name="project_color_settings"
+                                                value={color.value}
+                                                checked={selectedColor === color.value}
+                                                onChange={() => setSelectedColor(color.value)}
+                                                className="peer sr-only"
+                                                disabled={!isAdmin}
+                                            />
+                                            <span
+                                                className={`absolute inset-0 rounded-full ${color.className} ring-2 ring-transparent peer-checked:ring-offset-2 peer-checked:ring-offset-surface peer-checked:ring-primary transition-all duration-200 shadow-sm ${!isAdmin ? 'opacity-60' : ''}`}
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* Archive Project */}

@@ -255,6 +255,8 @@
         "general": "General",
         "members": "Members"
       },
+      "color_label": "Project Color",
+      "color_help": "Select a color used for project cards and highlights.",
       "status": "Project Status",
       "archive_project": "Archive Project",
       "archive_desc": "Archived projects are hidden from the active list but can be restored later.",
@@ -628,6 +630,65 @@
       "member": "Member",
       "viewer": "Viewer",
       "owner": "Owner"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome",
+      "title_name": "Welcome, {{name}}!",
+      "subtitle": "You're ready to manage projects at the speed of cloud.",
+      "features": {
+        "projects": {
+          "title": "Create Projects",
+          "description": "Organize your work with customizable Kanban boards"
+        },
+        "collaborate": {
+          "title": "Collaborate",
+          "description": "Invite team members and work together in real-time"
+        },
+        "organized": {
+          "title": "Stay Organized",
+          "description": "Track tasks, set priorities, and never miss a deadline"
+        }
+      },
+      "create_first": "Create Your First Project",
+      "explore": "I'll explore on my own"
+    },
+    "tour": {
+      "step": "Step {{step}} of {{total}}",
+      "cloudflare_opt": "Cloudflare Edge Optimized",
+      "meet": "Meet",
+      "meet_era": "Era Kanban",
+      "meet_desc": "A modern, serverless project management tool built for the Era Bulut ecosystem.",
+      "skip": "Skip",
+      "next": "Next",
+      "get_started": "Get Started",
+      "features": {
+        "management": {
+          "title": "Effortless Management",
+          "subtitle": "Drag-and-Drop Boards",
+          "description": "Visualize workflows seamlessly. Move tasks between stages with a fluid, native-feel interface.",
+          "tip": "Designed for speed and simplicity without sacrificing power."
+        },
+        "dashboard": {
+          "title": "Project Hub",
+          "subtitle": "Centralized Dashboard",
+          "description": "Monitor all your serverless projects from one centralized dashboard with real-time stats.",
+          "tip": "Get insights at a glance with our intuitive metrics."
+        },
+        "security": {
+          "title": "Secure by Default",
+          "subtitle": "JWT Authentication & R2 Storage",
+          "description": "JWT Authentication and encrypted R2 file storage ensure your data stays private.",
+          "tip": "Enterprise-grade security built into every layer."
+        },
+        "start": {
+          "title": "Ready to Start",
+          "subtitle": "Create Your First Project",
+          "description": "Your serverless workspace is ready. Start organizing your workflow with Era Kanban.",
+          "tip": "Create a project to get started!"
+        }
+      }
     }
   }
 }

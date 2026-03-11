@@ -1,7 +1,8 @@
-import { ArrowsClockwise as RefreshCw, Bell, List as Menu, CaretRight as ChevronRight, CheckCircle, MagnifyingGlass as Search, Command } from '@phosphor-icons/react';
+import { ArrowsClockwise as RefreshCw, List as Menu, CaretRight as ChevronRight, CheckCircle, MagnifyingGlass as Search, Command } from '@phosphor-icons/react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatedIcon } from '../ui/AnimatedIcon';
+import { NotificationDropdown } from './NotificationDropdown';
 
 interface HeaderProps {
     projectName?: string;
@@ -100,15 +101,9 @@ export function Header({
                 </div>
 
                 {/* Notifications */}
-                <button
-                    className="hidden sm:flex items-center justify-center size-11 sm:size-9 rounded-lg text-text-muted hover:text-text hover:bg-surface-alt transition-all"
-                    title={t('common.notifications', 'Notifications')}
-                >
-                    <div className="relative">
-                        <AnimatedIcon icon={Bell} animation="wiggle" className="size-5" />
-                        <span className="absolute -top-1 -right-1 size-2 bg-red-500 rounded-full border-2 border-surface" />
-                    </div>
-                </button>
+                <span className="hidden sm:inline-block">
+                    <NotificationDropdown />
+                </span>
 
                 {/* Refresh Button */}
                 <button

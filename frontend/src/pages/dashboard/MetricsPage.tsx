@@ -105,7 +105,7 @@ export function MetricsPage() {
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col lg:h-full min-h-0 overflow-visible lg:overflow-hidden">
             {/* Header */}
             <header className="flex-shrink-0 px-4 sm:px-6 py-5 sm:py-6 border-b border-border">
                 <div className="flex items-center gap-3">
@@ -118,7 +118,7 @@ export function MetricsPage() {
             </header>
 
             {/* Content */}
-            <div className="flex-1 p-4 sm:p-6 space-y-6 overflow-y-auto mobile-scroll">
+            <div className="p-4 sm:p-6 space-y-6 lg:flex-1 lg:min-h-0 lg:overflow-y-auto mobile-scroll">
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <StatCard

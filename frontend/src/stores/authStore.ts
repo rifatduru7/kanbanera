@@ -8,6 +8,7 @@ export interface AppUser {
     avatarUrl?: string;
     role: 'admin' | 'member';
     twoFactorEnabled: boolean;
+    twoFactorMethod?: 'totp' | 'email' | null;
 }
 
 interface AuthState {
@@ -17,11 +18,13 @@ interface AuthState {
     isLoading: boolean;
     mfaRequired: boolean;
     mfaToken: string | null;
+    mfaMethod: 'totp' | 'email' | null;
+    mfaSentTo: string | null;
 
     setUser: (user: AppUser | null) => void;
     setAccessToken: (token: string | null) => void;
     setLoading: (loading: boolean) => void;
-    setMfaRequired: (required: boolean, token?: string | null) => void;
+    setMfaRequired: (required: boolean, token?: string | null, method?: 'totp' | 'email' | null, sentTo?: string | null) => void;
     logout: () => void;
 }
 
@@ -34,6 +37,8 @@ export const useAuthStore = create<AuthState>()(
             isLoading: true,
             mfaRequired: false,
             mfaToken: null,
+            mfaMethod: null,
+            mfaSentTo: null,
 
             setUser: (user) =>
                 set({
@@ -41,6 +46,8 @@ export const useAuthStore = create<AuthState>()(
                     isAuthenticated: !!user,
                     mfaRequired: false,
                     mfaToken: null,
+                    mfaMethod: null,
+                    mfaSentTo: null,
                 }),
 
             setAccessToken: (accessToken) =>
@@ -49,8 +56,8 @@ export const useAuthStore = create<AuthState>()(
             setLoading: (isLoading) =>
                 set({ isLoading }),
 
-            setMfaRequired: (mfaRequired, mfaToken = null) =>
-                set({ mfaRequired, mfaToken }),
+            setMfaRequired: (mfaRequired, mfaToken = null, mfaMethod = null, mfaSentTo = null) =>
+                set({ mfaRequired, mfaToken, mfaMethod, mfaSentTo }),
 
             logout: () =>
                 set({
@@ -59,6 +66,8 @@ export const useAuthStore = create<AuthState>()(
                     isAuthenticated: false,
                     mfaRequired: false,
                     mfaToken: null,
+                    mfaMethod: null,
+                    mfaSentTo: null,
                 }),
         }),
         {

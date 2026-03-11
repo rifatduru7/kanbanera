@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Board } from '../../components/kanban/Board';
 import { TaskModal } from '../../components/kanban/TaskModal';
 import { Funnel as Filter, CircleNotch as Loader2, WarningCircle as AlertCircle, Kanban as FolderKanban, CaretDown as ChevronDown } from '@phosphor-icons/react';
@@ -19,6 +19,7 @@ interface ProjectOption {
     id: string;
     name: string;
     description?: string;
+    color?: string | null;
     is_archived?: number;
 }
 
@@ -109,8 +110,8 @@ interface ProjectDataShape {
 
 export function BoardPage() {
     const { t } = useTranslation();
-    // Selected project state
-    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const queryProjectId = searchParams.get('project');
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<TaskDetail | null>(null);
     const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
@@ -130,7 +131,22 @@ export function BoardPage() {
         () => (projectsData?.projects ?? []) as ProjectOption[],
         [projectsData?.projects]
     );
-    const effectiveProjectId = selectedProjectId || projects[0]?.id || '';
+    const effectiveProjectId = useMemo(() => {
+        const validQuery = queryProjectId && projects.some((project) => project.id === queryProjectId)
+            ? queryProjectId
+            : null;
+        if (validQuery) return validQuery;
+
+        return projects[0]?.id || '';
+    }, [projects, queryProjectId]);
+
+    useEffect(() => {
+        if (!effectiveProjectId) return;
+        if (searchParams.get('project') === effectiveProjectId) return;
+        const next = new URLSearchParams(searchParams);
+        next.set('project', effectiveProjectId);
+        setSearchParams(next, { replace: true });
+    }, [effectiveProjectId, searchParams, setSearchParams]);
 
     // Fetch board data for selected project
     const { data: rawProjectData, isLoading: isLoadingBoard, error: boardError } = useProject(effectiveProjectId);
@@ -286,11 +302,29 @@ export function BoardPage() {
                 title: updates.title,
                 description: updates.description,
                 priority: updates.priority,
-                due_date: updates.dueDate,
-                assignee_id: updates.assigneeId,
+                due_date: updates.dueDate === undefined ? undefined : (updates.dueDate || null),
+                assignee_id: updates.assigneeId === undefined ? undefined : (updates.assigneeId || null),
                 labels: updates.labels,
             });
-            setSelectedTask(prev => prev ? { ...prev, ...updates } : null);
+            setSelectedTask((prev) => {
+                if (!prev) return null;
+
+                let nextAssigneeName = updates.assigneeName;
+                if (updates.assigneeId !== undefined && updates.assigneeName === undefined) {
+                    if (!updates.assigneeId) {
+                        nextAssigneeName = null;
+                    } else {
+                        const matchedMember = (projectData?.members || []).find((m) => m.user_id === updates.assigneeId);
+                        nextAssigneeName = matchedMember?.full_name || null;
+                    }
+                }
+
+                return {
+                    ...prev,
+                    ...updates,
+                    ...(nextAssigneeName !== undefined ? { assigneeName: nextAssigneeName } : {}),
+                };
+            });
         }
     };
 
@@ -457,7 +491,7 @@ export function BoardPage() {
     }
 
     return (
-        <div className="flex flex-col gap-6 md:gap-8 h-full">
+        <div className="flex flex-col gap-6 md:gap-8 lg:h-full">
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
                 <div className="flex flex-col gap-2">
@@ -485,10 +519,12 @@ export function BoardPage() {
                                     <button
                                         key={project.id}
                                         onClick={() => {
-                                            setSelectedProjectId(project.id);
+                                            const next = new URLSearchParams(searchParams);
+                                            next.set('project', project.id);
+                                            setSearchParams(next, { replace: true });
                                             setIsProjectDropdownOpen(false);
                                         }}
-                                        className={`w-full text-left px-4 py-3 hover:bg-surface-alt transition-colors ${project.id === selectedProjectId ? 'bg-primary/10 text-primary' : 'text-white'
+                                        className={`w-full text-left px-4 py-3 hover:bg-surface-alt transition-colors ${project.id === effectiveProjectId ? 'bg-primary/10 text-primary' : 'text-white'
                                             }`}
                                     >
                                         <p className="font-medium">{project.name}</p>
@@ -646,6 +682,7 @@ export function BoardPage() {
                         id: selectedProject.id,
                         name: selectedProject.name,
                         description: selectedProject.description,
+                        color: selectedProject.color ?? undefined,
                         isArchived: Boolean(selectedProject.is_archived)
                     }}
                     onUpdate={(data) => {
@@ -660,9 +697,10 @@ export function BoardPage() {
                                 // Set another project if available, or clear
                                 const nextProject = projects.find((p) => p.id !== selectedProject.id);
                                 if (nextProject) {
-                                    setSelectedProjectId(nextProject.id);
+                                    const next = new URLSearchParams(searchParams);
+                                    next.set('project', nextProject.id);
+                                    setSearchParams(next, { replace: true });
                                 } else {
-                                    setSelectedProjectId(null);
                                     window.location.href = '/projects';
                                 }
                             }

@@ -84,6 +84,7 @@ export interface ApiUser {
     avatar_url?: string | null;
     role: 'admin' | 'member';
     two_factor_enabled?: number;
+    two_factor_method?: 'totp' | 'email' | null;
 }
 
 interface AuthPayload {
@@ -91,6 +92,8 @@ interface AuthPayload {
     accessToken?: string;
     mfa_required?: boolean;
     mfa_token?: string;
+    mfa_method?: 'totp' | 'email';
+    mfa_sent_to?: string;
 }
 
 function mapApiUser(user: ApiUser): AppUser {
@@ -101,6 +104,7 @@ function mapApiUser(user: ApiUser): AppUser {
         avatarUrl: user.avatar_url ?? undefined,
         role: user.role,
         twoFactorEnabled: !!user.two_factor_enabled,
+        twoFactorMethod: user.two_factor_method ?? null,
     };
 }
 
@@ -199,12 +203,19 @@ export const authApi = {
         const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/login', { email, password });
         const payload = response.data;
         if (payload.success && payload.data) {
-            if (payload.data.mfa_required) {
+            const hasMfaChallenge = Boolean(
+                payload.data.mfa_required ||
+                payload.data.mfa_token
+            );
+
+            if (hasMfaChallenge) {
                 return {
                     success: true,
                     data: {
                         mfa_required: true,
                         mfa_token: payload.data.mfa_token,
+                        mfa_method: payload.data.mfa_method,
+                        mfa_sent_to: payload.data.mfa_sent_to,
                     },
                 } as ApiResponse<AuthPayload & { mfa_required: true }>;
             }
@@ -318,6 +329,16 @@ export const authApi = {
         return response.data;
     },
 
+    enableEmail2FA: async (): Promise<ApiResponse<AuthPayload>> => {
+        const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/2fa/email/enable');
+        return response.data;
+    },
+
+    disableEmail2FA: async (): Promise<ApiResponse<AuthPayload>> => {
+        const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/2fa/email/disable');
+        return response.data;
+    },
+
     forgotPassword: async (email: string) => {
         const response = await api.post<ApiResponse<{ success: true }>>('/api/auth/forgot-password', { email });
         return response.data;
@@ -342,12 +363,12 @@ export const projectsApi = {
         return response.data;
     },
 
-    createProject: async (data: { name: string; description?: string }) => {
+    createProject: async (data: { name: string; description?: string; color?: string }) => {
         const response = await api.post<ApiResponse<{ project: ApiProject }>>('/api/projects', data);
         return response.data;
     },
 
-    updateProject: async (id: string, data: Partial<{ name: string; description: string; is_archived: boolean }>) => {
+    updateProject: async (id: string, data: Partial<{ name: string; description: string; is_archived: boolean; color: string }>) => {
         const response = await api.put<ApiResponse<{ project: ApiProject }>>(`/api/projects/${id}`, data);
         return response.data;
     },
@@ -410,7 +431,7 @@ export const tasksApi = {
         return response.data;
     },
 
-    updateTask: async (id: string, data: Partial<{ title: string; description: string; priority: string; due_date: string; assignee_id: string; labels: string[] }>) => {
+    updateTask: async (id: string, data: Partial<{ title: string; description: string; priority: string; due_date: string | null; assignee_id: string | null; labels: string[] }>) => {
         const response = await api.put<ApiResponse<{ task: ApiTask }>>(`/api/tasks/${id}`, data);
         return response.data;
     },
@@ -672,6 +693,17 @@ export interface PlatformStats {
         name: string;
         activityCount: number;
     }[];
+    storage: {
+        provider: 'b2';
+        bucket: string;
+        configured: boolean;
+        totalFiles: number;
+        usedBytes: number;
+        quotaBytes: number | null;
+        remainingBytes: number | null;
+        usagePercent: number | null;
+        lastUploadAt: string | null;
+    };
 }
 
 export interface SystemStats {
@@ -817,6 +849,44 @@ export const adminApi = {
 
     updateSettings: async (settings: Record<string, string>) => {
         const response = await api.put<ApiResponse<null>>('/api/admin/settings', settings);
+        return response.data;
+    },
+
+    testSmtp: async (to: string) => {
+        const response = await api.post<ApiResponse<{ provider: string; delivered: boolean; to: string }>>(
+            '/api/admin/settings/smtp/test',
+            { to },
+            { timeout: 15000 }
+        );
+        return response.data;
+    },
+};
+
+export interface ApiNotification {
+    id: string;
+    user_id: string;
+    type: 'project_invite' | 'task_assigned' | 'task_mentioned' | 'system';
+    title: string;
+    message: string;
+    link?: string;
+    metadata?: Record<string, unknown>;
+    is_read: boolean;
+    created_at: string;
+}
+
+export const notificationsApi = {
+    getNotifications: async () => {
+        const response = await api.get<ApiResponse<ApiNotification[]>>('/api/notifications');
+        return response.data;
+    },
+
+    markAsRead: async (id: string) => {
+        const response = await api.put<ApiResponse<null>>(`/api/notifications/${id}/read`);
+        return response.data;
+    },
+
+    markAllAsRead: async () => {
+        const response = await api.put<ApiResponse<null>>('/api/notifications/read-all');
         return response.data;
     },
 };

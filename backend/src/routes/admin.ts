@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
+import { getEmailProviderStatus, getEmailService } from '../services/email/getEmailService';
 
 export const adminRoutes = new Hono<{ Bindings: Env }>();
 
@@ -10,12 +11,17 @@ const ALLOWED_SETTING_KEYS = new Set([
     'maintenance_mode',
     'allow_registration',
     'default_user_role',
+    'email_provider',
     'smtp_host',
     'smtp_port',
     'smtp_user',
     'smtp_pass',
     'smtp_from',
+    'slack_webhook_url',
+    'telegram_bot_token',
+    'telegram_chat_id',
 ]);
+const SMTP_TEST_TIMEOUT_MS = 12_000;
 
 function sanitizeCsvValue(value: unknown): string {
     const raw = String(value ?? '');
@@ -43,6 +49,11 @@ function normalizeSettingValue(key: string, value: unknown): string | null {
         return null;
     }
 
+    if (key === 'email_provider') {
+        if (value === 'smtp' || value === 'resend') return String(value);
+        return null;
+    }
+
     if (key === 'smtp_port') {
         if (value === '' || value === null) return '';
         const port = Number(value);
@@ -58,6 +69,22 @@ function normalizeSettingValue(key: string, value: unknown): string | null {
     }
 
     return String(value ?? '').trim();
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+    return new Promise<T>((resolve, reject) => {
+        const timeout = setTimeout(() => reject(new Error(message)), timeoutMs);
+
+        promise
+            .then((value) => {
+                clearTimeout(timeout);
+                resolve(value);
+            })
+            .catch((error) => {
+                clearTimeout(timeout);
+                reject(error);
+            });
+    });
 }
 
 interface SystemStatsRow {
@@ -105,6 +132,29 @@ interface AdminProjectsExportRow {
     owner_email: string | null;
     owner_name: string | null;
     task_count: number;
+}
+
+interface SmtpSettingRow {
+    key: string;
+    value: string;
+}
+
+interface AttachmentStorageStatsRow {
+    total_files: number;
+    total_bytes: number | null;
+    last_upload_at: string | null;
+}
+
+function isValidEmail(value: string): boolean {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+async function getSmtpSettings(env: Env): Promise<Record<string, string>> {
+    const { results } = await env.DB.prepare('SELECT key, value FROM system_settings WHERE key LIKE "smtp_%"').all<SmtpSettingRow>();
+    return (results || []).reduce<Record<string, string>>((acc, row) => {
+        acc[row.key] = row.value;
+        return acc;
+    }, {});
 }
 
 adminRoutes.get('/stats', async (c) => {
@@ -161,10 +211,17 @@ adminRoutes.get('/stats/platform', async (c) => {
 
     try {
         // Total counts
-        const [userCount, projectCount, taskCount] = await Promise.all([
+        const [userCount, projectCount, taskCount, attachmentStats] = await Promise.all([
             c.env.DB.prepare('SELECT COUNT(*) as count FROM users').first<{ count: number }>(),
             c.env.DB.prepare('SELECT COUNT(*) as count FROM projects').first<{ count: number }>(),
             c.env.DB.prepare('SELECT COUNT(*) as count FROM tasks').first<{ count: number }>(),
+            c.env.DB.prepare(`
+                SELECT
+                    COUNT(*) as total_files,
+                    COALESCE(SUM(COALESCE(file_size, 0)), 0) as total_bytes,
+                    MAX(created_at) as last_upload_at
+                FROM attachments
+            `).first<AttachmentStorageStatsRow>(),
         ]);
 
         // User growth - new users in last 30 days
@@ -234,6 +291,18 @@ adminRoutes.get('/stats/platform', async (c) => {
             WHERE created_at >= datetime('now', '-7 days')
         `).first<{ count: number }>();
 
+        const usedBytes = Number(attachmentStats?.total_bytes || 0);
+        const totalFiles = Number(attachmentStats?.total_files || 0);
+        const lastUploadAt = attachmentStats?.last_upload_at || null;
+
+        const quotaGb = Number(c.env.B2_STORAGE_QUOTA_GB || '');
+        const hasQuota = Number.isFinite(quotaGb) && quotaGb > 0;
+        const quotaBytes = hasQuota ? Math.floor(quotaGb * 1024 * 1024 * 1024) : null;
+        const remainingBytes = quotaBytes !== null ? Math.max(quotaBytes - usedBytes, 0) : null;
+        const usagePercent = quotaBytes !== null && quotaBytes > 0
+            ? Math.min(100, Math.round((usedBytes / quotaBytes) * 1000) / 10)
+            : null;
+
         return c.json({
             success: true,
             data: {
@@ -269,6 +338,17 @@ adminRoutes.get('/stats/platform', async (c) => {
                     name: p.name,
                     activityCount: Number(p.activity_count),
                 })),
+                storage: {
+                    provider: 'b2',
+                    bucket: c.env.B2_BUCKET_NAME,
+                    configured: Boolean(c.env.B2_BUCKET_NAME && c.env.B2_ENDPOINT && c.env.B2_KEY_ID && c.env.B2_APP_KEY),
+                    totalFiles,
+                    usedBytes,
+                    quotaBytes,
+                    remainingBytes,
+                    usagePercent,
+                    lastUploadAt,
+                },
             },
         });
     } catch (error) {
@@ -534,9 +614,48 @@ adminRoutes.delete('/users/:id', async (c) => {
             );
         }
 
-        await c.env.DB.prepare('DELETE FROM users WHERE id = ?')
+        // Get projects owned by user to delete them and their dependencies
+        const userProjects = await c.env.DB.prepare('SELECT id FROM projects WHERE owner_id = ?')
             .bind(targetUserId)
-            .run();
+            .all<{ id: string }>();
+        const projectIds = userProjects.results?.map(p => p.id) || [];
+
+        const batch = [];
+
+        // 1. Clean up dependencies for projects owned by the user
+        for (const projectId of projectIds) {
+            batch.push(c.env.DB.prepare('DELETE FROM activity_log WHERE project_id = ?').bind(projectId));
+            batch.push(c.env.DB.prepare('DELETE FROM tasks WHERE project_id = ?').bind(projectId));
+            batch.push(c.env.DB.prepare('DELETE FROM project_members WHERE project_id = ?').bind(projectId));
+            batch.push(c.env.DB.prepare('DELETE FROM integrations WHERE project_id = ?').bind(projectId));
+            batch.push(c.env.DB.prepare('DELETE FROM projects WHERE id = ?').bind(projectId));
+        }
+
+        // 2. Global user cleanup
+        // Remove from other projects
+        batch.push(c.env.DB.prepare('DELETE FROM project_members WHERE user_id = ?').bind(targetUserId));
+
+        // Remove preferences and notifications
+        batch.push(c.env.DB.prepare('DELETE FROM user_preferences WHERE user_id = ?').bind(targetUserId));
+        batch.push(c.env.DB.prepare('DELETE FROM notifications WHERE user_id = ?').bind(targetUserId));
+        batch.push(c.env.DB.prepare('DELETE FROM password_reset_tokens WHERE user_id = ?').bind(targetUserId));
+
+        // Remove interactions
+        batch.push(c.env.DB.prepare('DELETE FROM comments WHERE user_id = ?').bind(targetUserId));
+        batch.push(c.env.DB.prepare('DELETE FROM attachments WHERE user_id = ?').bind(targetUserId));
+        batch.push(c.env.DB.prepare('DELETE FROM activity_log WHERE user_id = ?').bind(targetUserId));
+
+        // Handle tasks: reassign or delete. 
+        // Setting assignee_id to NULL for tasks assigned to them.
+        batch.push(c.env.DB.prepare('UPDATE tasks SET assignee_id = NULL WHERE assignee_id = ?').bind(targetUserId));
+
+        // Deleting tasks created by them in other people's projects to avoid foreign key violations.
+        batch.push(c.env.DB.prepare('DELETE FROM tasks WHERE created_by = ?').bind(targetUserId));
+
+        // 3. Finally delete the user
+        batch.push(c.env.DB.prepare('DELETE FROM users WHERE id = ?').bind(targetUserId));
+
+        await c.env.DB.batch(batch);
 
         return c.json({
             success: true,
@@ -870,6 +989,99 @@ adminRoutes.get('/projects/export', async (c) => {
     }
 });
 
+// Test SMTP configuration by sending a test email
+adminRoutes.post('/settings/smtp/test', async (c) => {
+    const user = c.get('user');
+    if (user.role !== 'admin') return c.json({ success: false, error: 'Forbidden' }, 403);
+
+    try {
+        let body: { to?: string } = {};
+        try {
+            body = await c.req.json<{ to?: string }>();
+        } catch {
+            body = {};
+        }
+
+        const recipient = String(body.to || user.email || '').trim().toLowerCase();
+        if (!recipient || !isValidEmail(recipient)) {
+            return c.json({ success: false, message: 'A valid recipient email is required for SMTP test.' }, 400);
+        }
+
+        const providerStatus = await getEmailProviderStatus(c.env);
+
+        if (providerStatus.configuredProvider === 'smtp') {
+            const smtpSettings = await getSmtpSettings(c.env);
+            const requiredSmtpKeys = ['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_from'] as const;
+            const missingKeys = requiredSmtpKeys.filter((key) => !smtpSettings[key]?.trim());
+
+            if (missingKeys.length > 0) {
+                return c.json(
+                    {
+                        success: false,
+                        message: `SMTP settings are incomplete. Missing: ${missingKeys.join(', ')}`,
+                    },
+                    400
+                );
+            }
+        } else if (!c.env.RESEND_API_KEY || !c.env.EMAIL_FROM) {
+            return c.json(
+                {
+                    success: false,
+                    message: 'Provider is set to Resend, but RESEND_API_KEY or EMAIL_FROM is missing.',
+                },
+                400
+            );
+        }
+
+        const emailService = await getEmailService(c.env);
+        const baseUrl = (c.env.APP_BASE_URL || 'http://localhost:5173').replace(/\/$/, '');
+        try {
+            await withTimeout(
+                emailService.sendPasswordResetEmail({
+                    to: recipient,
+                    name: 'Admin',
+                    resetLink: `${baseUrl}/reset-password?token=smtp-test`,
+                    expiresInMinutes: 30,
+                }),
+                SMTP_TEST_TIMEOUT_MS,
+                'SMTP test timed out'
+            );
+        } catch (sendError) {
+            if (sendError instanceof Error && sendError.message === 'SMTP test timed out') {
+                return c.json(
+                    {
+                        success: false,
+                        message: 'SMTP test timed out. Verify host/port/firewall and try SMTP port 465 for Gmail.',
+                    },
+                    504
+                );
+            }
+            throw sendError;
+        }
+
+        if (providerStatus.activeProvider === 'log') {
+            return c.json(
+                {
+                    success: false,
+                    message: providerStatus.reason || 'No active email delivery provider is configured.',
+                    data: { provider: 'log', delivered: false, to: recipient },
+                },
+                400
+            );
+        }
+
+        return c.json({
+            success: true,
+            message: `Test email sent to ${recipient}`,
+            data: { provider: providerStatus.activeProvider, delivered: true, to: recipient },
+        });
+    } catch (error) {
+        console.error('SMTP test error:', error);
+        const message = error instanceof Error ? error.message : 'Failed to send test email';
+        return c.json({ success: false, message }, 500);
+    }
+});
+
 // Get System Settings
 adminRoutes.get('/settings', async (c) => {
     const user = c.get('user');
@@ -887,11 +1099,15 @@ adminRoutes.get('/settings', async (c) => {
             maintenance_mode: 'false',
             allow_registration: 'true',
             default_user_role: 'member',
+            email_provider: 'smtp',
             smtp_host: '',
             smtp_port: '',
             smtp_user: '',
             smtp_pass: '',
-            smtp_from: ''
+            smtp_from: '',
+            slack_webhook_url: '',
+            telegram_bot_token: '',
+            telegram_chat_id: '',
         };
 
         return c.json({

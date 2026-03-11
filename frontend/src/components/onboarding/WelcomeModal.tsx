@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Kanban, FolderPlus, Users, Sparkle as Sparkles, ArrowRight, CheckCircle } from '@phosphor-icons/react';
 
 interface WelcomeModalProps {
@@ -10,22 +11,23 @@ interface WelcomeModalProps {
 const FEATURES = [
     {
         icon: FolderPlus,
-        title: 'Create Projects',
-        description: 'Organize your work with customizable Kanban boards',
+        titleKey: 'onboarding.welcome.features.projects.title',
+        descriptionKey: 'onboarding.welcome.features.projects.description',
     },
     {
         icon: Users,
-        title: 'Collaborate',
-        description: 'Invite team members and work together in real-time',
+        titleKey: 'onboarding.welcome.features.collaborate.title',
+        descriptionKey: 'onboarding.welcome.features.collaborate.description',
     },
     {
         icon: Sparkles,
-        title: 'Stay Organized',
-        description: 'Track tasks, set priorities, and never miss a deadline',
+        titleKey: 'onboarding.welcome.features.organized.title',
+        descriptionKey: 'onboarding.welcome.features.organized.description',
     },
 ];
 
 export function WelcomeModal({ userName, onClose, onCreateProject }: WelcomeModalProps) {
+    const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
 
     const handleGetStarted = () => {
@@ -55,10 +57,10 @@ export function WelcomeModal({ userName, onClose, onCreateProject }: WelcomeModa
                     </div>
 
                     <h1 className="text-3xl font-bold text-text mb-2">
-                        Welcome{userName ? `, ${userName}` : ''}!
+                        {userName ? t('onboarding.welcome.title_name', { name: userName }) : t('onboarding.welcome.title')}
                     </h1>
                     <p className="text-text-muted">
-                        You're ready to manage projects at the speed of cloud.
+                        {t('onboarding.welcome.subtitle')}
                     </p>
                 </div>
 
@@ -69,7 +71,7 @@ export function WelcomeModal({ userName, onClose, onCreateProject }: WelcomeModa
 
                         return (
                             <div
-                                key={feature.title}
+                                key={feature.titleKey}
                                 className={`flex items-start gap-4 p-4 rounded-xl transition-all duration-300 ${isActive ? 'bg-surface-alt border border-primary/20' : 'bg-transparent border border-transparent'}`}
                                 onMouseEnter={() => setCurrentStep(index)}
                             >
@@ -78,9 +80,9 @@ export function WelcomeModal({ userName, onClose, onCreateProject }: WelcomeModa
                                 </div>
                                 <div className="flex-1">
                                     <h3 className={`font-semibold mb-0.5 transition-colors ${isActive ? 'text-text' : 'text-text-muted'}`}>
-                                        {feature.title}
+                                        {t(feature.titleKey)}
                                     </h3>
-                                    <p className="text-text-muted text-sm">{feature.description}</p>
+                                    <p className="text-text-muted text-sm">{t(feature.descriptionKey)}</p>
                                 </div>
                                 {isActive && (
                                     <CheckCircle className="size-5 text-primary shrink-0" />
@@ -95,14 +97,14 @@ export function WelcomeModal({ userName, onClose, onCreateProject }: WelcomeModa
                         onClick={handleGetStarted}
                         className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2 group"
                     >
-                        Create Your First Project
+                        {t('onboarding.welcome.create_first')}
                         <ArrowRight className="size-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <button
                         onClick={onClose}
                         className="w-full mt-3 text-center text-text-muted text-sm hover:text-text transition-colors"
                     >
-                        I'll explore on my own
+                        {t('onboarding.welcome.explore')}
                     </button>
                 </div>
             </div>

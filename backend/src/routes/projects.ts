@@ -14,6 +14,26 @@ interface IntegrationRow {
     is_active: number;
 }
 
+const PROJECT_COLOR_PALETTE = new Set([
+    '#14b8a6',
+    '#3b82f6',
+    '#8b5cf6',
+    '#ec4899',
+    '#ef4444',
+    '#f97316',
+    '#eab308',
+    '#22c55e',
+]);
+
+function normalizeProjectColor(input: unknown): string {
+    if (typeof input !== 'string') return '#14b8a6';
+    const normalized = input.trim().toLowerCase();
+    if (!PROJECT_COLOR_PALETTE.has(normalized)) {
+        return '#14b8a6';
+    }
+    return normalized;
+}
+
 // GET /api/projects - List user's projects
 projectRoutes.get('/', async (c) => {
     const userId = c.get('userId');
@@ -51,7 +71,7 @@ projectRoutes.post('/', async (c) => {
 
     try {
         const body = await c.req.json();
-        const { name, description } = body;
+        const { name, description, color } = body;
 
         if (!name || name.trim().length === 0) {
             return c.json(
@@ -60,14 +80,16 @@ projectRoutes.post('/', async (c) => {
             );
         }
 
+        const projectColor = normalizeProjectColor(color);
+
         const projectId = crypto.randomUUID();
 
         // Create project
         await c.env.DB.prepare(
-            `INSERT INTO projects (id, name, description, owner_id)
-       VALUES (?, ?, ?, ?)`
+            `INSERT INTO projects (id, name, description, owner_id, color)
+       VALUES (?, ?, ?, ?, ?)`
         )
-            .bind(projectId, name.trim(), description || null, userId)
+            .bind(projectId, name.trim(), description || null, userId, projectColor)
             .run();
 
         // Add owner as project member
@@ -259,17 +281,29 @@ projectRoutes.put('/:id', async (c) => {
         }
 
         const body = await c.req.json();
-        const { name, description, is_archived } = body;
+        const { name, description, is_archived, color } = body;
+        let nextColor: string | null = null;
+
+        if (color !== undefined) {
+            if (typeof color !== 'string' || !PROJECT_COLOR_PALETTE.has(color.trim().toLowerCase())) {
+                return c.json(
+                    { success: false, error: 'Validation Error', message: 'Invalid project color' },
+                    400
+                );
+            }
+            nextColor = color.trim().toLowerCase();
+        }
 
         await c.env.DB.prepare(
             `UPDATE projects 
        SET name = COALESCE(?, name),
            description = COALESCE(?, description),
            is_archived = COALESCE(?, is_archived),
+           color = COALESCE(?, color),
            updated_at = datetime('now')
        WHERE id = ?`
         )
-            .bind(name, description, is_archived, projectId)
+            .bind(name, description, is_archived, nextColor, projectId)
             .run();
 
         const updatedProject = await c.env.DB.prepare(
@@ -400,6 +434,12 @@ projectRoutes.post('/:id/members', async (c) => {
                 JSON.stringify({ target_user_id: targetUser.id, role: assignedRole })
             )
             .run();
+
+        const projectQuery = await c.env.DB.prepare('SELECT name FROM projects WHERE id = ?').bind(projectId).first<{ name: string }>();
+        await c.env.DB.prepare(
+            `INSERT INTO notifications (id, user_id, type, title, message, link, metadata)
+             VALUES (?, ?, 'project_invite', ?, ?, ?, ?)`
+        ).bind(crypto.randomUUID(), targetUser.id, 'project_invite', `You have been added to the project: ${projectQuery?.name || 'Unknown'}`, `/projects/${projectId}`, JSON.stringify({ project_id: projectId, role: assignedRole })).run();
 
         // Fetch newly added member details
         const member = await c.env.DB.prepare(

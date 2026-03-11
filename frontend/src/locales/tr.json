@@ -128,15 +128,18 @@
       "december": "Aralık"
     },
     "greeting": {
-      "morning": "günaydın",
-      "afternoon": "iyi günler",
-      "evening": "iyi akşamlar"
+      "morning": "Günaydın",
+      "afternoon": "İyi günler",
+      "evening": "İyi akşamlar"
     },
     "time": {
       "just_now": "Az önce",
       "mins_ago": "{{count}} dk önce",
       "hours_ago": "{{count}} sa önce",
-      "days_ago": "{{count}} g önce"
+      "days_ago": "{{count}} g önce",
+      "morning": "sabah",
+      "afternoon": "öğleden sonra",
+      "evening": "akşam"
     },
     "synced_just_now": "Az önce senkronize edildi",
     "synced_min_ago": "1 dk önce senkronize edildi",
@@ -151,6 +154,35 @@
       "member": "Üye",
       "viewer": "İzleyici",
       "owner": "Sahip"
+    },
+    "member": "Üye",
+    "admin": "Yönetici",
+    "no_results": "Sonuç bulunamadı",
+    "searching": "Aranıyor...",
+    "empty_states": {
+      "no_projects": {
+        "title": "Henüz proje yok",
+        "description": "Çevik iş akışınıza başlamak için ilk projenizi oluşturun.",
+        "action": "Proje Oluştur"
+      },
+      "no_tasks": {
+        "title": "Henüz görev yok",
+        "description": "Bu sütunda henüz görev bulunmuyor.",
+        "action": "Görev Ekle"
+      },
+      "search": {
+        "title": "Sonuç bulunamadı",
+        "description": "Aramanızla eşleşen hiçbir şey bulamadık. Aramanızı veya filtrelerinizi ayarlamayı deneyin.",
+        "clear": "Tüm filtreleri temizle"
+      },
+      "activity": {
+        "title": "Son etkinlik yok",
+        "description": "Siz veya ekibiniz değişiklik yaptığında, sizi güncel tutmak için burada bir eylem zaman çizelgesi görünecektir."
+      },
+      "calendar": {
+        "title": "Planlanmış görev yok",
+        "description": "Bu ay bitiş tarihi olan görev yok. Takvimde görmek için bitiş tarihli görevler oluşturun."
+      }
     }
   },
   "search": {
@@ -167,7 +199,8 @@
       "calendar": "Bitiş tarihleri",
       "metrics": "Analizler ve raporlar",
       "profile": "Hesap ayarları"
-    }
+    },
+    "results_label": "Arama Sonuçları"
   },
   "nav": {
     "dashboard": "Panel",
@@ -184,7 +217,7 @@
   "dashboard": {
     "welcome": "Tekrar hoş geldiniz",
     "welcome_desc": "Projelerinize ve görevlerinize genel bir bakış.",
-    "greeting_full": "İyi {{greeting}}! 👋",
+    "greeting_full": "{{greeting}}! 👋",
     "tasks_due_today": "Bugün bitmesi gereken {{count}} göreviniz var",
     "no_tasks_due": "Bugün bitmesi gereken görev yok. Harika iş!",
     "new_project_btn": "+ Yeni Proje",
@@ -244,26 +277,6 @@
       "marketing": "Pazarlama",
       "personal": "Kişisel"
     },
-    "status": "Proje Durumu",
-    "archive_project": "Projeyi Arşivle",
-    "archive_desc": "Arşivlenen projeler aktif listeden gizlenir ancak daha sonra geri yüklenebilir.",
-    "danger_zone": "Tehlikeli Bölge",
-    "delete_desc": "Bir projeyi sildiğinizde geri dönüşü yoktur. Lütfen emin olun.",
-    "delete_project": "Projeyi Sil",
-    "delete_confirm_msg": "Bu projeyi silmek istediğinize emin misiniz? Tüm görevler, sütunlar, dosyalar ve tartışmalar kalıcı olarak kaybolacaktır.",
-    "invite_people": "İnsanları Davet Et",
-    "email_placeholder": "E-posta adresi...",
-    "invite_button": "Davet Et",
-    "roles": {
-      "member": "Üye",
-      "admin": "Yönetici",
-      "viewer": "İzleyici",
-      "owner": "Sahip"
-    },
-    "project_members": "Proje Üyeleri",
-    "you_badge": "Siz",
-    "remove_member": "Üyeyi Kaldır",
-    "remove_confirm_msg": "{{name}} kullanıcısını bu projeden kaldırmak istediğinize emin misiniz?",
     "search_placeholder": "İsme, etikete veya sahibine göre ara...",
     "empty_state": "Proje bulunamadı",
     "empty_state_desc": "Başlamak için ilk projenizi oluşturun",
@@ -277,8 +290,31 @@
       "title": "Proje Ayarları",
       "tabs": {
         "general": "Genel",
-        "members": "Üyeler"
-      }
+        "members": "Üyeler",
+        "integrations": "Entegrasyonlar"
+      },
+      "color_label": "Proje Rengi",
+      "color_help": "Proje kartları ve vurgular için kullanılacak rengi seçin.",
+      "status": "Proje Durumu",
+      "archive_project": "Projeyi Arşivle",
+      "archive_desc": "Arşivlenen projeler aktif listeden gizlenir ancak daha sonra geri yüklenebilir.",
+      "danger_zone": "Tehlikeli Bölge",
+      "delete_desc": "Bir projeyi sildiğinizde geri dönüşü yoktur. Lütfen emin olun.",
+      "delete_project": "Projeyi Sil",
+      "delete_confirm_msg": "Bu projeyi silmek istediğinize emin misiniz? Tüm görevler, sütunlar, dosyalar ve tartışmalar kalıcı olarak kaybolacaktır.",
+      "invite_people": "İnsanları Davet Et",
+      "email_placeholder": "E-posta adresi...",
+      "invite_button": "Davet Et",
+      "roles": {
+        "member": "Üye",
+        "admin": "Yönetici",
+        "viewer": "İzleyici",
+        "owner": "Sahip"
+      },
+      "project_members": "Proje Üyeleri",
+      "you_badge": "Siz",
+      "remove_member": "Üyeyi Kaldır",
+      "remove_confirm_msg": "{{name}} kullanıcısını bu projeden kaldırmak istediğinize emin misiniz?"
     }
   },
   "board": {
@@ -501,7 +537,8 @@
     "refresh_settings": "Ayarları Yenile",
     "search": {
       "users": "Kullanıcı ara...",
-      "projects": "İsme veya sahibine göre proje ara..."
+      "projects": "Proje ara...",
+      "activities": "Etkinlik ara..."
     },
     "pagination": {
       "previous": "Önceki",
@@ -520,17 +557,20 @@
       "total_users": "Toplam Kullanıcı",
       "active_projects": "Aktif Proje",
       "total_tasks": "Toplam Görev",
+      "storage_used": "B2 Depolama Kullanımı",
+      "storage_remaining": "Kalan: {{value}}",
+      "storage_no_quota": "Kalan: kota yapılandırılmadı",
       "this_month": "bu ay +{{count}}",
       "completed_today": "bugün {{count}} tamamlandı",
-      "activity": "Etkinlik",
+      "activity": "Etkinlik & Kullanım",
       "engagement": "Etkileşim",
       "online_now": "Şu An Çevrimiçi",
-      "active_7d": "Aktif (7 gün)",
+      "active_7d": "Son 7 Gün Aktif",
       "today": "Bugün",
       "this_week": "Bu Hafta",
-      "task_status": "Görev Durumu",
-      "top_projects": "En Popüler Projeler (7 gün)",
-      "no_activity": "Bu hafta etkinlik yok",
+      "task_status": "Görev Durum Dağılımı",
+      "top_projects": "En Aktif Projeler",
+      "no_activity": "Henüz etkinlik yok",
       "activities_count": "{{count}} etkinlik"
     },
     "system": {
@@ -562,7 +602,8 @@
       "confirm_delete": "Bu kullanıcıyı silmek istediğinize emin misiniz? Bu işlem geri alınamaz."
     },
     "projects": {
-      "search": "İsme veya sahibine göre proje ara...",
+      "no_results": "Proje bulunamadı.",
+      "task_count": "{{count}} görev",
       "table": {
         "name": "Proje Adı",
         "owner": "Sahip",
@@ -600,6 +641,15 @@
     "smtp_pass": "SMTP Parolası",
     "smtp_from": "Gönderen E-posta",
     "save_smtp": "SMTP Ayarlarını Kaydet",
+    "email_provider": "E-posta Sağlayıcı",
+    "provider_smtp": "SMTP (Gmail, Outlook vb.)",
+    "provider_resend": "Resend API",
+    "provider_smtp_hint": "Seçilen sağlayıcı: Aşağıdaki alanlardaki SMTP kimlik bilgileri kullanılacaktır.",
+    "provider_resend_hint": "Seçilen sağlayıcı: Worker secret'ları RESEND_API_KEY ve EMAIL_FROM kullanılacaktır.",
+    "smtp_test_email": "Test Alıcı E-postası",
+    "smtp_testing": "Test ediliyor...",
+    "smtp_test_button": "Test Gönder",
+    "smtp_test_hint": "Önce SMTP ayarlarını kaydedin, ardından gönderimi doğrulamak için bir test e-postası gönderin.",
     "integrations": "Üçüncü Taraf Entegrasyonları",
     "integrations_desc": "Bildirimler ve otomasyon için harici servisleri yapılandırın.",
     "slack_settings": "Slack Entegrasyonu",
@@ -632,6 +682,103 @@
       "member": "Üye",
       "viewer": "İzleyici",
       "owner": "Sahip"
+    },
+    "modal": {
+      "title": "Ekip üyesi davet et",
+      "subtitle": "{{name}} projesine birini ekleyin",
+      "subtitle_fallback": "Projenize birini ekleyin",
+      "success_title": "Davetiye gönderildi",
+      "success_desc": "Üye daveti {{email}} adresine gönderildi",
+      "project_label": "Proje",
+      "email_label": "E-posta adresi",
+      "email_placeholder": "meslektas@sirket.com",
+      "role_label": "Rol",
+      "send_btn": "Davet gönder",
+      "error_required": "E-posta ve proje gereklidir",
+      "error_failed": "Davetiye gönderilemedi",
+      "roles": {
+        "member_desc": "Görevleri görüntüleyebilir, oluşturabilir ve düzenleyebilir",
+        "admin_desc": "Üyeleri ve ayarları yönetebilir",
+        "viewer_desc": "Sadece görevleri ve yorumları görüntüleyebilir"
+      }
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Hoş Geldiniz",
+      "title_name": "Hoş Geldin, {{name}}!",
+      "subtitle": "Projeleri bulut hızında yönetmeye hazırsınız.",
+      "features": {
+        "projects": {
+          "title": "Projeler Oluşturun",
+          "description": "İşinizi özelleştirilebilir Kanban panolarıyla organize edin"
+        },
+        "collaborate": {
+          "title": "Birlikte Çalışın",
+          "description": "Ekip üyelerini davet edin ve gerçek zamanlı birlikte çalışın"
+        },
+        "organized": {
+          "title": "Düzenli Kalın",
+          "description": "Görevleri takip edin, öncelikleri belirleyin ve tarihleri kaçırmayın"
+        }
+      },
+      "create_first": "İlk Projenizi Oluşturun",
+      "explore": "Kendi başıma keşfedeceğim"
+    },
+    "first_project": {
+      "title": "Hadi düzenlenelim",
+      "description": "Henüz bir projeniz yok. Görevlerinizi verimli bir şekilde takip etmek için ilk Kanban panonuzu oluşturun.",
+      "button": "İlk Projeyi Oluştur",
+      "skip": "Kurulumu atla ve panele git",
+      "features": {
+        "auth": "Güvenli JWT Kimlik Doğrulama",
+        "drag_drop": "Sürükle ve Bırak Panolar",
+        "storage": "R2 Dosya Depolama"
+      }
+    },
+    "tour": {
+      "step": "Adım {{step}} / {{total}}",
+      "cloudflare_opt": "Cloudflare Edge Optimizasyonlu",
+      "meet": "Tanışın:",
+      "meet_era": "Era Kanban",
+      "meet_desc": "Era Bulut ekosistemi için tasarlanmış modern, sunucusuz bir proje yönetim aracı.",
+      "skip": "Geç",
+      "next": "İleri",
+      "get_started": "Başla",
+      "features": {
+        "management": {
+          "title": "Zahmetsiz Yönetim",
+          "subtitle": "Sürükle-Bırak Panolar",
+          "description": "İş akışlarını sorunsuzca görselleştirin. Görevleri akıcı bir arayüzle aşamalar arası taşıyın.",
+          "tip": "Güçten ödün vermeden hız ve basitlik için tasarlandı."
+        },
+        "dashboard": {
+          "title": "Proje Merkezi",
+          "subtitle": "Merkezi Gösterge Paneli",
+          "description": "Tüm sunucusuz projelerinizi gerçek zamanlı istatistiklerle tek bir merkezden izleyin.",
+          "tip": "Sezgisel metriklerimizle bir bakışta içgörüler edinin."
+        },
+        "security": {
+          "title": "Varsayılan Olarak Güvenli",
+          "subtitle": "JWT Doğrulama & R2 Depolama",
+          "description": "JWT kimlik doğrulama ve şifreli R2 dosya depolama verilerinizin gizli kalmasını sağlar.",
+          "tip": "Kurumsal düzeyde güvenlik her katmana entegre edildi."
+        },
+        "start": {
+          "title": "Başlamaya Hazır",
+          "subtitle": "İlk Projenizi Oluşturun",
+          "description": "Sunucusuz çalışma alanınız hazır. Era Kanban ile iş akışınızı organize etmeye başlayın.",
+          "tip": "Başlamak için bir proje oluşturun!"
+        }
+      }
+    },
+    "complete": {
+      "title": "Her şey hazır!",
+      "subtitle": "Çalışma alanınız hazır. Görevler oluşturmaya ve ekip arkadaşlarınızı davet etmeye başlayın.",
+      "go_to_dashboard": "Panele Git",
+      "invite_team": "Ekibi Davet Et",
+      "tip_title": "Hızlı İpucu",
+      "tip_desc": "İş akışını hızlıca düzenlemek için yeni Kanban panonuzda görevleri sürükleyip bırakın."
     }
   }
 }

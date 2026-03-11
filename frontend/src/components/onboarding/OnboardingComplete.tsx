@@ -1,4 +1,5 @@
 import { ArrowRight, Users, CheckCircle, Lightbulb } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 
 interface OnboardingCompleteProps {
     onGoToDashboard: () => void;
@@ -7,6 +8,8 @@ interface OnboardingCompleteProps {
 }
 
 export function OnboardingComplete({ onGoToDashboard, onInviteTeam, onClose }: OnboardingCompleteProps) {
+    const { t } = useTranslation();
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -23,10 +26,12 @@ export function OnboardingComplete({ onGoToDashboard, onInviteTeam, onClose }: O
                         </div>
                     </div>
 
-                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-text mb-6">You&apos;re all set!</h1>
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-text mb-6">
+                        {t('onboarding.complete.title')}
+                    </h1>
 
                     <p className="text-text-muted text-lg leading-relaxed max-w-lg mb-10">
-                        Your workspace is ready. Start creating tasks and inviting teammates.
+                        {t('onboarding.complete.subtitle')}
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center mb-8">
@@ -37,7 +42,7 @@ export function OnboardingComplete({ onGoToDashboard, onInviteTeam, onClose }: O
                             }}
                             className="flex w-full sm:w-auto min-w-[200px] h-14 items-center justify-center gap-2 rounded-xl bg-primary hover:bg-primary/90 text-white text-base font-bold shadow-lg shadow-primary/25 transition-all"
                         >
-                            <span>Go to Dashboard</span>
+                            <span>{t('onboarding.complete.go_to_dashboard')}</span>
                             <ArrowRight className="size-5" />
                         </button>
                         {onInviteTeam && (
@@ -49,7 +54,7 @@ export function OnboardingComplete({ onGoToDashboard, onInviteTeam, onClose }: O
                                 className="flex w-full sm:w-auto min-w-[200px] h-14 items-center justify-center gap-2 rounded-xl border border-border bg-surface hover:bg-surface-alt text-text text-base font-semibold transition-all"
                             >
                                 <Users className="size-5" />
-                                <span>Invite Team</span>
+                                <span>{t('onboarding.complete.invite_team')}</span>
                             </button>
                         )}
                     </div>
@@ -57,9 +62,9 @@ export function OnboardingComplete({ onGoToDashboard, onInviteTeam, onClose }: O
                     <div className="glass-panel !bg-surface-alt rounded-lg p-4 flex items-start gap-3 text-left w-full max-w-md">
                         <Lightbulb className="text-primary mt-0.5 size-5" />
                         <div>
-                            <p className="text-sm font-semibold text-text mb-1">Quick Tip</p>
+                            <p className="text-sm font-semibold text-text mb-1">{t('onboarding.complete.tip_title')}</p>
                             <p className="text-xs sm:text-sm text-text-muted">
-                                Drag and drop tasks in your new Kanban board to organize workflow quickly.
+                                {t('onboarding.complete.tip_desc')}
                             </p>
                         </div>
                     </div>

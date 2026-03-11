@@ -14,6 +14,7 @@ export interface Env {
     B2_ENDPOINT: string;
     B2_KEY_ID: string;
     B2_APP_KEY: string;
+    B2_STORAGE_QUOTA_GB?: string;
 }
 
 // User Types
@@ -26,6 +27,7 @@ export interface User {
     role: 'admin' | 'member';
     two_factor_secret?: string | null;
     two_factor_enabled?: number;
+    two_factor_method?: 'totp' | 'email' | null;
     email_notifications?: number;
     push_notifications?: number;
     created_at: string;
@@ -47,6 +49,7 @@ export interface Project {
     id: string;
     name: string;
     description: string | null;
+    color: string | null;
     owner_id: string;
     is_archived: number;
     created_at: string;
@@ -158,6 +161,9 @@ export interface JWTPayload {
     email: string;
     role: string;
     mfa_pending?: boolean;
+    mfa_method?: 'totp' | 'email';
+    mfa_code_hash?: string;
+    mfa_sent_to?: string;
     iat: number;
     exp: number;
 }
@@ -185,6 +191,7 @@ export interface RegisterRequest {
 export interface CreateProjectRequest {
     name: string;
     description?: string;
+    color?: string;
 }
 
 export interface CreateTaskRequest {

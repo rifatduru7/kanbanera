@@ -18,5 +18,7 @@ B2_BUCKET_NAME = "erakanban"
 B2_ENDPOINT = "https://s3.us-east-005.backblazeb2.com"
 B2_KEY_ID = "00563b2e6d059d60000000001"
 B2_APP_KEY = "K005scot8IAnqG/2Syj4S55YSdTEcOg"
+# Optional: set a logical quota for admin dashboard "remaining storage" calculation (GB)
+# B2_STORAGE_QUOTA_GB = "10"
 
 

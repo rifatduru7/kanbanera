@@ -41,7 +41,7 @@ export function ProjectsPage() {
     }
 
     return (
-        <div className="flex flex-col h-full min-h-0 overflow-hidden relative">
+        <div className="flex flex-col lg:h-full min-h-0 overflow-visible lg:overflow-hidden relative">
             {/* Background Gradient */}
             <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none z-0" />
 
@@ -62,7 +62,7 @@ export function ProjectsPage() {
                     </div>
 
                     {/* Controls Toolbar */}
-                    <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 justify-between items-stretch md:items-center">
                         {/* Search */}
                         <div className="relative w-full md:max-w-md group">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -78,12 +78,12 @@ export function ProjectsPage() {
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-3">
+                        <div className="grid grid-cols-2 sm:flex items-stretch gap-2 sm:gap-3 w-full md:w-auto">
                             {/* View Toggle */}
-                            <div className="bg-surface p-1 rounded-xl flex items-center border border-border mt-0.5">
+                            <div className="bg-surface p-1 rounded-xl flex items-center border border-border">
                                 <button
                                     onClick={() => setViewMode('grid')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid'
+                                    className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all ${viewMode === 'grid'
                                         ? 'bg-surface-alt shadow-sm text-primary'
                                         : 'text-text-muted hover:text-text'
                                         }`}
@@ -92,7 +92,7 @@ export function ProjectsPage() {
                                 </button>
                                 <button
                                     onClick={() => setViewMode('list')}
-                                    className={`p-2 rounded-lg transition-all ${viewMode === 'list'
+                                    className={`h-10 w-10 flex items-center justify-center rounded-lg transition-all ${viewMode === 'list'
                                         ? 'bg-surface-alt shadow-sm text-primary'
                                         : 'text-text-muted hover:text-text'
                                         }`}
@@ -109,7 +109,7 @@ export function ProjectsPage() {
                             {/* Archive Toggle */}
                             <button
                                 onClick={() => setShowArchived(!showArchived)}
-                                className={`px-4 py-2 text-sm rounded-xl border transition-colors ${showArchived ? 'bg-primary/20 text-primary border-primary/50' : 'bg-surface border-border text-text-muted hover:text-text'}`}
+                                className={`h-10 px-3 sm:px-4 text-sm rounded-xl border transition-colors text-center ${showArchived ? 'bg-primary/20 text-primary border-primary/50' : 'bg-surface border-border text-text-muted hover:text-text'}`}
                             >
                                 {showArchived ? t('projects.hide_archived') : t('projects.show_archived')}
                             </button>
@@ -117,10 +117,10 @@ export function ProjectsPage() {
                             {/* New Project CTA */}
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="btn-primary flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(19,185,165,0.3)]"
+                                className="btn-primary col-span-2 sm:col-auto h-10 sm:h-auto flex items-center justify-center gap-2 px-4 rounded-xl font-bold text-sm shadow-[0_0_15px_rgba(19,185,165,0.3)]"
                             >
                                 <Plus className="size-5" />
-                                <span className="whitespace-nowrap">{t('projects.create_new')}</span>
+                                <span className="whitespace-nowrap truncate">{t('projects.create_new')}</span>
                             </button>
                         </div>
                     </div>
@@ -128,7 +128,7 @@ export function ProjectsPage() {
             </header>
 
             {/* Scrollable Content */}
-            <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-6 md:p-8 z-0">
+            <div className="p-4 sm:p-6 md:p-8 z-0 lg:flex-1 lg:min-h-0 lg:overflow-y-auto mobile-scroll">
                 <div className="max-w-7xl mx-auto">
                     {filteredProjects.length === 0 ? (
                         /* Empty State */
@@ -153,11 +153,11 @@ export function ProjectsPage() {
                                     id={project.id}
                                     name={project.name}
                                     description={project.description}
-                                    color="#14b8a6" // Default color, can be extended
+                                    color={typeof project.color === 'string' ? project.color : '#14b8a6'}
                                     taskCount={0} // Will be populated from API
                                     memberCount={1}
                                     completedPercent={0}
-                                    onClick={() => navigate(`/projects/${project.id}`)}
+                                    onClick={() => navigate(`/board?project=${encodeURIComponent(project.id)}`)}
                                 />
                             ))}
                         </div>

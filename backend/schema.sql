@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
   email_verified_at TEXT,
   two_factor_secret TEXT,
   two_factor_enabled INTEGER DEFAULT 0,
+  two_factor_method TEXT CHECK (two_factor_method IN ('totp', 'email')),
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
@@ -30,6 +31,7 @@ CREATE TABLE IF NOT EXISTS projects (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   description TEXT,
+  color TEXT DEFAULT '#14b8a6',
   owner_id TEXT NOT NULL,
   is_archived INTEGER DEFAULT 0,
   created_at TEXT DEFAULT (datetime('now')),
@@ -185,6 +187,22 @@ CREATE INDEX IF NOT EXISTS idx_integrations_project ON integrations(project_id);
 CREATE INDEX IF NOT EXISTS idx_integrations_token ON integrations(incoming_token);
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user ON user_preferences(user_id);
 
+-- Notifications
+CREATE TABLE IF NOT EXISTS notifications (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('project_invite', 'task_assigned', 'task_mentioned', 'system')),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  link TEXT,
+  metadata TEXT, -- JSON payload for extra info
+  is_read INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read);
+
 -- System Settings
 CREATE TABLE IF NOT EXISTS system_settings (
   key TEXT PRIMARY KEY,
@@ -198,6 +216,7 @@ INSERT OR IGNORE INTO system_settings (key, value, description) VALUES
 ('maintenance_mode', 'false', 'Whether the platform is in maintenance mode (only admins can access)'),
 ('default_user_role', 'member', 'Default role for new registrations (admin/member)'),
 ('allow_registration', 'true', 'Whether to allow new user registrations'),
+('email_provider', 'smtp', 'Email delivery provider (smtp/resend)'),
 ('smtp_host', '', 'SMTP Host Address'),
 ('smtp_port', '', 'SMTP Port (e.g., 587, 465)'),
 ('smtp_user', '', 'SMTP Username'),

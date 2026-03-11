@@ -9,10 +9,10 @@ export interface Task {
     priority: Priority;
     columnId: string;
     position: number;
-    assigneeId?: string;
-    assigneeName?: string;
-    assigneeAvatar?: string;
-    dueDate?: string;
+    assigneeId?: string | null;
+    assigneeName?: string | null;
+    assigneeAvatar?: string | null;
+    dueDate?: string | null;
     labels?: string[];
     subtaskCount?: number;
     subtaskCompleted?: number;

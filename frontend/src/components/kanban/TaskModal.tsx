@@ -92,6 +92,7 @@ export function TaskModal({
     const [comment, setComment] = useState('');
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const dueDateInputRef = useRef<HTMLInputElement>(null);
 
     // Confirmation states
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -121,6 +122,14 @@ export function TaskModal({
     }, [task]);
 
     if (!isOpen || !task) return null; // Render nothing if not open or task data is not loaded
+
+    const normalizedDueDate = task.dueDate ? String(task.dueDate).split(/[T ]/)[0] : '';
+    const resolvedAssigneeName = task.assigneeId
+        ? (members?.find((m) => m.user_id === task.assigneeId)?.full_name || task.assigneeName || null)
+        : null;
+    const resolvedAssigneeInitials = resolvedAssigneeName
+        ? resolvedAssigneeName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+        : '';
 
     const completedSubtasks = task.subtasks.filter((s: Subtask) => s.isCompleted).length;
     const subtaskProgress = task.subtasks.length > 0
@@ -201,6 +210,16 @@ export function TaskModal({
         if (mins < 60) return `${mins}${t('common.time.mins_ago', 'm ago')}`;
         if (hours < 24) return `${hours}${t('common.time.hours_ago', 'h ago')}`;
         return `${days}${t('common.time.days_ago', 'd ago')}`;
+    };
+
+    const openDueDatePicker = () => {
+        if (!dueDateInputRef.current) return;
+        const input = dueDateInputRef.current as HTMLInputElement & { showPicker?: () => void };
+        if (typeof input.showPicker === 'function') {
+            input.showPicker();
+            return;
+        }
+        input.focus();
     };
 
     return createPortal(
@@ -509,61 +528,54 @@ export function TaskModal({
                                         {t('tasks.assignee', 'Assignee')}
                                     </label>
                                     <div className="relative h-full">
-                                        <div
-                                            onClick={() => {
-                                                setIsAssigneeOpen(!isAssigneeOpen);
-                                                setIsStatusOpen(false);
-                                                setIsPriorityOpen(false);
-                                            }}
-                                            className="flex items-center gap-2 w-full h-full cursor-pointer bg-surface-alt border border-border-muted rounded-lg px-2 py-1.5 text-sm text-text hover:bg-surface-alt/80 transition-colors"
-                                        >
-                                            {task.assigneeName ? (
+                                        <button type="button" onClick={(e) => { e.stopPropagation(); setIsAssigneeOpen(!isAssigneeOpen); setIsStatusOpen(false); setIsPriorityOpen(false); }} className="flex items-center gap-2 w-full min-h-[38px] cursor-pointer bg-surface-alt border border-border-muted rounded-lg px-3 py-1.5 text-sm text-text hover:bg-surface-alt/80 transition-colors focus:ring-2 focus:ring-primary/50 text-left">
+                                            {resolvedAssigneeName ? (
                                                 <>
                                                     <div className="size-6 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-semibold text-primary shrink-0">
-                                                        {task.assigneeName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                        {resolvedAssigneeInitials}
                                                     </div>
-                                                    <span className="truncate">{task.assigneeName}</span>
+                                                    <span className="truncate">{resolvedAssigneeName}</span>
                                                 </>
                                             ) : (
                                                 <span className="text-text-muted">{t('tasks.unassigned', 'Unassigned')}</span>
                                             )}
-                                        </div>
+                                        </button>
 
                                         {isAssigneeOpen && (
-                                                <div className={`absolute top-full left-0 mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1 max-h-48 overflow-y-auto custom-scrollbar ${isMobile ? 'w-full' : 'w-[200px]'}`}>
+                                            <div className={`absolute top-full left-0 mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1 max-h-48 overflow-y-auto custom-scrollbar ${isMobile ? 'w-full' : 'w-[200px]'}`}>
+                                                <button
+                                                    onClick={() => {
+                                                        if (onUpdate) {
+                                                            onUpdate({ assigneeId: null, assigneeName: null });
+                                                        } else {
+                                                            updateTask.mutate({ id: task.id, assignee_id: null });
+                                                        }
+                                                        setIsAssigneeOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-alt transition-colors ${!task.assigneeId ? 'text-primary bg-primary/10' : 'text-white/70'}`}
+                                                >
+                                                    {t('tasks.unassigned', 'Unassigned')}
+                                                </button>
+                                                {(members || []).map((m: { user_id: string; full_name: string }) => (
                                                     <button
+                                                        key={m.user_id}
                                                         onClick={() => {
                                                             if (onUpdate) {
-                                                                onUpdate({ assigneeId: undefined });
+                                                                onUpdate({ assigneeId: m.user_id, assigneeName: m.full_name });
                                                             } else {
-                                                                updateTask.mutate({ id: task.id, assignee_id: undefined });
+                                                                updateTask.mutate({ id: task.id, assignee_id: m.user_id });
                                                             }
                                                             setIsAssigneeOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-alt transition-colors ${!task.assigneeId ? 'text-primary bg-primary/10' : 'text-white/70'}`}
+                                                        className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-surface-alt transition-colors ${task.assigneeId === m.user_id ? 'text-primary bg-primary/10' : 'text-white'}`}
                                                     >
-                                                        {t('tasks.unassigned', 'Unassigned')}
+                                                        <div className="size-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[9px] font-semibold text-primary shrink-0">
+                                                            {m.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                                                        </div>
+                                                        <span className="truncate">{m.full_name}</span>
                                                     </button>
-                                                    {(members || []).map((m: { user_id: string; full_name: string }) => (
-                                                        <button
-                                                            key={m.user_id}
-                                                            onClick={() => {
-                                                                if (onUpdate) {
-                                                                    onUpdate({ assigneeId: m.user_id });
-                                                                } else {
-                                                                    updateTask.mutate({ id: task.id, assignee_id: m.user_id });
-                                                                }
-                                                                setIsAssigneeOpen(false);
-                                                            }}
-                                                            className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm hover:bg-surface-alt transition-colors ${task.assigneeId === m.user_id ? 'text-primary bg-primary/10' : 'text-white'}`}
-                                                        >
-                                                            <div className="size-5 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[9px] font-semibold text-primary shrink-0">
-                                                                {m.full_name.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
-                                                            </div>
-                                                            <span className="truncate">{m.full_name}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
                                 </div>
@@ -572,25 +584,30 @@ export function TaskModal({
                                     <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                                         {t('tasks.due_date', 'Due Date')}
                                     </label>
-                                    <div className="relative group h-full">
+                                    <div className="relative group min-h-[38px]">
                                         <input
+                                            ref={dueDateInputRef}
                                             type="date"
-                                            value={task.dueDate ? task.dueDate.split('T')[0] : ''}
+                                            value={normalizedDueDate}
                                             onChange={(e) => {
-                                                const newDate = e.target.value || undefined;
+                                                const newDate = e.target.value ? e.target.value : null;
                                                 if (onUpdate) {
                                                     onUpdate({ dueDate: newDate });
                                                 } else {
                                                     updateTask.mutate({ id: task.id, due_date: newDate });
                                                 }
                                             }}
-                                            className="appearance-none absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                            className="absolute inset-0 pointer-events-none opacity-0"
                                         />
-                                        <button className="flex items-center gap-2 w-full h-full bg-surface-alt border border-border-muted rounded-lg px-2 py-1.5 text-sm text-text group-hover:bg-surface-alt/80 transition-colors">
+                                        <button
+                                            type="button"
+                                            onClick={openDueDatePicker}
+                                            className="flex items-center gap-2 w-full h-full min-h-[38px] bg-surface-alt border border-border-muted rounded-lg px-3 py-1.5 text-sm text-text group-hover:bg-surface-alt/80 hover:border-primary/50 transition-colors text-left focus:ring-2 focus:ring-primary/50"
+                                        >
                                             <CalendarBlank className="size-4 shrink-0 text-text-muted group-hover:text-primary transition-colors" />
                                             <span className="truncate">
-                                                {task.dueDate
-                                                    ? new Date(task.dueDate).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric' })
+                                                {normalizedDueDate
+                                                    ? new Date(`${normalizedDueDate}T00:00:00`).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', { month: 'short', day: 'numeric' })
                                                     : t('tasks.no_date', 'No date')}
                                             </span>
                                         </button>

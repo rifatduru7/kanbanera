@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { FolderPlus, ShieldCheck, Kanban, Check, SquaresFour, Plus, CloudArrowUp } from '@phosphor-icons/react';
 
 interface FirstProjectPromptProps {
@@ -5,13 +6,15 @@ interface FirstProjectPromptProps {
     onSkip?: () => void;
 }
 
-const FEATURE_BADGES = [
-    { icon: ShieldCheck, label: 'Secure JWT Auth', colorClass: 'text-primary' },
-    { icon: Kanban, label: 'Drag & Drop Boards', colorClass: 'text-emerald-400' },
-    { icon: CloudArrowUp, label: 'R2 File Storage', colorClass: 'text-primary' },
-] as const;
-
 export function FirstProjectPrompt({ onCreateProject, onSkip }: FirstProjectPromptProps) {
+    const { t } = useTranslation();
+
+    const FEATURE_BADGES = [
+        { icon: ShieldCheck, label: t('onboarding.first_project.features.auth'), colorClass: 'text-primary' },
+        { icon: Kanban, label: t('onboarding.first_project.features.drag_drop'), colorClass: 'text-emerald-400' },
+        { icon: CloudArrowUp, label: t('onboarding.first_project.features.storage'), colorClass: 'text-primary' },
+    ] as const;
+
     return (
         <div className="relative w-full flex flex-col items-center justify-center py-12">
             <div
@@ -49,9 +52,9 @@ export function FirstProjectPrompt({ onCreateProject, onSkip }: FirstProjectProm
                     </div>
                 </div>
 
-                <h2 className="mb-3 text-2xl font-bold tracking-tight text-text sm:text-3xl">Let&apos;s get organized</h2>
+                <h2 className="mb-3 text-2xl font-bold tracking-tight text-text sm:text-3xl">{t('onboarding.first_project.title')}</h2>
                 <p className="mb-10 text-base text-text-muted leading-relaxed max-w-sm mx-auto">
-                    You don&apos;t have any projects yet. Create your first Kanban board to start tracking tasks efficiently.
+                    {t('onboarding.first_project.description')}
                 </p>
 
                 <div className="flex flex-col gap-4 items-center">
@@ -61,7 +64,7 @@ export function FirstProjectPrompt({ onCreateProject, onSkip }: FirstProjectProm
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000 ease-in-out" />
                         <FolderPlus className="size-5" />
-                        <span>Create First Project</span>
+                        <span>{t('onboarding.first_project.button')}</span>
                     </button>
 
                     {onSkip && (
@@ -69,7 +72,7 @@ export function FirstProjectPrompt({ onCreateProject, onSkip }: FirstProjectProm
                             onClick={onSkip}
                             className="mt-2 text-sm font-medium text-text-muted hover:text-text transition-colors py-2 px-4 rounded-lg hover:bg-surface-alt"
                         >
-                            Skip setup and go to dashboard
+                            {t('onboarding.first_project.skip')}
                         </button>
                     )}
                 </div>
@@ -91,3 +94,4 @@ export function FirstProjectPrompt({ onCreateProject, onSkip }: FirstProjectProm
         </div>
     );
 }
+

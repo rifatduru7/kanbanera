@@ -39,10 +39,10 @@ export interface TaskDetail {
     columnId: string;
     projectId: string;
     projectName: string;
-    assigneeId?: string;
-    assigneeName?: string;
-    assigneeAvatar?: string;
-    dueDate?: string;
+    assigneeId?: string | null;
+    assigneeName?: string | null;
+    assigneeAvatar?: string | null;
+    dueDate?: string | null;
     labels?: string[];
     subtasks: Subtask[];
     comments: Comment[];

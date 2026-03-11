@@ -40,7 +40,7 @@ export function CreateProjectModal({ isOpen, onClose, onProjectCreated }: Create
         if (!name.trim()) return;
 
         createProject.mutate(
-            { name: name.trim(), description: description.trim() || undefined },
+            { name: name.trim(), description: description.trim() || undefined, color: selectedColor },
             {
                 onSuccess: () => {
                     setName('');

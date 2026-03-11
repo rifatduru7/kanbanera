@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, ArrowRight, SkipForward, Kanban, SquaresFour as LayoutDashboard, ShieldCheck, RocketLaunch as Rocket, Lightning as Zap } from '@phosphor-icons/react';
 
 interface FeaturesTourModalProps {
@@ -9,43 +10,44 @@ interface FeaturesTourModalProps {
 const TOUR_STEPS = [
     {
         step: 1,
-        title: 'Effortless Management',
-        subtitle: 'Drag-and-Drop Boards',
-        description: 'Visualize workflows seamlessly. Move tasks between stages with a fluid, native-feel interface.',
+        titleKey: 'onboarding.tour.features.management.title',
+        subtitleKey: 'onboarding.tour.features.management.subtitle',
+        descriptionKey: 'onboarding.tour.features.management.description',
         Icon: Kanban,
         image: '/tour/kanban_board.png',
-        tip: 'Designed for speed and simplicity without sacrificing power.',
+        tipKey: 'onboarding.tour.features.management.tip',
     },
     {
         step: 2,
-        title: 'Project Hub',
-        subtitle: 'Centralized Dashboard',
-        description: 'Monitor all your serverless projects from one centralized dashboard with real-time stats.',
+        titleKey: 'onboarding.tour.features.dashboard.title',
+        subtitleKey: 'onboarding.tour.features.dashboard.subtitle',
+        descriptionKey: 'onboarding.tour.features.dashboard.description',
         Icon: LayoutDashboard,
         image: '/tour/dashboard.png',
-        tip: 'Get insights at a glance with our intuitive metrics.',
+        tipKey: 'onboarding.tour.features.dashboard.tip',
     },
     {
         step: 3,
-        title: 'Secure by Default',
-        subtitle: 'JWT Authentication & R2 Storage',
-        description: 'JWT Authentication and encrypted R2 file storage ensure your data stays private.',
+        titleKey: 'onboarding.tour.features.security.title',
+        subtitleKey: 'onboarding.tour.features.security.subtitle',
+        descriptionKey: 'onboarding.tour.features.security.description',
         Icon: ShieldCheck,
         image: '/tour/security.png',
-        tip: 'Enterprise-grade security built into every layer.',
+        tipKey: 'onboarding.tour.features.security.tip',
     },
     {
         step: 4,
-        title: 'Ready to Start',
-        subtitle: 'Create Your First Project',
-        description: 'Your serverless workspace is ready. Start organizing your workflow with Era Kanban.',
+        titleKey: 'onboarding.tour.features.start.title',
+        subtitleKey: 'onboarding.tour.features.start.subtitle',
+        descriptionKey: 'onboarding.tour.features.start.description',
         Icon: Rocket,
         image: '/tour/rocket.png',
-        tip: 'Create a project to get started!',
+        tipKey: 'onboarding.tour.features.start.tip',
     },
 ];
 
 export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps) {
+    const { t } = useTranslation();
     const [currentStep, setCurrentStep] = useState(0);
     const [isAnimating, setIsAnimating] = useState(false);
 
@@ -87,14 +89,13 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                     {/* Grid Pattern Background */}
                     <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:24px_24px] opacity-50" />
 
-                    {/* Animated Icon */}
                     {/* Animated Image */}
                     <div className={`relative transition-all duration-300 ${isAnimating ? 'scale-90 opacity-50' : 'scale-100 opacity-100'}`}>
                         <div className="relative rounded-2xl overflow-hidden border border-border shadow-2xl group mx-auto">
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
                             <img
                                 src={step.image}
-                                alt={step.title}
+                                alt={t(step.titleKey)}
                                 className="w-[260px] lg:w-[320px] aspect-[4/3] object-cover transform transition-transform duration-700 group-hover:scale-110"
                             />
                             {/* Floating Icon Badge */}
@@ -107,16 +108,16 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                     {/* Step Info */}
                     <div className={`mt-8 lg:mt-10 text-center transition-all duration-300 ${isAnimating ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'}`}>
                         <p className="text-primary font-bold text-sm tracking-wider uppercase mb-2">
-                            Step {step.step} of {TOUR_STEPS.length}
+                            {t('onboarding.tour.step', { step: step.step, total: TOUR_STEPS.length })}
                         </p>
-                        <h3 className="text-text text-2xl font-bold">{step.title}</h3>
-                        <p className="text-text-muted text-sm mt-2 max-w-xs mx-auto">{step.tip}</p>
+                        <h3 className="text-text text-2xl font-bold">{t(step.titleKey)}</h3>
+                        <p className="text-text-muted text-sm mt-2 max-w-xs mx-auto">{t(step.tipKey)}</p>
                     </div>
 
                     {/* Badge */}
                     <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-black/40 backdrop-blur-md border border-border flex items-center gap-2">
                         <span className="text-primary"><Zap className="size-[18px]" fill="currentColor" /></span>
-                        <span className="text-xs font-semibold text-text tracking-wide">Cloudflare Edge Optimized</span>
+                        <span className="text-xs font-semibold text-text tracking-wide">{t('onboarding.tour.cloudflare_opt')}</span>
                     </div>
                 </div>
 
@@ -134,10 +135,10 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                         {/* Header */}
                         <div className="flex flex-col gap-2">
                             <h1 className="text-3xl lg:text-4xl font-extrabold text-text tracking-tight">
-                                Meet <span className="text-primary">Era Kanban</span>
+                                {t('onboarding.tour.meet')} <span className="text-primary">{t('onboarding.tour.meet_era')}</span>
                             </h1>
                             <p className="text-text-muted text-base">
-                                A modern, serverless project management tool built for the Era Bulut ecosystem.
+                                {t('onboarding.tour.meet_desc')}
                             </p>
                         </div>
 
@@ -162,8 +163,8 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                                         <feature.Icon className="size-6" />
                                     </div>
                                     <div className="flex flex-col gap-1">
-                                        <h2 className="text-text text-base font-bold">{feature.subtitle}</h2>
-                                        <p className="text-text-muted text-sm">{feature.description}</p>
+                                        <h2 className="text-text text-base font-bold">{t(feature.subtitleKey)}</h2>
+                                        <p className="text-text-muted text-sm">{t(feature.descriptionKey)}</p>
                                     </div>
                                 </div>
                             ))}
@@ -194,13 +195,13 @@ export function FeaturesTourModal({ onComplete, onSkip }: FeaturesTourModalProps
                                 className="flex items-center gap-2 px-6 h-10 rounded-lg text-text-muted hover:text-text hover:bg-surface-alt transition-colors text-sm font-semibold"
                             >
                                 <SkipForward className="size-4" />
-                                Skip
+                                {t('onboarding.tour.skip')}
                             </button>
                             <button
                                 onClick={handleNext}
                                 className="flex items-center gap-2 px-6 h-10 rounded-lg bg-primary hover:bg-primary/90 text-white text-sm font-bold shadow-lg shadow-primary/20 transition-all transform active:scale-95"
                             >
-                                <span>{isLastStep ? 'Get Started' : 'Next'}</span>
+                                <span>{isLastStep ? t('onboarding.tour.get_started') : t('onboarding.tour.next')}</span>
                                 <ArrowRight className="size-4" />
                             </button>
                         </div>

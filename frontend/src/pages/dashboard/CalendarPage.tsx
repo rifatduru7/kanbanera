@@ -278,7 +278,7 @@ export function CalendarPage() {
 
     if (isMobile) {
         return (
-            <div className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
+            <div className="flex flex-col bg-background">
                 <div className="px-4 pt-4 pb-3 border-b border-border space-y-3">
                     <div className="grid grid-cols-2 gap-3">
                         <div className="glass-card p-3 rounded-xl">
@@ -374,7 +374,7 @@ export function CalendarPage() {
                     </div>
                 </div>
 
-                <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4">
+                <div className="p-4">
                     {isLoading && (
                         <div className="flex items-center justify-center py-8">
                             <Loader2 className="size-6 text-primary animate-spin" />
@@ -492,7 +492,7 @@ export function CalendarPage() {
     }
 
     return (
-        <div className="flex flex-col h-full min-h-0 overflow-hidden bg-background">
+        <div className="flex flex-col lg:h-full min-h-0 overflow-visible lg:overflow-hidden bg-background">
             {/* Quick Stats Bar */}
             <div className="flex-shrink-0 grid grid-cols-2 md:grid-cols-4 gap-4 px-6 pt-6 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="glass-card p-3 rounded-xl border-l-4 border-l-primary flex items-center gap-3">
@@ -630,8 +630,8 @@ export function CalendarPage() {
             </header>
 
             {/* Calendar Grid */}
-            <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-6 pt-0">
-                <div className="flex flex-col bg-surface/50 border border-border rounded-2xl backdrop-blur-sm overflow-hidden shadow-2xl h-full min-h-[600px]">
+            <div className="p-6 pt-0 lg:flex-1 lg:min-h-0 lg:overflow-y-auto mobile-scroll">
+                <div className="flex flex-col bg-surface/50 border border-border rounded-2xl backdrop-blur-sm overflow-hidden shadow-2xl min-h-[600px] lg:h-full">
                     {/* Days Header */}
                     <div className="grid grid-cols-7 border-b border-border bg-surface/80">
                         {DAYS_OF_WEEK.map((day) => (

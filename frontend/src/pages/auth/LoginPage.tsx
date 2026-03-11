@@ -19,13 +19,17 @@ const getErrorMessage = (err: unknown, fallback: string) => {
 
 export function LoginPage() {
     const navigate = useNavigate();
-    const { setUser, setAccessToken, setMfaRequired, mfaRequired, mfaToken } = useAuthStore();
+    const { setUser, setAccessToken } = useAuthStore();
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [mfaCode, setMfaCode] = useState('');
+    const [mfaRequired, setMfaRequired] = useState(false);
+    const [mfaToken, setMfaToken] = useState<string | null>(null);
+    const [mfaMethod, setMfaMethod] = useState<'totp' | 'email' | null>(null);
+    const [mfaSentTo, setMfaSentTo] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,8 +40,31 @@ export function LoginPage() {
             const response = await authApi.login(email, password);
 
             if (response.success && response.data) {
-                if ('mfa_required' in response.data && response.data.mfa_required) {
-                    setMfaRequired(true, response.data.mfa_token || null);
+                const maybeMfa = response.data as {
+                    mfa_required?: boolean;
+                    mfa_token?: string;
+                    mfa_method?: 'totp' | 'email';
+                    mfa_sent_to?: string;
+                    mfaRequired?: boolean;
+                    mfaToken?: string;
+                };
+                const hasMfaChallenge = Boolean(
+                    maybeMfa.mfa_required ||
+                    maybeMfa.mfaRequired ||
+                    maybeMfa.mfa_token ||
+                    maybeMfa.mfaToken
+                );
+
+                if (hasMfaChallenge) {
+                    const token = maybeMfa.mfa_token || maybeMfa.mfaToken || null;
+                    if (!token) {
+                        setError('2FA verification could not be started. Please try again.');
+                        return;
+                    }
+                    setMfaRequired(true);
+                    setMfaToken(token);
+                    setMfaMethod(maybeMfa.mfa_method || null);
+                    setMfaSentTo(maybeMfa.mfa_sent_to || null);
                     return;
                 }
 
@@ -70,6 +97,9 @@ export function LoginPage() {
                 setUser((response.data.user as AppUser) || null);
                 setAccessToken(response.data.accessToken || null);
                 setMfaRequired(false);
+                setMfaToken(null);
+                setMfaMethod(null);
+                setMfaSentTo(null);
                 navigate('/dashboard');
             } else {
                 setError(response.message || 'Invalid 2FA code');
@@ -101,7 +131,9 @@ export function LoginPage() {
                         </h1>
                         <p className="text-center text-text-muted">
                             {mfaRequired
-                                ? 'Enter the 6-digit code from your authenticator app.'
+                                ? mfaMethod === 'email'
+                                    ? `Enter the 6-digit code sent to ${mfaSentTo || 'your email'}.`
+                                    : 'Enter the 6-digit code from your authenticator app.'
                                 : 'Log in to manage your serverless projects.'}
                         </p>
                     </div>
@@ -236,6 +268,9 @@ export function LoginPage() {
                                 type="button"
                                 onClick={() => {
                                     setMfaRequired(false);
+                                    setMfaToken(null);
+                                    setMfaMethod(null);
+                                    setMfaSentTo(null);
                                     setError('');
                                     setMfaCode('');
                                 }}

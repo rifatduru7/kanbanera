@@ -1,0 +1,1 @@
+ALTER TABLE projects ADD COLUMN color TEXT DEFAULT '#14b8a6';

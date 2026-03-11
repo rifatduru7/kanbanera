@@ -196,7 +196,7 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
                     {searchQuery.isFetching && debouncedQuery.length >= 2 ? (
                         <div className="py-8 text-center text-text-muted flex items-center justify-center gap-2 text-sm">
                             <SpinnerGap className="size-4 animate-spin" />
-                            Searching...
+                            {t('common.searching')}
                         </div>
                     ) : allResults.length === 0 ? (
                         <div className="py-12 text-center text-text-muted">
@@ -206,7 +206,7 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
                     ) : (
                         <div className="space-y-1">
                             <div className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                                {debouncedQuery.length >= 2 ? 'Search Results' : t('search.quick_navigation')}
+                                {debouncedQuery.length >= 2 ? t('search.results_label') : t('search.quick_navigation')}
                             </div>
                             {allResults.map((result, index) => {
                                 const Icon = result.icon;
@@ -220,11 +220,10 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
                                             onClose();
                                         }}
                                         onMouseEnter={() => setSelectedIndex(index)}
-                                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-left ${
-                                            isSelected
-                                                ? 'bg-primary/20 text-white shadow-sm'
-                                                : 'text-text-muted hover:bg-surface-alt'
-                                        }`}
+                                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-left ${isSelected
+                                            ? 'bg-primary/20 text-white shadow-sm'
+                                            : 'text-text-muted hover:bg-surface-alt'
+                                            }`}
                                     >
                                         <div className={`p-2 rounded-lg ${isSelected ? 'bg-primary/30 text-primary' : 'bg-surface-alt'}`}>
                                             <Icon className="size-5" />

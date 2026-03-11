@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import { FolderOpen, ClipboardText as ClipboardList, MagnifyingGlass as Search, Clock, Plus, ListChecks as ListTodo } from '@phosphor-icons/react';
 
@@ -89,12 +90,13 @@ export function EmptyState({
 
 // Pre-configured empty states for common use cases
 export function NoProjectsEmptyState({ onCreateProject }: { onCreateProject?: () => void }) {
+    const { t } = useTranslation();
     return (
         <EmptyState
             type="projects"
-            title="No projects yet"
-            description="Create your first project to get started with your agile workflow."
-            actionLabel="Create Project"
+            title={t('common.empty_states.no_projects.title')}
+            description={t('common.empty_states.no_projects.description')}
+            actionLabel={t('common.empty_states.no_projects.action')}
             onAction={onCreateProject}
             variant="primary"
         />
@@ -102,20 +104,21 @@ export function NoProjectsEmptyState({ onCreateProject }: { onCreateProject?: ()
 }
 
 export function EmptyColumnState({ onAddTask }: { onAddTask?: () => void }) {
+    const { t } = useTranslation();
     return (
         <div className="flex flex-col items-center justify-center py-8 text-center opacity-60 hover:opacity-100 transition-opacity">
             <div className="relative mb-4">
                 <div className="absolute inset-0 border-2 border-dashed border-border rounded-lg w-16 h-20 rotate-6" />
                 <ClipboardList className="size-12 text-text-muted relative z-10" />
             </div>
-            <p className="text-text-muted text-sm mb-3">No tasks yet</p>
+            <p className="text-text-muted text-sm mb-3">{t('common.empty_states.no_tasks.title')}</p>
             {onAddTask && (
                 <button
                     onClick={onAddTask}
                     className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1"
                 >
                     <Plus className="size-3" />
-                    Add Task
+                    {t('common.empty_states.no_tasks.action')}
                 </button>
             )}
         </div>
@@ -123,12 +126,13 @@ export function EmptyColumnState({ onAddTask }: { onAddTask?: () => void }) {
 }
 
 export function NoSearchResultsState({ onClearFilters }: { onClearFilters?: () => void }) {
+    const { t } = useTranslation();
     return (
         <EmptyState
             type="search"
-            title="No results found"
-            description="We couldn't find anything matching your search. Try adjusting your search or filters."
-            actionLabel={onClearFilters ? "Clear all filters" : undefined}
+            title={t('common.empty_states.search.title')}
+            description={t('common.empty_states.search.description')}
+            actionLabel={onClearFilters ? t('common.empty_states.search.clear') : undefined}
             onAction={onClearFilters}
             variant="subtle"
             icon={
@@ -144,21 +148,23 @@ export function NoSearchResultsState({ onClearFilters }: { onClearFilters?: () =
 }
 
 export function NoActivityState() {
+    const { t } = useTranslation();
     return (
         <EmptyState
             type="activity"
-            title="No recent activity"
-            description="When you or your team makes changes, a timeline of actions will appear here to keep you updated."
+            title={t('common.empty_states.activity.title')}
+            description={t('common.empty_states.activity.description')}
         />
     );
 }
 
 export function NoCalendarTasksState() {
+    const { t } = useTranslation();
     return (
         <EmptyState
             type="tasks"
-            title="No tasks scheduled"
-            description="No tasks are due this month. Create tasks with due dates to see them on the calendar."
+            title={t('common.empty_states.calendar.title')}
+            description={t('common.empty_states.calendar.description')}
         />
     );
 }

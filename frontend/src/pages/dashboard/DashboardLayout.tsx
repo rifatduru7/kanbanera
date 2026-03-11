@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Sidebar } from '../../components/layout/Sidebar';
 import { Header } from '../../components/layout/Header';
 import { BottomNav } from '../../components/layout/BottomNav';
@@ -6,11 +6,13 @@ import { SearchModal } from '../../components/ui/SearchModal';
 import { FeaturesTourModal } from '../../components/onboarding/FeaturesTourModal';
 import { OnboardingComplete } from '../../components/onboarding/OnboardingComplete';
 import { CreateProjectModal } from '../../components/project/CreateProjectModal';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useCurrentUser } from '../../hooks/useAuth';
 import { useFeaturesTour } from '../../hooks/useFeaturesTour';
 import { useSearchModal } from '../../hooks/useSearchModal';
 import { useTranslation } from 'react-i18next';
+import { useProjects } from '../../hooks/useKanbanData';
+import { usePushNotifications } from '../../hooks/usePushNotifications';
 
 export function DashboardLayout() {
     const { t } = useTranslation();
@@ -24,6 +26,11 @@ export function DashboardLayout() {
     const featuresTour = useFeaturesTour();
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchParams] = useSearchParams();
+    const { data: projectsData } = useProjects();
+
+    // Initialize push notifications system
+    usePushNotifications();
 
     // Fetch user on mount if they have an active session
     const { isLoading: isUserLoading } = useCurrentUser();
@@ -47,6 +54,43 @@ export function DashboardLayout() {
         featuresTour.checkAndShow();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const headerMeta = useMemo(() => {
+        const path = location.pathname;
+        const projects = projectsData?.projects ?? [];
+        const boardProjectId = searchParams.get('project');
+        const boardProject =
+            projects.find((project) => project.id === boardProjectId) ||
+            projects[0];
+
+        if (path.startsWith('/board')) {
+            return {
+                projectName: t('nav.board'),
+                sprintName: boardProject?.name,
+                isActive: boardProject ? !boardProject.is_archived : false,
+            };
+        }
+        if (path.startsWith('/projects')) {
+            return { projectName: t('nav.projects'), sprintName: undefined, isActive: false };
+        }
+        if (path.startsWith('/calendar')) {
+            return { projectName: t('nav.calendar'), sprintName: undefined, isActive: false };
+        }
+        if (path.startsWith('/metrics')) {
+            return { projectName: t('nav.metrics'), sprintName: undefined, isActive: false };
+        }
+        if (path.startsWith('/members')) {
+            return { projectName: t('nav.members'), sprintName: undefined, isActive: false };
+        }
+        if (path.startsWith('/admin')) {
+            return { projectName: t('nav.admin'), sprintName: undefined, isActive: false };
+        }
+        if (path.startsWith('/settings') || path.startsWith('/profile')) {
+            return { projectName: t('nav.profile'), sprintName: undefined, isActive: false };
+        }
+
+        return { projectName: t('nav.dashboard'), sprintName: undefined, isActive: false };
+    }, [location.pathname, projectsData?.projects, searchParams, t]);
 
     if (isUserLoading) {
         return (
@@ -105,9 +149,9 @@ export function DashboardLayout() {
 
                 {/* Header */}
                 <Header
-                    projectName={t('nav.projects')}
-                    sprintName="Sprint 4"
-                    isActive={true}
+                    projectName={headerMeta.projectName}
+                    sprintName={headerMeta.sprintName}
+                    isActive={headerMeta.isActive}
                     onRefresh={handleRefresh}
                     lastSynced={lastSynced}
                     onSearchClick={searchModal.open}
@@ -116,7 +160,7 @@ export function DashboardLayout() {
 
                 {/* Content - Extra bottom padding for mobile nav */}
                 <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-5 md:p-8 pb-safe-nav lg:pb-8 z-0 relative">
-                    <div className="max-w-7xl mx-auto h-full min-h-0 flex flex-col gap-8">
+                    <div className="max-w-7xl mx-auto w-full lg:h-full min-h-0 flex flex-col gap-8">
                         <Outlet />
                     </div>
                 </div>
