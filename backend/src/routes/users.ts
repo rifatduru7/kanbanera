@@ -68,7 +68,7 @@ userRoutes.get('/:id', async (c) => {
 
     try {
         const user = await c.env.DB.prepare(
-            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, created_at FROM users WHERE id = ?'
+            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method, created_at FROM users WHERE id = ?'
         )
             .bind(id)
             .first<UserPublic>();
@@ -228,7 +228,7 @@ userRoutes.put('/me', async (c) => {
             .run();
 
         const user = await c.env.DB.prepare(
-            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, created_at FROM users WHERE id = ?'
+            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method, created_at FROM users WHERE id = ?'
         )
             .bind(userId)
             .first<UserPublic>();

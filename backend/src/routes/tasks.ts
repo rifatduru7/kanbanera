@@ -13,6 +13,72 @@ interface CommentWithAuthor extends Comment {
     avatar_url: string | null;
 }
 
+type ProjectTaskAccess = {
+    id: string;
+    owner_id: string;
+    role: 'owner' | 'admin' | 'member' | 'viewer' | null;
+};
+
+type ColumnTaskInfo = {
+    id: string;
+    project_id: string;
+    wip_limit: number | null;
+};
+
+async function getProjectAccess(env: Env, projectId: string, userId: string) {
+    return env.DB.prepare(
+        `SELECT p.id, p.owner_id, pm.role FROM projects p
+         LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+         WHERE p.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
+    )
+        .bind(userId, projectId, userId, userId)
+        .first<ProjectTaskAccess>();
+}
+
+async function getColumnInfo(env: Env, columnId: string, projectId: string) {
+    return env.DB.prepare(
+        'SELECT id, project_id, wip_limit FROM columns WHERE id = ? AND project_id = ?'
+    )
+        .bind(columnId, projectId)
+        .first<ColumnTaskInfo>();
+}
+
+async function getTaskCountInColumn(env: Env, columnId: string, excludeTaskId?: string) {
+    if (excludeTaskId) {
+        const row = await env.DB.prepare(
+            'SELECT COUNT(*) as count FROM tasks WHERE column_id = ? AND id != ?'
+        )
+            .bind(columnId, excludeTaskId)
+            .first<{ count: number }>();
+        return row?.count ?? 0;
+    }
+
+    const row = await env.DB.prepare(
+        'SELECT COUNT(*) as count FROM tasks WHERE column_id = ?'
+    )
+        .bind(columnId)
+        .first<{ count: number }>();
+    return row?.count ?? 0;
+}
+
+async function enforceWipLimit(env: Env, column: ColumnTaskInfo, excludeTaskId?: string) {
+    if (column.wip_limit === null || column.wip_limit === undefined) {
+        return null;
+    }
+
+    const currentCount = await getTaskCountInColumn(env, column.id, excludeTaskId);
+    if (currentCount >= column.wip_limit) {
+        return 'WIP limit reached for this column';
+    }
+
+    return null;
+}
+
+function clampPosition(position: number, min: number, max: number) {
+    if (!Number.isFinite(position)) return min;
+    return Math.min(Math.max(position, min), max);
+}
+
 // GET /api/tasks/calendar - Get tasks by date range for calendar view
 taskRoutes.get('/calendar', async (c) => {
     const userId = c.get('userId');
@@ -101,13 +167,7 @@ taskRoutes.post('/', async (c) => {
         }
 
         // Check project access
-        const access = await c.env.DB.prepare(
-            `SELECT p.id, p.owner_id, pm.role FROM projects p
-       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
-       WHERE p.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
-        )
-            .bind(userId, project_id, userId, userId)
-            .first<{ id: string; owner_id: string; role: string | null }>();
+        const access = await getProjectAccess(c.env, project_id, userId);
 
         if (!access) {
             return c.json(
@@ -120,11 +180,7 @@ taskRoutes.post('/', async (c) => {
             return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot create tasks' }, 403);
         }
 
-        const column = await c.env.DB.prepare(
-            'SELECT id FROM columns WHERE id = ? AND project_id = ?'
-        )
-            .bind(column_id, project_id)
-            .first<{ id: string }>();
+        const column = await getColumnInfo(c.env, column_id, project_id);
 
         if (!column) {
             return c.json(
@@ -133,7 +189,14 @@ taskRoutes.post('/', async (c) => {
             );
         }
 
-        // Get max position in column
+        const wipError = await enforceWipLimit(c.env, column);
+        if (wipError) {
+            return c.json(
+                { success: false, error: 'Conflict', message: wipError },
+                409
+            );
+        }
+
         const maxPos = await c.env.DB.prepare(
             'SELECT MAX(position) as max_pos FROM tasks WHERE column_id = ?'
         )
@@ -143,11 +206,11 @@ taskRoutes.post('/', async (c) => {
         const position = (maxPos?.max_pos ?? -1) + 1;
         const taskId = crypto.randomUUID();
 
-        await c.env.DB.prepare(
-            `INSERT INTO tasks (id, project_id, column_id, title, description, priority, position, assignee_id, due_date, labels, created_by)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-            .bind(
+        await c.env.DB.batch([
+            c.env.DB.prepare(
+                `INSERT INTO tasks (id, project_id, column_id, title, description, priority, position, assignee_id, due_date, labels, created_by)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+            ).bind(
                 taskId,
                 project_id,
                 column_id,
@@ -159,16 +222,12 @@ taskRoutes.post('/', async (c) => {
                 due_date || null,
                 labels ? JSON.stringify(labels) : null,
                 userId
-            )
-            .run();
-
-        // Log activity
-        await c.env.DB.prepare(
-            `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
-       VALUES (?, ?, ?, ?, 'task_created', ?)`
-        )
-            .bind(crypto.randomUUID(), project_id, taskId, userId, JSON.stringify({ title }))
-            .run();
+            ),
+            c.env.DB.prepare(
+                `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
+                 VALUES (?, ?, ?, ?, 'task_created', ?)`
+            ).bind(crypto.randomUUID(), project_id, taskId, userId, JSON.stringify({ title })),
+        ]);
 
         if (assignee_id && assignee_id !== userId) {
             await c.env.DB.prepare(
@@ -399,11 +458,7 @@ taskRoutes.put('/:id/move', async (c) => {
         const oldColumnId = task.column_id;
         const oldPosition = task.position;
 
-        const destinationColumn = await c.env.DB.prepare(
-            'SELECT id FROM columns WHERE id = ? AND project_id = ?'
-        )
-            .bind(column_id, task.project_id)
-            .first<{ id: string }>();
+        const destinationColumn = await getColumnInfo(c.env, column_id, task.project_id);
 
         if (!destinationColumn) {
             return c.json(
@@ -412,62 +467,69 @@ taskRoutes.put('/:id/move', async (c) => {
             );
         }
 
-        // If moving to a different column
-        if (column_id !== oldColumnId) {
-            // Shift tasks in old column
-            await c.env.DB.prepare(
-                `UPDATE tasks SET position = position - 1 
-         WHERE column_id = ? AND position > ?`
-            )
-                .bind(oldColumnId, oldPosition)
-                .run();
+        const statements = [];
+        let nextPosition = position;
 
-            // Shift tasks in new column
-            await c.env.DB.prepare(
-                `UPDATE tasks SET position = position + 1 
-         WHERE column_id = ? AND position >= ?`
-            )
-                .bind(column_id, position)
-                .run();
+        if (column_id !== oldColumnId) {
+            const wipError = await enforceWipLimit(c.env, destinationColumn, taskId);
+            if (wipError) {
+                return c.json(
+                    { success: false, error: 'Conflict', message: wipError },
+                    409
+                );
+            }
+
+            const destinationCount = await getTaskCountInColumn(c.env, column_id, taskId);
+            nextPosition = clampPosition(position, 0, destinationCount);
+
+            statements.push(
+                c.env.DB.prepare(
+                    `UPDATE tasks SET position = position - 1
+                     WHERE column_id = ? AND position > ?`
+                ).bind(oldColumnId, oldPosition),
+                c.env.DB.prepare(
+                    `UPDATE tasks SET position = position + 1
+                     WHERE column_id = ? AND position >= ?`
+                ).bind(column_id, nextPosition)
+            );
         } else {
-            // Same column, reorder
-            if (position < oldPosition) {
-                await c.env.DB.prepare(
-                    `UPDATE tasks SET position = position + 1 
-           WHERE column_id = ? AND position >= ? AND position < ?`
-                )
-                    .bind(column_id, position, oldPosition)
-                    .run();
-            } else if (position > oldPosition) {
-                await c.env.DB.prepare(
-                    `UPDATE tasks SET position = position - 1 
-           WHERE column_id = ? AND position > ? AND position <= ?`
-                )
-                    .bind(column_id, oldPosition, position)
-                    .run();
+            const currentCount = await getTaskCountInColumn(c.env, column_id);
+            nextPosition = clampPosition(position, 0, Math.max(0, currentCount - 1));
+
+            if (nextPosition < oldPosition) {
+                statements.push(
+                    c.env.DB.prepare(
+                        `UPDATE tasks SET position = position + 1
+                         WHERE column_id = ? AND position >= ? AND position < ?`
+                    ).bind(column_id, nextPosition, oldPosition)
+                );
+            } else if (nextPosition > oldPosition) {
+                statements.push(
+                    c.env.DB.prepare(
+                        `UPDATE tasks SET position = position - 1
+                         WHERE column_id = ? AND position > ? AND position <= ?`
+                    ).bind(column_id, oldPosition, nextPosition)
+                );
             }
         }
 
-        // Update task position and column
-        await c.env.DB.prepare(
-            `UPDATE tasks SET column_id = ?, position = ?, updated_at = datetime('now') WHERE id = ?`
-        )
-            .bind(column_id, position, taskId)
-            .run();
-
-        // Log activity
-        await c.env.DB.prepare(
-            `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
-       VALUES (?, ?, ?, ?, 'task_moved', ?)`
-        )
-            .bind(
+        statements.push(
+            c.env.DB.prepare(
+                `UPDATE tasks SET column_id = ?, position = ?, updated_at = datetime('now') WHERE id = ?`
+            ).bind(column_id, nextPosition, taskId),
+            c.env.DB.prepare(
+                `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
+                 VALUES (?, ?, ?, ?, 'task_moved', ?)`
+            ).bind(
                 crypto.randomUUID(),
                 task.project_id,
                 taskId,
                 userId,
-                JSON.stringify({ from_column: oldColumnId, to_column: column_id, position })
+                JSON.stringify({ from_column: oldColumnId, to_column: column_id, position: nextPosition })
             )
-            .run();
+        );
+
+        await c.env.DB.batch(statements);
 
         const user = await c.env.DB.prepare('SELECT full_name as name FROM users WHERE id = ?').bind(userId).first<{ name: string }>();
         const fromCol = await c.env.DB.prepare('SELECT name FROM columns WHERE id = ?').bind(oldColumnId).first<{ name: string }>();
@@ -526,18 +588,15 @@ taskRoutes.delete('/:id', async (c) => {
             return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
-        // Delete task (cascades to subtasks, comments, attachments)
-        await c.env.DB.prepare('DELETE FROM tasks WHERE id = ?')
-            .bind(taskId)
-            .run();
-
-        // Reorder remaining tasks in column
-        await c.env.DB.prepare(
-            `UPDATE tasks SET position = position - 1 
-       WHERE column_id = ? AND position > ?`
-        )
-            .bind(task.column_id, task.position)
-            .run();
+        await c.env.DB.batch([
+            c.env.DB.prepare('DELETE FROM tasks WHERE id = ?')
+                .bind(taskId),
+            c.env.DB.prepare(
+                `UPDATE tasks SET position = position - 1
+                 WHERE column_id = ? AND position > ?`
+            )
+                .bind(task.column_id, task.position),
+        ]);
 
         return c.json({
             success: true,
@@ -710,9 +769,33 @@ taskRoutes.delete('/:id/subtasks/:subtaskId', async (c) => {
             return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot perform this action' }, 403);
         }
 
-        await c.env.DB.prepare('DELETE FROM subtasks WHERE id = ? AND task_id = ?')
+        const subtask = await c.env.DB.prepare(
+            'SELECT id, title FROM subtasks WHERE id = ? AND task_id = ?'
+        )
             .bind(subtaskId, taskId)
-            .run();
+            .first<{ id: string; title: string }>();
+
+        if (!subtask) {
+            return c.json(
+                { success: false, error: 'Not Found', message: 'Subtask not found' },
+                404
+            );
+        }
+
+        await c.env.DB.batch([
+            c.env.DB.prepare('DELETE FROM subtasks WHERE id = ? AND task_id = ?')
+                .bind(subtaskId, taskId),
+            c.env.DB.prepare(
+                `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
+                 VALUES (?, ?, ?, ?, 'subtask_deleted', ?)`
+            ).bind(
+                crypto.randomUUID(),
+                task.project_id,
+                taskId,
+                userId,
+                JSON.stringify({ subtask_id: subtask.id, title: subtask.title })
+            ),
+        ]);
 
         return c.json({
             success: true,
@@ -820,26 +903,46 @@ taskRoutes.post('/:id/comments', async (c) => {
 // DELETE /api/tasks/:id/comments/:commentId - Delete comment
 taskRoutes.delete('/:id/comments/:commentId', async (c) => {
     const userId = c.get('userId');
+    const taskId = c.req.param('id');
     const commentId = c.req.param('commentId');
 
     try {
-        // Check ownership
         const comment = await c.env.DB.prepare(
-            'SELECT * FROM comments WHERE id = ? AND user_id = ?'
+            `SELECT c.*, t.project_id, p.owner_id, pm.role
+             FROM comments c
+             JOIN tasks t ON c.task_id = t.id
+             JOIN projects p ON t.project_id = p.id
+             LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+             WHERE c.id = ? AND c.task_id = ? AND (c.user_id = ? OR p.owner_id = ? OR pm.role = 'admin')`
         )
-            .bind(commentId, userId)
-            .first<Comment>();
+            .bind(userId, commentId, taskId, userId, userId)
+            .first<Comment & { project_id: string; owner_id: string; role: string | null }>();
 
         if (!comment) {
             return c.json(
-                { success: false, error: 'Not Found', message: 'Comment not found or not owner' },
+                { success: false, error: 'Not Found', message: 'Comment not found or access denied' },
                 404
             );
         }
 
-        await c.env.DB.prepare('DELETE FROM comments WHERE id = ?')
-            .bind(commentId)
-            .run();
+        if (comment.owner_id !== userId && comment.role === 'viewer') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Viewers cannot delete comments' }, 403);
+        }
+
+        await c.env.DB.batch([
+            c.env.DB.prepare('DELETE FROM comments WHERE id = ?')
+                .bind(commentId),
+            c.env.DB.prepare(
+                `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details)
+                 VALUES (?, ?, ?, ?, 'comment_deleted', ?)`
+            ).bind(
+                crypto.randomUUID(),
+                comment.project_id,
+                taskId,
+                userId,
+                JSON.stringify({ comment_id: commentId })
+            ),
+        ]);
 
         return c.json({
             success: true,

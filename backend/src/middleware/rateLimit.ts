@@ -5,6 +5,8 @@ interface RateLimitConfig {
     maxRequests: number;   // Maximum requests per window
     message?: string;      // Custom error message
     keyPrefix?: string;    // Prefix for key
+    failOpen?: boolean;
+    keyGenerator?: (c: Context) => Promise<string> | string;
 }
 
 interface RateLimitEntry {
@@ -24,6 +26,8 @@ export function rateLimit(config: RateLimitConfig): MiddlewareHandler {
         maxRequests = 60,      // 60 requests per minute default
         message = 'Too many requests, please try again later.',
         keyPrefix = 'rl',
+        failOpen = true,
+        keyGenerator,
     } = config;
 
     return async (c: Context, next) => {
@@ -40,10 +44,17 @@ export function rateLimit(config: RateLimitConfig): MiddlewareHandler {
             'unknown';
 
         const userId = c.get('userId') as string | undefined;
-        const key = `${keyPrefix}:${userId || clientIP}`;
+        let key = `${keyPrefix}:${userId || clientIP}`;
         const now = Date.now();
 
         try {
+            if (keyGenerator) {
+                const generatedKey = await keyGenerator(c);
+                if (generatedKey) {
+                    key = `${keyPrefix}:${generatedKey}`;
+                }
+            }
+
             const db = c.env.DB;
 
             // Clean up expired entries periodically (1 in 20 chance)
@@ -110,8 +121,17 @@ export function rateLimit(config: RateLimitConfig): MiddlewareHandler {
                 );
             }
         } catch (error) {
-            // If D1 fails, allow the request through (fail-open)
             console.error('Rate limit check failed:', error);
+            if (!failOpen) {
+                return c.json(
+                    {
+                        success: false,
+                        error: 'Service Unavailable',
+                        message: 'Rate limit service unavailable. Please try again shortly.',
+                    },
+                    503
+                );
+            }
         }
 
         await next();
@@ -126,6 +146,7 @@ export const authRateLimit = rateLimit({
     maxRequests: 10,         // 10 attempts per 5 minutes
     message: 'Too many login attempts. Please try again in 5 minutes.',
     keyPrefix: 'auth',
+    failOpen: false,
 });
 
 /**
@@ -145,4 +166,81 @@ export const uploadRateLimit = rateLimit({
     maxRequests: 20,          // 20 uploads per hour
     message: 'Upload limit reached. Please try again later.',
     keyPrefix: 'upload',
+});
+
+async function parseJsonBody(c: Context): Promise<Record<string, unknown>> {
+    try {
+        const contentType = c.req.header('Content-Type') || '';
+        if (!contentType.includes('application/json')) return {};
+        const raw = c.req.raw.clone();
+        return await raw.json() as Record<string, unknown>;
+    } catch {
+        return {};
+    }
+}
+
+function hashKeyPart(input: string): string {
+    let hashValue = 0;
+    for (let i = 0; i < input.length; i += 1) {
+        hashValue = ((hashValue << 5) - hashValue) + input.charCodeAt(i);
+        hashValue |= 0;
+    }
+    return Math.abs(hashValue).toString(36);
+}
+
+export const authCredentialRateLimit = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 10,
+    message: 'Too many authentication attempts. Please try again in 5 minutes.',
+    keyPrefix: 'auth-credential',
+    failOpen: false,
+    keyGenerator: async (c) => {
+        const body = await parseJsonBody(c);
+        const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : 'no-email';
+        const ip = c.req.header('cf-connecting-ip')
+            || c.req.header('x-forwarded-for')?.split(',')[0]
+            || c.req.header('x-real-ip')
+            || 'unknown';
+        return `${ip}:${email}`;
+    },
+});
+
+export const authChallengeRateLimit = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 10,
+    message: 'Too many verification attempts. Please try again in 5 minutes.',
+    keyPrefix: 'auth-challenge',
+    failOpen: false,
+    keyGenerator: async (c) => {
+        const body = await parseJsonBody(c);
+        const token = typeof body.mfa_token === 'string'
+            ? body.mfa_token
+            : typeof body.token === 'string'
+                ? body.token
+                : 'no-token';
+        const ip = c.req.header('cf-connecting-ip')
+            || c.req.header('x-forwarded-for')?.split(',')[0]
+            || c.req.header('x-real-ip')
+            || 'unknown';
+        return `${ip}:${hashKeyPart(token)}`;
+    },
+});
+
+export const authRefreshRateLimit = rateLimit({
+    windowMs: 5 * 60 * 1000,
+    maxRequests: 30,
+    message: 'Too many refresh attempts. Please try again later.',
+    keyPrefix: 'auth-refresh',
+    failOpen: false,
+    keyGenerator: (c) => {
+        const cookieHeader = c.req.header('Cookie') || '';
+        const tokenFragment = cookieHeader.includes('refresh_token=')
+            ? hashKeyPart(cookieHeader)
+            : 'no-cookie';
+        const ip = c.req.header('cf-connecting-ip')
+            || c.req.header('x-forwarded-for')?.split(',')[0]
+            || c.req.header('x-real-ip')
+            || 'unknown';
+        return `${ip}:${tokenFragment}`;
+    },
 });

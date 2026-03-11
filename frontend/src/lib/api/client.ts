@@ -94,6 +94,8 @@ interface AuthPayload {
     mfa_token?: string;
     mfa_method?: 'totp' | 'email';
     mfa_sent_to?: string;
+    token?: string;
+    sent_to?: string;
 }
 
 function mapApiUser(user: ApiUser): AppUser {
@@ -187,6 +189,7 @@ export interface ApiAttachment {
     file_size?: number;
     mime_type?: string;
     url?: string;
+    download_url?: string;
     thumbnail_url?: string;
     created_at?: string;
     [key: string]: unknown;
@@ -329,8 +332,20 @@ export const authApi = {
         return response.data;
     },
 
-    enableEmail2FA: async (): Promise<ApiResponse<AuthPayload>> => {
-        const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/2fa/email/enable');
+    startEmail2FAEnable: async (password: string): Promise<ApiResponse<{ token: string; sent_to: string }>> => {
+        const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/2fa/email/enable/start', { password });
+        return {
+            success: response.data.success,
+            data: response.data.data?.token && response.data.data?.sent_to
+                ? { token: response.data.data.token, sent_to: response.data.data.sent_to }
+                : undefined,
+            error: response.data.error,
+            message: response.data.message,
+        };
+    },
+
+    verifyEmail2FAEnable: async (token: string, code: string): Promise<ApiResponse<AuthPayload>> => {
+        const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/2fa/email/enable/verify', { token, code });
         return response.data;
     },
 

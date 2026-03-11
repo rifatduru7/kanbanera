@@ -463,6 +463,8 @@
     "scan_qr": "QR Kodu Tara",
     "scan_qr_desc": "Aşağıdaki QR kodunu kimlik doğrulama uygulamanızla (Google Authenticator veya Authy gibi) tarayın.",
     "enter_verify_code": "Doğrulama Kodunu Girin",
+    "enter_password_to_enable_email_2fa": "Email 2FA'yı açmak için mevcut şifrenizi girin",
+    "enter_email_2fa_code": "Email adresinize gönderilen 6 haneli kodu girin.",
     "verify_enable": "Doğrula ve Etkinleştir",
     "enable": "Etkinleştir",
     "disable": "Devre Dışı Bırak",

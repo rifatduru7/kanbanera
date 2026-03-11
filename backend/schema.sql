@@ -168,6 +168,22 @@ CREATE TABLE IF NOT EXISTS password_reset_tokens (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+-- MFA challenges for email-based login and 2FA enable flows
+CREATE TABLE IF NOT EXISTS mfa_challenges (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  purpose TEXT NOT NULL CHECK (purpose IN ('login_email', 'enable_email_2fa')),
+  method TEXT NOT NULL CHECK (method IN ('email')),
+  code_hash TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 5,
+  consumed_at TEXT,
+  sent_to TEXT,
+  created_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Indexes for better query performance
 CREATE INDEX IF NOT EXISTS idx_tasks_project ON tasks(project_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_column ON tasks(column_id);
@@ -186,6 +202,7 @@ CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires ON password_reset_t
 CREATE INDEX IF NOT EXISTS idx_integrations_project ON integrations(project_id);
 CREATE INDEX IF NOT EXISTS idx_integrations_token ON integrations(incoming_token);
 CREATE INDEX IF NOT EXISTS idx_user_preferences_user ON user_preferences(user_id);
+CREATE INDEX IF NOT EXISTS idx_mfa_challenges_user_purpose ON mfa_challenges(user_id, purpose, consumed_at, expires_at);
 
 -- Notifications
 CREATE TABLE IF NOT EXISTS notifications (

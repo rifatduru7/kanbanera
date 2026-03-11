@@ -219,15 +219,38 @@ export function ProfilePage() {
     };
 
     const handleEnableEmail2FA = async () => {
+        const password = window.prompt(t('profile.enter_password_to_enable_email_2fa', 'Enter your current password to enable email 2FA'));
+        if (!password) {
+            return;
+        }
+
         setIsTogglingEmail2FA(true);
         try {
-            const response = await authApi.enableEmail2FA();
-            if (response.success && response.data) {
-                setUser(toAppUser(response.data.user));
-                toast.success(t('profile.email_2fa_enabled', 'Email-based 2FA enabled'));
-            } else {
-                toast.error(response.message || t('profile.email_2fa_enable_failed', 'Failed to enable email 2FA'));
+            const startResponse = await authApi.startEmail2FAEnable(password);
+            if (!startResponse.success || !startResponse.data) {
+                toast.error(startResponse.message || t('profile.email_2fa_enable_failed', 'Failed to enable email 2FA'));
+                return;
             }
+
+            const code = window.prompt(
+                t(
+                    'profile.enter_email_2fa_code',
+                    `Enter the 6-digit code sent to ${startResponse.data.sent_to}.`
+                )
+            );
+
+            if (!code) {
+                return;
+            }
+
+            const verifyResponse = await authApi.verifyEmail2FAEnable(startResponse.data.token, code);
+            if (verifyResponse.success && verifyResponse.data) {
+                setUser(toAppUser(verifyResponse.data.user));
+                toast.success(t('profile.email_2fa_enabled', 'Email-based 2FA enabled'));
+                return;
+            }
+
+            toast.error(verifyResponse.message || t('profile.email_2fa_enable_failed', 'Failed to enable email 2FA'));
         } catch {
             toast.error(t('profile.email_2fa_enable_failed', 'Failed to enable email 2FA'));
         } finally {

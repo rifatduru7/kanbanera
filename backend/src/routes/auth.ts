@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { setCookie, deleteCookie } from 'hono/cookie';
 import type { Env, User } from '../types';
 import {
+    REFRESH_COOKIE_MAX_AGE_SECONDS,
     hashPassword,
     verifyPassword,
     generateAccessToken,
@@ -25,6 +26,21 @@ interface TwoFactorUserRow {
     two_factor_enabled: number;
     two_factor_method: 'totp' | 'email' | null;
 }
+
+interface MfaChallengeRow {
+    id: string;
+    user_id: string;
+    purpose: 'login_email' | 'enable_email_2fa';
+    method: 'email';
+    code_hash: string;
+    expires_at: string;
+    attempts: number;
+    max_attempts: number;
+    consumed_at: string | null;
+    sent_to: string | null;
+}
+
+const MFA_CODE_TTL_MINUTES = 5;
 
 // POST /api/auth/register
 authRoutes.post('/register', async (c) => {
@@ -94,14 +110,7 @@ authRoutes.post('/register', async (c) => {
 
         const refreshToken = await generateRefreshToken(c.env.JWT_REFRESH_SECRET, userId);
 
-        // Set refresh token cookie
-        setCookie(c, 'refresh_token', refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-            maxAge: 60 * 60 * 24 * 7, // 7 days
-            path: '/',
-        });
+        setRefreshTokenCookie(c, refreshToken);
 
         return c.json({
             success: true,
@@ -166,36 +175,35 @@ authRoutes.post('/login', async (c) => {
 
         if (twoFactorResult?.two_factor_enabled) {
             const method = twoFactorResult.two_factor_method || 'totp';
-            let mfaCodeHash: string | undefined;
-            let mfaSentTo: string | undefined;
+            let challengeId: string | undefined;
+            let maskedEmail: string | undefined;
 
             if (method === 'email') {
-                const code = generateMfaCode();
-                mfaCodeHash = await hashToken(code);
-                mfaSentTo = user.email;
-
                 try {
-                    const emailService = await getEmailService(c.env);
-                    await emailService.sendTwoFactorCodeEmail({
-                        to: user.email,
-                        name: user.full_name,
-                        code: code,
-                        expiresInMinutes: 5
+                    const challenge = await createEmailChallenge(c, {
+                        userId: user.id,
+                        purpose: 'login_email',
+                        email: user.email,
+                        fullName: user.full_name,
                     });
+                    challengeId = challenge.challengeId;
+                    maskedEmail = challenge.maskedEmail;
                 } catch (emailError) {
                     console.error('Failed to send 2FA email:', emailError);
+                    return c.json(
+                        { success: false, error: 'Service Unavailable', message: 'Failed to send 2FA verification email' },
+                        503
+                    );
                 }
             }
 
-            // Generate a temporary MFA token (short-lived JWT)
             const mfaToken = await generateAccessToken(c.env.JWT_SECRET, {
                 sub: user.id,
                 email: user.email,
                 role: user.role,
                 mfa_pending: true,
                 mfa_method: method as 'totp' | 'email',
-                mfa_code_hash: mfaCodeHash,
-                mfa_sent_to: mfaSentTo
+                challenge_id: challengeId,
             }, '5m');
 
             return c.json({
@@ -204,7 +212,7 @@ authRoutes.post('/login', async (c) => {
                     mfa_required: true,
                     mfa_token: mfaToken,
                     mfa_method: method,
-                    mfa_sent_to: mfaSentTo ? maskEmail(mfaSentTo) : undefined
+                    mfa_sent_to: maskedEmail
                 }
             });
         }
@@ -218,14 +226,7 @@ authRoutes.post('/login', async (c) => {
 
         const refreshToken = await generateRefreshToken(c.env.JWT_REFRESH_SECRET, user.id);
 
-        // Set refresh token cookie
-        setCookie(c, 'refresh_token', refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-            maxAge: 60 * 60 * 24 * 7,
-            path: '/',
-        });
+        setRefreshTokenCookie(c, refreshToken);
 
         return c.json({
             success: true,
@@ -275,12 +276,21 @@ authRoutes.post('/login/verify', async (c) => {
 
         // Verify code
         if (payload.mfa_method === 'email') {
-            if (!payload.mfa_code_hash) {
+            if (!payload.challenge_id) {
                 return c.json({ success: false, error: 'Unauthorized', message: 'Invalid MFA session' }, 401);
             }
-            const providedCodeHash = await hashToken(code);
-            if (providedCodeHash !== payload.mfa_code_hash) {
-                return c.json({ success: false, error: 'Unauthorized', message: 'Invalid verification code' }, 401);
+            const challengeResult = await verifyEmailChallenge(c, {
+                challengeId: payload.challenge_id,
+                userId,
+                purpose: 'login_email',
+                code,
+            });
+
+            if (!challengeResult.success) {
+                const message = challengeResult.reason === 'expired'
+                    ? 'Verification code has expired'
+                    : 'Invalid verification code';
+                return c.json({ success: false, error: 'Unauthorized', message }, 401);
             }
         } else {
             if (!user.two_factor_secret) {
@@ -312,13 +322,7 @@ authRoutes.post('/login/verify', async (c) => {
 
         const refreshToken = await generateRefreshToken(c.env.JWT_REFRESH_SECRET, user.id);
 
-        setCookie(c, 'refresh_token', refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-            maxAge: 60 * 60 * 24 * 7,
-            path: '/',
-        });
+        setRefreshTokenCookie(c, refreshToken);
 
         return c.json({
             success: true,
@@ -410,11 +414,15 @@ authRoutes.post('/2fa/enable', async (c) => {
         }
 
         // Save secret and enable
-        await c.env.DB.prepare('UPDATE users SET two_factor_secret = ?, two_factor_enabled = 1, updated_at = (datetime(\'now\')) WHERE id = ?')
+        await c.env.DB.prepare(
+            'UPDATE users SET two_factor_secret = ?, two_factor_enabled = 1, two_factor_method = \'totp\', updated_at = (datetime(\'now\')) WHERE id = ?'
+        )
             .bind(secret, userId)
             .run();
 
-        const updatedUser = await c.env.DB.prepare('SELECT id, email, full_name, avatar_url, role, two_factor_enabled FROM users WHERE id = ?')
+        const updatedUser = await c.env.DB.prepare(
+            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method FROM users WHERE id = ?'
+        )
             .bind(userId)
             .first<TwoFactorUserRow>();
 
@@ -431,7 +439,8 @@ authRoutes.post('/2fa/enable', async (c) => {
                     full_name: updatedUser.full_name,
                     avatar_url: updatedUser.avatar_url,
                     role: updatedUser.role,
-                    two_factor_enabled: updatedUser.two_factor_enabled === 1
+                    two_factor_enabled: updatedUser.two_factor_enabled === 1,
+                    two_factor_method: updatedUser.two_factor_method,
                 }
             },
             message: 'Two-factor authentication enabled successfully'
@@ -471,11 +480,15 @@ authRoutes.post('/2fa/disable', async (c) => {
             return c.json({ success: false, error: 'Unauthorized', message: 'Invalid 2FA code' }, 401);
         }
 
-        await c.env.DB.prepare('UPDATE users SET two_factor_secret = NULL, two_factor_enabled = 0, updated_at = (datetime(\'now\')) WHERE id = ?')
+        await c.env.DB.prepare(
+            'UPDATE users SET two_factor_secret = NULL, two_factor_enabled = 0, two_factor_method = NULL, updated_at = (datetime(\'now\')) WHERE id = ?'
+        )
             .bind(userId)
             .run();
 
-        const updatedUser = await c.env.DB.prepare('SELECT id, email, full_name, avatar_url, role, two_factor_enabled FROM users WHERE id = ?')
+        const updatedUser = await c.env.DB.prepare(
+            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method FROM users WHERE id = ?'
+        )
             .bind(userId)
             .first<TwoFactorUserRow>();
 
@@ -505,17 +518,120 @@ authRoutes.post('/2fa/disable', async (c) => {
 });
 
 // Email 2FA Routes
-authRoutes.post('/2fa/email/enable', async (c) => {
+authRoutes.post('/2fa/email/enable/start', async (c) => {
     const payload = await verifyAccessToken(c);
     if (!payload) return c.json({ success: false, error: 'Unauthorized' }, 401);
     const userId = payload.sub;
 
     try {
-        await c.env.DB.prepare('UPDATE users SET two_factor_enabled = 1, two_factor_method = \'email\', updated_at = (datetime(\'now\')) WHERE id = ?')
+        const body = await c.req.json<{ password?: string }>();
+        const password = body.password || '';
+
+        if (!password) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'Password is required' },
+                400
+            );
+        }
+
+        const user = await c.env.DB.prepare(
+            'SELECT id, email, full_name, password_hash, two_factor_enabled, two_factor_method FROM users WHERE id = ?'
+        )
+            .bind(userId)
+            .first<User & { two_factor_enabled: number; two_factor_method: 'totp' | 'email' | null }>();
+
+        if (!user) {
+            return c.json({ success: false, error: 'Not Found', message: 'User not found' }, 404);
+        }
+
+        const passwordValid = await verifyPassword(password, user.password_hash);
+        if (!passwordValid) {
+            return c.json({ success: false, error: 'Unauthorized', message: 'Current password is incorrect' }, 401);
+        }
+
+        try {
+            const challenge = await createEmailChallenge(c, {
+                userId,
+                purpose: 'enable_email_2fa',
+                email: user.email,
+                fullName: user.full_name,
+            });
+
+            const token = await generateAccessToken(c.env.JWT_SECRET, {
+                sub: user.id,
+                email: user.email,
+                role: user.role,
+                mfa_pending: true,
+                mfa_method: 'email',
+                challenge_id: challenge.challengeId,
+            }, '5m');
+
+            return c.json({
+                success: true,
+                data: {
+                    token,
+                    sent_to: challenge.maskedEmail,
+                },
+                message: 'Verification code sent'
+            });
+        } catch (emailError) {
+            console.error('Email 2FA enable start error:', emailError);
+            return c.json(
+                { success: false, error: 'Service Unavailable', message: 'Failed to send verification email' },
+                503
+            );
+        }
+    } catch (error) {
+        console.error('Email 2FA enable start error:', error);
+        return c.json({ success: false, error: 'Server Error' }, 500);
+    }
+});
+
+authRoutes.post('/2fa/email/enable/verify', async (c) => {
+    const payload = await verifyAccessToken(c);
+    if (!payload) return c.json({ success: false, error: 'Unauthorized' }, 401);
+    const userId = payload.sub;
+
+    try {
+        const body = await c.req.json<{ token?: string; code?: string }>();
+        const token = body.token || '';
+        const code = body.code || '';
+
+        if (!token || !code) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'token and code are required' },
+                400
+            );
+        }
+
+        const verificationPayload = await verifyAccessToken(c, token, { allowMfaPending: true });
+        if (!verificationPayload || !verificationPayload.challenge_id || verificationPayload.sub !== userId) {
+            return c.json({ success: false, error: 'Unauthorized', message: 'Invalid verification token' }, 401);
+        }
+
+        const challengeResult = await verifyEmailChallenge(c, {
+            challengeId: verificationPayload.challenge_id,
+            userId,
+            purpose: 'enable_email_2fa',
+            code,
+        });
+
+        if (!challengeResult.success) {
+            const message = challengeResult.reason === 'expired'
+                ? 'Verification code has expired'
+                : 'Invalid verification code';
+            return c.json({ success: false, error: 'Unauthorized', message }, 401);
+        }
+
+        await c.env.DB.prepare(
+            'UPDATE users SET two_factor_enabled = 1, two_factor_method = \'email\', two_factor_secret = NULL, updated_at = (datetime(\'now\')) WHERE id = ?'
+        )
             .bind(userId)
             .run();
 
-        const updatedUser = await c.env.DB.prepare('SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method FROM users WHERE id = ?')
+        const updatedUser = await c.env.DB.prepare(
+            'SELECT id, email, full_name, avatar_url, role, two_factor_enabled, two_factor_method FROM users WHERE id = ?'
+        )
             .bind(userId)
             .first<User>();
 
@@ -527,7 +643,7 @@ authRoutes.post('/2fa/email/enable', async (c) => {
             message: 'Email-based two-factor authentication enabled successfully'
         });
     } catch (error) {
-        console.error('Email 2FA enable error:', error);
+        console.error('Email 2FA enable verify error:', error);
         return c.json({ success: false, error: 'Server Error' }, 500);
     }
 });
@@ -797,7 +913,7 @@ authRoutes.get('/me', async (c) => {
     const userId = payload.sub;
 
     const user = await c.env.DB.prepare(
-        'SELECT id, email, full_name, avatar_url, role, created_at FROM users WHERE id = ?'
+        'SELECT id, email, full_name, avatar_url, role, created_at, two_factor_enabled, two_factor_method FROM users WHERE id = ?'
     )
         .bind(userId)
         .first();
@@ -917,6 +1033,118 @@ function generateMfaCode(): string {
     crypto.getRandomValues(bytes);
     const code = (bytes[0] << 16 | bytes[1] << 8 | bytes[2]) % 1000000;
     return code.toString().padStart(6, '0');
+}
+
+function setRefreshTokenCookie(c: Parameters<typeof setCookie>[0], refreshToken: string) {
+    setCookie(c, 'refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'None',
+        maxAge: REFRESH_COOKIE_MAX_AGE_SECONDS,
+        path: '/',
+    });
+}
+
+function isExpired(dateValue: string): boolean {
+    return Number.isNaN(Date.parse(dateValue)) || Date.parse(dateValue) <= Date.now();
+}
+
+async function createEmailChallenge(
+    c: { env: Env },
+    params: {
+        userId: string;
+        purpose: 'login_email' | 'enable_email_2fa';
+        email: string;
+        fullName: string;
+    }
+): Promise<{ challengeId: string; maskedEmail: string }> {
+    const code = generateMfaCode();
+    const codeHash = await hashToken(code);
+    const challengeId = crypto.randomUUID();
+
+    const emailService = await getEmailService(c.env);
+    await emailService.sendTwoFactorCodeEmail({
+        to: params.email,
+        name: params.fullName,
+        code,
+        expiresInMinutes: MFA_CODE_TTL_MINUTES,
+    });
+
+    await c.env.DB.prepare(
+        `DELETE FROM mfa_challenges
+         WHERE user_id = ? AND purpose = ? AND consumed_at IS NULL`
+    )
+        .bind(params.userId, params.purpose)
+        .run();
+
+    await c.env.DB.prepare(
+        `INSERT INTO mfa_challenges (
+            id, user_id, purpose, method, code_hash, expires_at, sent_to
+         ) VALUES (?, ?, ?, 'email', ?, datetime('now', ?), ?)`
+    )
+        .bind(
+            challengeId,
+            params.userId,
+            params.purpose,
+            codeHash,
+            `+${MFA_CODE_TTL_MINUTES} minutes`,
+            params.email
+        )
+        .run();
+
+    return { challengeId, maskedEmail: maskEmail(params.email) };
+}
+
+async function verifyEmailChallenge(
+    c: { env: Env },
+    params: {
+        challengeId: string;
+        userId: string;
+        purpose: 'login_email' | 'enable_email_2fa';
+        code: string;
+    }
+): Promise<{ success: true } | { success: false; reason: 'invalid' | 'expired' | 'exhausted' }> {
+    const challenge = await c.env.DB.prepare(
+        `SELECT *
+         FROM mfa_challenges
+         WHERE id = ? AND user_id = ? AND purpose = ? AND consumed_at IS NULL`
+    )
+        .bind(params.challengeId, params.userId, params.purpose)
+        .first<MfaChallengeRow>();
+
+    if (!challenge) {
+        return { success: false, reason: 'invalid' };
+    }
+
+    if (challenge.attempts >= challenge.max_attempts) {
+        return { success: false, reason: 'exhausted' };
+    }
+
+    if (isExpired(challenge.expires_at)) {
+        return { success: false, reason: 'expired' };
+    }
+
+    const providedCodeHash = await hashToken(params.code);
+    if (providedCodeHash !== challenge.code_hash) {
+        await c.env.DB.prepare(
+            `UPDATE mfa_challenges
+             SET attempts = attempts + 1
+             WHERE id = ?`
+        )
+            .bind(challenge.id)
+            .run();
+        return { success: false, reason: 'invalid' };
+    }
+
+    await c.env.DB.prepare(
+        `UPDATE mfa_challenges
+         SET consumed_at = datetime('now')
+         WHERE id = ?`
+    )
+        .bind(challenge.id)
+        .run();
+
+    return { success: true };
 }
 
 function maskEmail(email: string): string {

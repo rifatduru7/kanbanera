@@ -4,6 +4,10 @@ import * as jose from 'jose';
 import { hash, compare } from 'bcrypt-ts';
 import type { Env, JWTPayload } from '../types';
 
+export const ACCESS_TOKEN_TTL = '12h';
+export const REFRESH_TOKEN_TTL = '30d';
+export const REFRESH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
 // Extend Hono context with user
 declare module 'hono' {
     interface ContextVariableMap {
@@ -89,12 +93,12 @@ export async function optionalAuth(
 }
 
 /**
- * Generate access token (15 minutes)
+ * Generate access token
  */
 export async function generateAccessToken(
     secret: string,
     payload: Omit<JWTPayload, 'iat' | 'exp'>,
-    expiresIn: string = '7d'
+    expiresIn: string = ACCESS_TOKEN_TTL
 ): Promise<string> {
     const secretKey = new TextEncoder().encode(secret);
 
@@ -108,7 +112,7 @@ export async function generateAccessToken(
 }
 
 /**
- * Generate refresh token (7 days)
+ * Generate refresh token
  */
 export async function generateRefreshToken(
     secret: string,
@@ -119,7 +123,7 @@ export async function generateRefreshToken(
     const token = await new jose.SignJWT({ sub: userId })
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
-        .setExpirationTime('7d')
+        .setExpirationTime(REFRESH_TOKEN_TTL)
         .sign(secretKey);
 
     return token;

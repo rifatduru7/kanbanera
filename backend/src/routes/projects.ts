@@ -44,9 +44,12 @@ projectRoutes.get('/', async (c) => {
               (SELECT COUNT(*) FROM tasks WHERE project_id = p.id) as task_count,
               (SELECT COUNT(*) FROM project_members WHERE project_id = p.id) as member_count
        FROM projects p
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE p.owner_id = ? OR pm.user_id = ?
-       GROUP BY p.id
+       WHERE p.owner_id = ?
+          OR EXISTS (
+              SELECT 1
+              FROM project_members pm
+              WHERE pm.project_id = p.id AND pm.user_id = ?
+          )
        ORDER BY p.updated_at DESC`
         )
             .bind(userId, userId)

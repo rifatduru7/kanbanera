@@ -7,6 +7,22 @@ export const columnRoutes = new Hono<{ Bindings: Env }>();
 // All routes require authentication
 columnRoutes.use('*', authMiddleware);
 
+type ProjectColumnAccess = {
+    id: string;
+    owner_id: string;
+    role: 'owner' | 'admin' | 'member' | 'viewer' | null;
+};
+
+async function getProjectAccess(env: Env, projectId: string, userId: string) {
+    return env.DB.prepare(
+        `SELECT p.id, p.owner_id, pm.role FROM projects p
+         LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+         WHERE p.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
+    )
+        .bind(userId, projectId, userId, userId)
+        .first<ProjectColumnAccess>();
+}
+
 // POST /api/columns - Create column
 columnRoutes.post('/', async (c) => {
     const userId = c.get('userId');
@@ -23,13 +39,7 @@ columnRoutes.post('/', async (c) => {
         }
 
         // Check project access
-        const access = await c.env.DB.prepare(
-            `SELECT p.id, p.owner_id, pm.role FROM projects p
-       LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
-       WHERE p.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
-        )
-            .bind(userId, project_id, userId, userId)
-            .first<{ id: string; owner_id: string; role: string | null }>();
+        const access = await getProjectAccess(c.env, project_id, userId);
 
         if (!access) {
             return c.json(
@@ -133,6 +143,89 @@ columnRoutes.put('/:id', async (c) => {
     }
 });
 
+// POST /api/columns/reorder - Bulk reorder columns
+columnRoutes.post('/reorder', async (c) => {
+    const userId = c.get('userId');
+
+    try {
+        const body = await c.req.json<{ project_id?: string; column_ids?: string[] }>();
+        const projectId = body.project_id || '';
+        const columnIds = Array.isArray(body.column_ids) ? body.column_ids : [];
+
+        if (!projectId || columnIds.length === 0) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'project_id and column_ids are required' },
+                400
+            );
+        }
+
+        if (new Set(columnIds).size !== columnIds.length) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'column_ids must be unique' },
+                400
+            );
+        }
+
+        const access = await getProjectAccess(c.env, projectId, userId);
+        if (!access) {
+            return c.json(
+                { success: false, error: 'Not Found', message: 'Project not found or access denied' },
+                404
+            );
+        }
+
+        if (access.owner_id !== userId && access.role !== 'admin') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Only admins or owners can reorder columns' }, 403);
+        }
+
+        const { results: projectColumns } = await c.env.DB.prepare(
+            'SELECT id FROM columns WHERE project_id = ? ORDER BY position'
+        )
+            .bind(projectId)
+            .all<{ id: string }>();
+
+        if ((projectColumns || []).length !== columnIds.length) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'column_ids must include every column in the project exactly once' },
+                400
+            );
+        }
+
+        const projectColumnIds = new Set((projectColumns || []).map((column) => column.id));
+        if (!columnIds.every((id) => projectColumnIds.has(id))) {
+            return c.json(
+                { success: false, error: 'Validation Error', message: 'All column_ids must belong to the project' },
+                400
+            );
+        }
+
+        await c.env.DB.batch(
+            columnIds.map((id, index) =>
+                c.env.DB.prepare(
+                    'UPDATE columns SET position = ? WHERE id = ? AND project_id = ?'
+                ).bind(index, id, projectId)
+            )
+        );
+
+        const { results: columns } = await c.env.DB.prepare(
+            'SELECT * FROM columns WHERE project_id = ? ORDER BY position'
+        )
+            .bind(projectId)
+            .all<Column>();
+
+        return c.json({
+            success: true,
+            data: { columns: columns || [] },
+        });
+    } catch (error) {
+        console.error('Bulk reorder columns error:', error);
+        return c.json(
+            { success: false, error: 'Server Error', message: 'Failed to reorder columns' },
+            500
+        );
+    }
+});
+
 // PUT /api/columns/:id/reorder - Reorder columns
 columnRoutes.put('/:id/reorder', async (c) => {
     const userId = c.get('userId');
@@ -151,13 +244,13 @@ columnRoutes.put('/:id/reorder', async (c) => {
 
         // Check access and get column
         const column = await c.env.DB.prepare(
-            `SELECT c.* FROM columns c
-       JOIN projects p ON c.project_id = p.id
-       LEFT JOIN project_members pm ON p.id = pm.project_id
-       WHERE c.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
+            `SELECT c.*, p.owner_id, pm.role FROM columns c
+             JOIN projects p ON c.project_id = p.id
+             LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+             WHERE c.id = ? AND (p.owner_id = ? OR pm.user_id = ?)`
         )
-            .bind(columnId, userId, userId)
-            .first<Column>();
+            .bind(userId, columnId, userId, userId)
+            .first<Column & { owner_id: string; role: string | null }>();
 
         if (!column) {
             return c.json(
@@ -166,32 +259,43 @@ columnRoutes.put('/:id/reorder', async (c) => {
             );
         }
 
+        if (column.owner_id !== userId && column.role !== 'admin') {
+            return c.json({ success: false, error: 'Forbidden', message: 'Only admins or owners can reorder columns' }, 403);
+        }
+
         const oldPosition = column.position;
+        const maxPositionResult = await c.env.DB.prepare(
+            'SELECT COUNT(*) as count FROM columns WHERE project_id = ?'
+        )
+            .bind(column.project_id)
+            .first<{ count: number }>();
+        const maxPosition = Math.max(0, (maxPositionResult?.count ?? 1) - 1);
+        const nextPosition = Math.min(Math.max(position, 0), maxPosition);
 
         // Update positions
-        if (position < oldPosition) {
+        if (nextPosition < oldPosition) {
             // Moving left: shift columns between new and old position right
             await c.env.DB.prepare(
                 `UPDATE columns 
          SET position = position + 1 
          WHERE project_id = ? AND position >= ? AND position < ?`
             )
-                .bind(column.project_id, position, oldPosition)
+                .bind(column.project_id, nextPosition, oldPosition)
                 .run();
-        } else if (position > oldPosition) {
+        } else if (nextPosition > oldPosition) {
             // Moving right: shift columns between old and new position left
             await c.env.DB.prepare(
                 `UPDATE columns 
          SET position = position - 1 
          WHERE project_id = ? AND position > ? AND position <= ?`
             )
-                .bind(column.project_id, oldPosition, position)
+                .bind(column.project_id, oldPosition, nextPosition)
                 .run();
         }
 
         // Set new position
         await c.env.DB.prepare('UPDATE columns SET position = ? WHERE id = ?')
-            .bind(position, columnId)
+            .bind(nextPosition, columnId)
             .run();
 
         // Get updated columns

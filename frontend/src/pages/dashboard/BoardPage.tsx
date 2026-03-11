@@ -78,7 +78,7 @@ interface ApiAttachmentRow {
     file_name: string;
     file_size: number;
     mime_type?: string | null;
-    url?: string;
+    download_url?: string;
     thumbnail_url?: string;
     created_at: string;
 }
@@ -272,7 +272,7 @@ export function BoardPage() {
                         fileName: a.file_name,
                         fileSize: a.file_size,
                         mimeType: a.mime_type || undefined,
-                        downloadUrl: a.url,
+                        downloadUrl: a.download_url,
                         thumbnailUrl: a.thumbnail_url,
                         createdAt: a.created_at,
                     })),
@@ -411,7 +411,7 @@ export function BoardPage() {
                                 fileName: newAttachment.file_name || file.name,
                                 fileSize: newAttachment.file_size || file.size,
                                 mimeType: newAttachment.mime_type,
-                                downloadUrl: typeof newAttachment.url === 'string' ? newAttachment.url : undefined,
+                                downloadUrl: typeof newAttachment.download_url === 'string' ? newAttachment.download_url : undefined,
                                 thumbnailUrl: typeof newAttachment.thumbnail_url === 'string' ? newAttachment.thumbnail_url : undefined,
                                 createdAt: newAttachment.created_at || new Date().toISOString(),
                             },

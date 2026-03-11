@@ -17,7 +17,13 @@ import { adminRoutes } from './routes/admin';
 import { webhookRoutes } from './routes/webhooks';
 import { notificationRoutes } from './routes/notifications';
 import { maintenanceMiddleware } from './middleware/maintenance';
-import { apiRateLimit, uploadRateLimit } from './middleware/rateLimit';
+import {
+    apiRateLimit,
+    authChallengeRateLimit,
+    authCredentialRateLimit,
+    authRefreshRateLimit,
+    uploadRateLimit,
+} from './middleware/rateLimit';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -71,9 +77,14 @@ app.get('/api/health', (c) => {
 });
 
 // Apply rate limiting per route group
-// Auth routes - strict rate limiting (Disabled temporarily for testing)
-// app.use('/api/auth/login', authRateLimit);
-// app.use('/api/auth/register', authRateLimit);
+app.use('/api/auth/login', authCredentialRateLimit);
+app.use('/api/auth/register', authCredentialRateLimit);
+app.use('/api/auth/forgot-password', authCredentialRateLimit);
+app.use('/api/auth/reset-password', authCredentialRateLimit);
+app.use('/api/auth/login/verify', authChallengeRateLimit);
+app.use('/api/auth/2fa/email/enable/start', authCredentialRateLimit);
+app.use('/api/auth/2fa/email/enable/verify', authChallengeRateLimit);
+app.use('/api/auth/refresh', authRefreshRateLimit);
 
 // Standard API rate limiting
 app.use('/api/projects/*', apiRateLimit);

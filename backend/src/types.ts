@@ -14,6 +14,8 @@ export interface Env {
     B2_ENDPOINT: string;
     B2_KEY_ID: string;
     B2_APP_KEY: string;
+    B2_REGION?: string;
+    MAX_ATTACHMENT_SIZE_BYTES?: string;
     B2_STORAGE_QUOTA_GB?: string;
 }
 
@@ -141,7 +143,9 @@ export type ActivityAction =
     | 'task_moved'
     | 'task_deleted'
     | 'comment_added'
+    | 'comment_deleted'
     | 'attachment_added'
+    | 'subtask_deleted'
     | 'member_added'
     | 'member_removed';
 
@@ -162,8 +166,8 @@ export interface JWTPayload {
     role: string;
     mfa_pending?: boolean;
     mfa_method?: 'totp' | 'email';
-    mfa_code_hash?: string;
     mfa_sent_to?: string;
+    challenge_id?: string;
     iat: number;
     exp: number;
 }

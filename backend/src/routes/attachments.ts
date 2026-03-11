@@ -13,9 +13,17 @@ function getS3Client(env: Env) {
     return new AwsClient({
         accessKeyId: env.B2_KEY_ID,
         secretAccessKey: env.B2_APP_KEY,
-        region: 'us-west-004', // B2 region from endpoint
+        region: env.B2_REGION || 'us-west-004',
         service: 's3',
     });
+}
+
+function getMaxAttachmentSizeBytes(env: Env): number {
+    const parsed = Number.parseInt(env.MAX_ATTACHMENT_SIZE_BYTES || '', 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+    }
+    return 10 * 1024 * 1024;
 }
 
 type TaskAccess = {
@@ -87,7 +95,7 @@ attachments.get('/task/:taskId', async (c) => {
         // Generate download URLs
         const attachmentsWithUrls = attachmentsList.results.map((att) => ({
             ...att,
-            download_url: `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${att.r2_key}`,
+            download_url: `/api/attachments/${att.id}/download`,
         }));
 
         return c.json({
@@ -123,6 +131,18 @@ attachments.post('/task/:taskId', async (c) => {
 
         if (!file) {
             return c.json({ success: false, error: 'No file provided' }, 400);
+        }
+
+        const maxAttachmentSize = getMaxAttachmentSizeBytes(env);
+        if (file.size > maxAttachmentSize) {
+            return c.json(
+                {
+                    success: false,
+                    error: 'Payload Too Large',
+                    message: `File exceeds maximum size of ${Math.floor(maxAttachmentSize / (1024 * 1024))}MB`,
+                },
+                413
+            );
         }
 
         // Generate unique key for the file
@@ -187,7 +207,7 @@ attachments.post('/task/:taskId', async (c) => {
             data: {
                 attachment: {
                     ...attachment,
-                    download_url: `${env.B2_ENDPOINT}/${env.B2_BUCKET_NAME}/${r2Key}`,
+                    download_url: `/api/attachments/${attachmentId}/download`,
                 },
             },
             message: 'File uploaded successfully',
