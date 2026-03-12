@@ -14,6 +14,7 @@ import { MetricsPage } from './pages/dashboard/MetricsPage';
 import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { MembersPage } from './pages/dashboard/MembersPage';
 import { AdminPage } from './pages/dashboard/AdminPage';
+import { GanttPage } from './pages/dashboard/GanttPage';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { useTheme } from './hooks/useTheme';
 import './index.css';
@@ -89,6 +90,7 @@ function App() {
             <Route path="board" element={<BoardPage />} />
             <Route path="projects" element={<ProjectsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="gantt" element={<GanttPage />} />
             <Route path="metrics" element={<MetricsPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="admin" element={<AdminPage />} />

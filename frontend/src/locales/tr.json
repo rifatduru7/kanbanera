@@ -207,6 +207,7 @@
     "projects": "Projeler",
     "board": "Pano",
     "calendar": "Takvim",
+    "gantt": "Gantt",
     "metrics": "Metrikler",
     "profile": "Profil",
     "settings": "Ayarlar",
@@ -780,5 +781,30 @@
       "tip_title": "Hızlı İpucu",
       "tip_desc": "İş akışını hızlıca düzenlemek için yeni Kanban panonuzda görevleri sürükleyip bırakın."
     }
+  },
+  "gantt": {
+    "title": "Gantt Grafiği",
+    "subtitle": "Proje zaman çizelgenizi görselleştirin ve ilerlemeyi takip edin",
+    "tasks_label": "Görevler",
+    "today": "BUGÜN",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "progress": "İlerleme",
+    "total": "görev",
+    "overdue": "gecikmiş",
+    "active": "aktif",
+    "no_tasks": "Gösterilecek görev yok",
+    "no_tasks_desc": "Gantt grafiğinde görmek için bitiş tarihli görevler oluşturun",
+    "search": "Görev ara...",
+    "all_projects": "Tüm Projeler",
+    "error": "Gantt verileri yüklenemedi",
+    "date_updated": "Görev tarihi güncellendi",
+    "zoom_day": "Gün",
+    "zoom_week": "Hafta",
+    "zoom_month": "Ay",
+    "group_project": "Proje",
+    "group_status": "Durum",
+    "group_assignee": "Atanan",
+    "group_priority": "Öncelik"
   }
 }

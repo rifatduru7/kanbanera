@@ -11,6 +11,7 @@ import {
     CaretLeft as ChevronLeft,
     CaretRight as ChevronRight,
     CalendarBlank as Calendar,
+    ChartLineUp as GanttIcon,
     ChartBar as BarChart3,
     ShieldCheck as Shield,
     User,
@@ -31,6 +32,7 @@ const menuItems: NavItem[] = [
     { labelKey: 'nav.projects', icon: FolderKanban, href: '/projects' },
     { labelKey: 'nav.board', icon: Kanban, href: '/board' },
     { labelKey: 'nav.calendar', icon: Calendar, href: '/calendar' },
+    { labelKey: 'nav.gantt', icon: GanttIcon, href: '/gantt' },
     { labelKey: 'nav.metrics', icon: BarChart3, href: '/metrics' },
     { labelKey: 'nav.settings', icon: Settings, href: '/settings' },
 ];

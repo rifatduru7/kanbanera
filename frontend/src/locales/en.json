@@ -161,6 +161,7 @@
       "projects": "Manage projects",
       "board": "View and manage tasks",
       "calendar": "Due dates and deadlines",
+      "gantt": "Project timeline view",
       "metrics": "Analytics and reports",
       "profile": "Account settings"
     }
@@ -170,6 +171,7 @@
     "projects": "Projects",
     "board": "Board",
     "calendar": "Calendar",
+    "gantt": "Gantt",
     "metrics": "Metrics",
     "profile": "Profile",
     "settings": "Settings",
@@ -690,5 +692,30 @@
         }
       }
     }
+  },
+  "gantt": {
+    "title": "Gantt Chart",
+    "subtitle": "Visualize your project timeline and track progress",
+    "tasks_label": "Tasks",
+    "today": "TODAY",
+    "start": "Start",
+    "end": "End",
+    "progress": "Progress",
+    "total": "tasks",
+    "overdue": "overdue",
+    "active": "active",
+    "no_tasks": "No tasks to display",
+    "no_tasks_desc": "Create tasks with due dates to see them on the Gantt chart",
+    "search": "Search tasks...",
+    "all_projects": "All Projects",
+    "error": "Failed to load Gantt data",
+    "date_updated": "Task date updated",
+    "zoom_day": "Day",
+    "zoom_week": "Week",
+    "zoom_month": "Month",
+    "group_project": "Project",
+    "group_status": "Status",
+    "group_assignee": "Assignee",
+    "group_priority": "Priority"
   }
 }
