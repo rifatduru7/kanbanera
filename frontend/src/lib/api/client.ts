@@ -877,6 +877,44 @@ export const adminApi = {
     },
 };
 
+// Gantt API
+export interface GanttTask {
+    id: string;
+    title: string;
+    description?: string;
+    priority: 'low' | 'medium' | 'high' | 'critical';
+    startDate: string;
+    endDate: string | null;
+    projectId: string;
+    projectName: string;
+    projectColor: string;
+    columnId: string;
+    columnName: string;
+    columnColor: string;
+    columnPosition: number;
+    assigneeId: string | null;
+    assigneeName: string | null;
+    assigneeAvatar: string | null;
+    labels: string[];
+    subtaskTotal: number;
+    subtaskCompleted: number;
+    progress: number;
+}
+
+export const ganttApi = {
+    getTasks: async (params: { from?: string; to?: string; projectId?: string }) => {
+        const search = new URLSearchParams();
+        if (params.from) search.set('from', params.from);
+        if (params.to) search.set('to', params.to);
+        if (params.projectId) search.set('projectId', params.projectId);
+
+        const response = await api.get<ApiResponse<{ tasks: GanttTask[] }>>(
+            `/api/tasks/gantt?${search.toString()}`
+        );
+        return response.data;
+    },
+};
+
 export interface ApiNotification {
     id: string;
     user_id: string;

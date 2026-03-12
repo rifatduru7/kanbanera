@@ -151,6 +151,106 @@ taskRoutes.get('/calendar', async (c) => {
     }
 });
 
+// GET /api/tasks/gantt - Get tasks for Gantt chart view
+taskRoutes.get('/gantt', async (c) => {
+    const userId = c.get('userId');
+    const from = c.req.query('from');
+    const to = c.req.query('to');
+    const projectId = c.req.query('projectId') || c.req.query('project_id');
+
+    try {
+        let query = `
+            SELECT
+                t.id, t.title, t.description, t.priority, t.position,
+                t.due_date, t.created_at, t.updated_at,
+                t.assignee_id, t.labels, t.project_id, t.column_id,
+                c.name as column_name, c.color as column_color, c.position as column_position,
+                p.name as project_name, p.color as project_color,
+                u.full_name as assignee_name, u.avatar_url as assignee_avatar
+            FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN columns c ON t.column_id = c.id
+            LEFT JOIN users u ON t.assignee_id = u.id
+            LEFT JOIN project_members pm ON p.id = pm.project_id AND pm.user_id = ?
+            WHERE (p.owner_id = ? OR pm.user_id IS NOT NULL)
+        `;
+        const params: (string | null)[] = [userId, userId];
+
+        if (projectId) {
+            query += ' AND t.project_id = ?';
+            params.push(projectId);
+        }
+
+        if (from) {
+            query += ' AND (t.due_date >= ? OR t.created_at >= ?)';
+            params.push(from, from);
+        }
+        if (to) {
+            query += ' AND (t.due_date <= ? OR (t.due_date IS NULL AND t.created_at <= ?))';
+            params.push(to, to);
+        }
+
+        query += ' ORDER BY p.name ASC, c.position ASC, t.position ASC';
+
+        const { results: tasks } = await c.env.DB.prepare(query)
+            .bind(...params)
+            .all();
+
+        // Get subtask progress for each task
+        const taskIds = (tasks || []).map((t: Record<string, unknown>) => t.id as string);
+        let subtaskMap: Record<string, { total: number; completed: number }> = {};
+
+        if (taskIds.length > 0) {
+            const placeholders = taskIds.map(() => '?').join(',');
+            const { results: subtaskStats } = await c.env.DB.prepare(
+                `SELECT task_id, COUNT(*) as total, SUM(CASE WHEN is_completed = 1 THEN 1 ELSE 0 END) as completed
+                 FROM subtasks WHERE task_id IN (${placeholders}) GROUP BY task_id`
+            ).bind(...taskIds).all<{ task_id: string; total: number; completed: number }>();
+
+            for (const s of (subtaskStats || [])) {
+                subtaskMap[s.task_id] = { total: s.total, completed: s.completed };
+            }
+        }
+
+        return c.json({
+            success: true,
+            data: {
+                tasks: (tasks || []).map((t: Record<string, unknown>) => {
+                    const sub = subtaskMap[t.id as string];
+                    return {
+                        id: t.id,
+                        title: t.title,
+                        description: t.description,
+                        priority: t.priority,
+                        startDate: t.created_at,
+                        endDate: t.due_date,
+                        projectId: t.project_id,
+                        projectName: t.project_name,
+                        projectColor: t.project_color,
+                        columnId: t.column_id,
+                        columnName: t.column_name,
+                        columnColor: t.column_color,
+                        columnPosition: t.column_position,
+                        assigneeId: t.assignee_id,
+                        assigneeName: t.assignee_name,
+                        assigneeAvatar: t.assignee_avatar,
+                        labels: t.labels ? JSON.parse(t.labels as string) : [],
+                        subtaskTotal: sub?.total || 0,
+                        subtaskCompleted: sub?.completed || 0,
+                        progress: sub ? Math.round((sub.completed / sub.total) * 100) : 0,
+                    };
+                }),
+            },
+        });
+    } catch (error) {
+        console.error('Get gantt tasks error:', error);
+        return c.json(
+            { success: false, error: 'Server Error', message: 'Failed to fetch gantt tasks' },
+            500
+        );
+    }
+});
+
 // POST /api/tasks - Create task
 taskRoutes.post('/', async (c) => {
     const userId = c.get('userId');
