@@ -15,6 +15,8 @@ import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { MembersPage } from './pages/dashboard/MembersPage';
 import { AdminPage } from './pages/dashboard/AdminPage';
 import { GanttPage } from './pages/dashboard/GanttPage';
+import { FlowsPage } from './pages/dashboard/FlowsPage';
+import { PortalView } from './pages/portal/PortalView';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { useTheme } from './hooks/useTheme';
 import './index.css';
@@ -75,6 +77,7 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/portal/:token" element={<PortalView />} />
 
           {/* Protected Routes */}
           <Route
@@ -96,6 +99,7 @@ function App() {
             <Route path="admin" element={<AdminPage />} />
             <Route path="settings" element={<ProfilePage />} />
             <Route path="members" element={<MembersPage />} />
+            <Route path="flows" element={<FlowsPage />} />
           </Route>
 
           {/* Fallback */}

@@ -17,6 +17,10 @@ import { adminRoutes } from './routes/admin';
 import { webhookRoutes } from './routes/webhooks';
 import { notificationRoutes } from './routes/notifications';
 import { automationRoutes } from './routes/automations';
+import { timeEntriesRoutes } from './routes/timeEntries';
+import { presenceRoutes } from './routes/presence';
+import { portalManagementRoutes, portalPublicRoutes } from './routes/portal';
+import flowsRoutes from './routes/flows';
 import { maintenanceMiddleware } from './middleware/maintenance';
 import {
     apiRateLimit,
@@ -97,6 +101,10 @@ app.use('/api/activities', apiRateLimit);
 app.use('/api/search', apiRateLimit);
 app.use('/api/admin/*', apiRateLimit);
 app.use('/api/notifications/*', apiRateLimit);
+app.use('/api/time-entries/*', apiRateLimit);
+app.use('/api/presence/*', apiRateLimit);
+app.use('/api/flows/*', apiRateLimit);
+app.use('/api/portal/manage/*', apiRateLimit);
 
 // Upload rate limiting - stricter
 app.use('/api/attachments/*', uploadRateLimit);
@@ -115,6 +123,11 @@ app.route('/api/admin', adminRoutes);
 app.route('/api/webhooks', webhookRoutes);
 app.route('/api/notifications', notificationRoutes);
 app.route('/api/projects', automationRoutes);
+app.route('/api/time-entries', timeEntriesRoutes);
+app.route('/api/presence', presenceRoutes);
+app.route('/api/portal', portalManagementRoutes);
+app.route('/api/portal/public', portalPublicRoutes);
+app.route('/api/flows', flowsRoutes);
 
 // 404 Handler
 app.notFound((c) => {
