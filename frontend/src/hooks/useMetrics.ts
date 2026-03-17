@@ -16,6 +16,7 @@ export interface MetricsStats {
     overdueTasks: number;
     totalProjects: number;
     activeProjects: number;
+    avgCycleTimeDays: number;
 }
 
 export interface PriorityDistribution {
@@ -36,6 +37,16 @@ export interface MetricsData {
     stats: MetricsStats;
     priorityDistribution: PriorityDistribution[];
     teamPerformance: TeamPerformance[];
+    velocity: { day: string; count: number }[];
+    labelDistribution: { label: string; count: number }[];
+    projectBreakdown: {
+        id: string;
+        name: string;
+        color: string;
+        total: number;
+        completed: number;
+        percent: number;
+    }[];
 }
 
 // Dashboard Types
@@ -68,17 +79,21 @@ export interface DashboardSummary {
     dueThisWeekCount: number;
     myTasksCount: number;
     overdueCount: number;
+    automationCount: number;
 }
 
 export interface DashboardData {
     dueToday: DashboardTask[];
     dueThisWeek: DashboardTask[];
     myTasks: DashboardTask[];
+    myOverdue: DashboardTask[];
     projectProgress: ProjectProgress[];
     streak: number;
     completionRate: number;
     teamMembers: TeamMember[];
     summary: DashboardSummary;
+    weeklyVelocity: { day: string; count: number }[];
+    priorityDistribution: { priority: string; count: number }[];
 }
 
 /**

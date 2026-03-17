@@ -14,10 +14,13 @@ import {
     Stack,
 } from '@phosphor-icons/react';
 import { useGanttTasks } from '../../hooks/useGanttData';
-import { useProjects } from '../../hooks/useKanbanData';
+import { useProjects, useTask, useUpdateTask, useMoveTask, useDeleteTask, useAddSubtask, useToggleSubtask, useDeleteSubtask, useAddComment, useDeleteComment, useUploadAttachment, useDeleteAttachment, useProject } from '../../hooks/useKanbanData';
 import { GanttChart, type ZoomLevel, type GroupBy } from '../../components/gantt/GanttChart';
+import { TaskModal } from '../../components/kanban/TaskModal';
 import { useViewport } from '../../hooks/useViewport';
 import { toast } from 'react-hot-toast';
+import { tasksApi } from '../../lib/api/client';
+import type { TaskDetail } from '../../types/task-detail';
 
 export function GanttPage() {
     const { t } = useTranslation();
@@ -29,6 +32,10 @@ export function GanttPage() {
     const [selectedProjectId, setSelectedProjectId] = useState<string>('');
     const [searchQuery, setSearchQuery] = useState('');
     const [monthOffset, setMonthOffset] = useState(0);
+
+    // Task Detail Modal State
+    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+    const [currentTaskProjectId, setCurrentTaskProjectId] = useState<string | null>(null);
 
     // Date range based on month offset
     const { from, to } = useMemo(() => {
@@ -42,14 +49,121 @@ export function GanttPage() {
     }, [monthOffset]);
 
     // Data fetching
-    const { data: tasks = [], isLoading, error } = useGanttTasks(from, to, selectedProjectId || undefined);
+    const { data: tasks = [], isLoading, error, refetch: refetchGantt } = useGanttTasks(from, to, selectedProjectId || undefined);
     const { data: projectsData } = useProjects();
     const projects = projectsData?.projects || [];
 
-    // Update task date change mutation (need a way to update any task)
-    const handleTaskDateChange = useCallback((_taskId: string, _newStart: string, _newEnd: string) => {
-        toast.success(t('gantt.date_updated', 'Task date updated'));
-    }, [t]);
+    // Task detail data
+    const { data: taskDetail } = useTask(selectedTaskId || '');
+    const { data: projectData } = useProject(currentTaskProjectId || '');
+
+    // Mutation hooks for TaskModal
+    const updateTask = useUpdateTask(currentTaskProjectId || '');
+    const deleteTask = useDeleteTask(currentTaskProjectId || '');
+    const addSubtask = useAddSubtask(currentTaskProjectId || '');
+    const toggleSubtask = useToggleSubtask(currentTaskProjectId || '');
+    const deleteSubtask = useDeleteSubtask(currentTaskProjectId || '');
+    const addComment = useAddComment(currentTaskProjectId || '');
+    const deleteComment = useDeleteComment(currentTaskProjectId || '');
+    const uploadAttachment = useUploadAttachment(currentTaskProjectId || '');
+    const deleteAttachment = useDeleteAttachment(currentTaskProjectId || '');
+    const moveTask = useMoveTask(currentTaskProjectId || '');
+
+    // Handlers
+    const handleTaskClick = useCallback((task: any) => {
+        setSelectedTaskId(task.id);
+        setCurrentTaskProjectId(task.projectId);
+    }, []);
+
+    const handleCloseModal = useCallback(() => {
+        setSelectedTaskId(null);
+        setCurrentTaskProjectId(null);
+    }, []);
+
+    const handleUpdateTask = useCallback(async (updates: Partial<TaskDetail>) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        try {
+            await updateTask.mutateAsync({ id: selectedTaskId, ...updates });
+            refetchGantt();
+        } catch (err) {
+            toast.error(t('common.error'));
+        }
+    }, [selectedTaskId, currentTaskProjectId, updateTask, refetchGantt, t]);
+
+    const handleTaskMove = useCallback(async (columnId: string, position: number) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        try {
+            await moveTask.mutateAsync({ taskId: selectedTaskId, columnId, position });
+            refetchGantt();
+        } catch (err) {
+            toast.error(t('common.error'));
+        }
+    }, [selectedTaskId, currentTaskProjectId, moveTask, refetchGantt, t]);
+
+    const handleAddSubtask = useCallback(async (title: string) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await addSubtask.mutateAsync({ taskId: selectedTaskId, title });
+    }, [selectedTaskId, currentTaskProjectId, addSubtask]);
+
+    const handleToggleSubtask = useCallback(async (subtaskId: string, isCompleted: boolean) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await toggleSubtask.mutateAsync({ taskId: selectedTaskId, subtaskId, isCompleted });
+    }, [selectedTaskId, currentTaskProjectId, toggleSubtask]);
+
+    const handleDeleteSubtask = useCallback(async (subtaskId: string) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await deleteSubtask.mutateAsync({ taskId: selectedTaskId, subtaskId });
+    }, [selectedTaskId, currentTaskProjectId, deleteSubtask]);
+
+    const handleAddComment = useCallback(async (content: string) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await addComment.mutateAsync({ taskId: selectedTaskId, content });
+    }, [selectedTaskId, currentTaskProjectId, addComment]);
+
+    const handleDeleteComment = useCallback(async (commentId: string) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await deleteComment.mutateAsync({ taskId: selectedTaskId, commentId });
+    }, [selectedTaskId, currentTaskProjectId, deleteComment]);
+
+    const handleUploadAttachment = useCallback(async (file: File) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await uploadAttachment.mutateAsync({ taskId: selectedTaskId, file });
+    }, [selectedTaskId, currentTaskProjectId, uploadAttachment]);
+
+    const handleDeleteAttachment = useCallback(async (attachmentId: string) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await deleteAttachment.mutateAsync(attachmentId);
+    }, [selectedTaskId, currentTaskProjectId, deleteAttachment]);
+
+    const handleSetCoverImage = useCallback(async (attachmentId: string) => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await tasksApi.updateTask(selectedTaskId, { cover_attachment_id: attachmentId });
+        refetchGantt();
+    }, [selectedTaskId, currentTaskProjectId, refetchGantt]);
+
+    const handleRemoveCoverImage = useCallback(async () => {
+        if (!selectedTaskId || !currentTaskProjectId) return;
+        await tasksApi.updateTask(selectedTaskId, { cover_attachment_id: null });
+        refetchGantt();
+    }, [selectedTaskId, currentTaskProjectId, refetchGantt]);
+
+    // Update task date change mutation
+    const handleTaskDateChange = useCallback(async (taskId: string, newStart: string, newEnd: string) => {
+        // We find the task to get its projectId if needed, or rely on the fact that gantt tasks have it
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+
+        try {
+            await tasksApi.updateTask(taskId, {
+                start_date: newStart,
+                due_date: newEnd
+            });
+            toast.success(t('gantt.date_updated', 'Task date updated'));
+            refetchGantt();
+        } catch (err) {
+            toast.error(t('common.error'));
+        }
+    }, [refetchGantt, t, tasks]);
 
     // Stats
     const stats = useMemo(() => {
@@ -244,14 +358,54 @@ export function GanttPage() {
                         tasks={tasks}
                         zoomLevel={zoomLevel}
                         groupBy={groupBy}
-                        onTaskClick={(task) => {
-                            // Could navigate to board or open task modal
-                            toast(task.title, { icon: '📋' });
-                        }}
+                        onTaskClick={handleTaskClick}
                         onTaskDateChange={handleTaskDateChange}
                         searchQuery={searchQuery}
                     />
                 </div>
+            )}
+
+            {/* Task Modal */}
+            {selectedTaskId && taskDetail && projectData && (
+                <TaskModal
+                    taskId={selectedTaskId}
+                    task={taskDetail}
+                    isOpen={true}
+                    onClose={handleCloseModal}
+                    onUpdate={handleUpdateTask}
+                    onAddSubtask={handleAddSubtask}
+                    onToggleSubtask={handleToggleSubtask}
+                    onAddComment={handleAddComment}
+                    onUploadAttachment={handleUploadAttachment}
+                    columns={projectData.columns.map(c => ({ id: c.id, name: c.name }))}
+                    members={(projectData.members || []).filter(m => !!m.user_id).map(m => ({
+                        user_id: m.user_id as string,
+                        full_name: m.full_name || '',
+                        avatar_url: m.avatar_url,
+                        email: m.email,
+                        role: m.role as any
+                    }))}
+                    onMoveTask={handleTaskMove}
+                    onDeleteTask={() => {
+                        deleteTask.mutate(selectedTaskId, {
+                            onSuccess: () => {
+                                handleCloseModal();
+                                refetchGantt();
+                            }
+                        });
+                    }}
+                    onArchiveTask={() => {
+                        tasksApi.archiveTask(selectedTaskId).then(() => {
+                            handleCloseModal();
+                            refetchGantt();
+                        });
+                    }}
+                    onDeleteSubtask={handleDeleteSubtask}
+                    onDeleteComment={handleDeleteComment}
+                    onDeleteAttachment={handleDeleteAttachment}
+                    onSetCoverImage={handleSetCoverImage}
+                    onRemoveCoverImage={handleRemoveCoverImage}
+                />
             )}
         </div>
     );

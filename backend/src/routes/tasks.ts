@@ -621,7 +621,7 @@ taskRoutes.put('/:id', async (c) => {
         }
 
         const body = await c.req.json();
-        const { title, description, priority, assignee_id, due_date, labels } = body;
+        const { title, description, priority, assignee_id, due_date, labels, start_date, cover_attachment_id } = body;
 
         await c.env.DB.prepare(
             `UPDATE tasks 
@@ -631,6 +631,8 @@ taskRoutes.put('/:id', async (c) => {
            assignee_id = ?,
            due_date = ?,
            labels = ?,
+           start_date = ?,
+           cover_attachment_id = ?,
            updated_at = datetime('now')
        WHERE id = ?`
         )
@@ -641,6 +643,8 @@ taskRoutes.put('/:id', async (c) => {
                 assignee_id === undefined ? task.assignee_id : assignee_id,
                 due_date === undefined ? task.due_date : due_date,
                 labels === undefined ? task.labels : JSON.stringify(labels),
+                start_date === undefined ? task.start_date : start_date,
+                cover_attachment_id === undefined ? task.cover_attachment_id : cover_attachment_id,
                 taskId
             )
             .run();

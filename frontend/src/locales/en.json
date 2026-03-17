@@ -102,6 +102,8 @@
       "low": "Low",
       "none": "None"
     },
+    "day": "Day",
+    "days_label": "Days",
     "days": {
       "sun": "Sun",
       "mon": "Mon",
@@ -458,6 +460,18 @@
     "completed": "Completed",
     "in_progress": "In Progress",
     "overdue": "Overdue",
+    "avg_cycle_time": "Avg. Cycle Time",
+    "velocity": "Velocity Chart (Last 14 Days)",
+    "completed_label": "Completed",
+    "no_velocity_data": "Not enough velocity data available",
+    "completion_status": "Overall Completion Status",
+    "success": "Success",
+    "completion_summary": "{{count}} tasks successfully finalized.",
+    "label_distribution": "Label Distribution",
+    "no_label_data": "No labeled tasks found",
+    "project_breakdown": "Project Breakdown",
+    "no_project_data": "No active projects found",
+    "team_productivity": "Team Productivity",
     "project_completion": "Project Completion",
     "complete_label": "Complete",
     "remaining_label": "Remaining ({{count}})",
@@ -467,7 +481,10 @@
     "team_performance": "Team Performance",
     "no_team_data": "No team data available",
     "tasks_completed": "tasks completed",
-    "contributor": "Contributor"
+    "contributor": "Contributor",
+    "done": "Done",
+    "doing": "Doing",
+    "all": "All"
   },
   "admin": {
     "title": "Admin Panel",

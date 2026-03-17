@@ -446,7 +446,7 @@ export const tasksApi = {
         return response.data;
     },
 
-    updateTask: async (id: string, data: Partial<{ title: string; description: string; priority: string; due_date: string | null; assignee_id: string | null; labels: string[] }>) => {
+    updateTask: async (id: string, data: Partial<{ title: string; description: string; priority: string; due_date: string | null; start_date: string | null; assignee_id: string | null; labels: string[]; cover_attachment_id: string | null }>) => {
         const response = await api.put<ApiResponse<{ task: ApiTask }>>(`/api/tasks/${id}`, data);
         return response.data;
     },

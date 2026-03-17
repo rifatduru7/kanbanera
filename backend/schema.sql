@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   position INTEGER NOT NULL,
   assignee_id TEXT,
   due_date TEXT,
+  start_date TEXT,
   labels TEXT, -- JSON array of labels
   is_archived INTEGER DEFAULT 0,
   cover_attachment_id TEXT,

@@ -104,6 +104,8 @@
       "critical": "Kritik",
       "none": "Yok"
     },
+    "day": "Gün",
+    "days_label": "Gün",
     "days": {
       "sun": "Paz",
       "mon": "Pzt",
@@ -254,7 +256,13 @@
       "days_suffix": " gün",
       "in_progress": "Devam Eden",
       "completed": "Tamamlanan",
-      "overdue": "Gecikmiş"
+      "overdue": "Gecikmiş",
+      "priority_dist": "Öncelik Dağılımı",
+      "weekly_velocity": "Haftalık Verimlilik",
+      "automation_impact": "Otomasyon Etkisi",
+      "automated_desc": "Son 7 günde {{count}} işlem otomatikleştirildi",
+      "upcoming": "Yaklaşan Görevler",
+      "my_overdue": "Gecikmiş Görevlerim"
     },
     "quick_actions": "Hızlı İşlemler",
     "recent_activity": "Son Etkinlikler"
@@ -495,6 +503,18 @@
     "completed": "Tamamlanan",
     "in_progress": "Devam Eden",
     "overdue": "Gecikmiş",
+    "avg_cycle_time": "Ort. Teslim Süresi",
+    "velocity": "Hız Grafiği (Son 14 Gün)",
+    "completed_label": "Tamamlanan",
+    "no_velocity_data": "Yeterli hız verisi bulunmuyor",
+    "completion_status": "Genel Tamamlama Durumu",
+    "success": "Başarı",
+    "completion_summary": "{{count}} görev başarıyla sonuçlandırıldı.",
+    "label_distribution": "Etiket Dağılımı",
+    "no_label_data": "Etiketli görev bulunamadı",
+    "project_breakdown": "Proje Bazlı Performans",
+    "no_project_data": "Aktif proje bulunamadı",
+    "team_productivity": "Ekip Üretkenliği",
     "project_completion": "Proje Tamamlanma",
     "complete_label": "Tamamlandı",
     "remaining_label": "Kalan ({{count}})",
@@ -504,7 +524,10 @@
     "team_performance": "Ekip Performansı",
     "no_team_data": "Ekip verisi yok",
     "tasks_completed": "görev tamamladı",
-    "contributor": "Katılımcı"
+    "contributor": "Katılımcı",
+    "done": "Biten",
+    "doing": "Süren",
+    "all": "Hepsi"
   },
   "admin": {
     "title": "Yönetim Paneli",

@@ -90,6 +90,7 @@ export interface Task {
     position: number;
     assignee_id: string | null;
     due_date: string | null;
+    start_date: string | null;
     labels: string | null; // JSON array
     is_archived: number;
     cover_attachment_id: string | null;

@@ -101,6 +101,71 @@ metricsRoutes.get('/', async (c) => {
             LIMIT 10
         `).bind(userId, userId).all();
 
+        // NEW: Velocity (last 14 days completions)
+        const { results: velocity } = await c.env.DB.prepare(`
+            SELECT date(created_at) as day, COUNT(*) as count
+            FROM activity_log
+            WHERE user_id = ? AND action = 'task_completed'
+            AND created_at >= date('now', '-14 days')
+            GROUP BY day
+            ORDER BY day ASC
+        `).bind(userId).all();
+
+        // NEW: Cycle Time (Average duration from creation to completion in days)
+        const cycleTimeResult = await c.env.DB.prepare(`
+            SELECT AVG(julianday(al.created_at) - julianday(t.created_at)) as avg_days
+            FROM tasks t
+            JOIN activity_log al ON t.id = al.task_id
+            WHERE t.project_id IN (
+                SELECT p.id FROM projects p 
+                WHERE p.owner_id = ? OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = ?)
+            )
+            AND al.action = 'task_completed'
+            AND t.created_at IS NOT NULL
+        `).bind(userId, userId).first<{ avg_days: number | null }>();
+
+        // NEW: Label Distribution
+        const { results: rawLabels } = await c.env.DB.prepare(`
+            SELECT labels FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            WHERE (p.owner_id = ? OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = ?))
+            AND t.labels IS NOT NULL AND t.labels != '[]'
+            AND t.is_archived = 0
+        `).bind(userId, userId).all();
+
+        const labelCounts: Record<string, number> = {};
+        rawLabels?.forEach((row: any) => {
+            try {
+                const labels = JSON.parse(row.labels);
+                if (Array.isArray(labels)) {
+                    labels.forEach(l => {
+                        labelCounts[l] = (labelCounts[l] || 0) + 1;
+                    });
+                }
+            } catch (e) {}
+        });
+
+        const labelDistribution = Object.entries(labelCounts)
+            .map(([label, count]) => ({ label, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+
+        // NEW: Project Breakdown
+        const { results: projectBreakdown } = await c.env.DB.prepare(`
+            SELECT 
+                p.id, p.name, p.color,
+                COUNT(t.id) as total,
+                SUM(CASE WHEN c.name IN ('Done', 'Completed', 'Finished') THEN 1 ELSE 0 END) as completed
+            FROM projects p
+            LEFT JOIN tasks t ON p.id = t.project_id
+            LEFT JOIN columns c ON t.column_id = c.id
+            WHERE (p.owner_id = ? OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = ?))
+            AND p.is_archived = 0
+            GROUP BY p.id
+            HAVING total > 0
+            ORDER BY total DESC
+        `).bind(userId, userId).all();
+
         return c.json({
             success: true,
             data: {
@@ -111,6 +176,7 @@ metricsRoutes.get('/', async (c) => {
                     overdueTasks: Number(taskStats?.overdue_tasks || 0),
                     totalProjects: Number(projectStats?.total_projects || 0),
                     activeProjects: Number(projectStats?.active_projects || 0),
+                    avgCycleTimeDays: cycleTimeResult?.avg_days ? Number(cycleTimeResult.avg_days.toFixed(1)) : 0,
                 },
                 priorityDistribution: priorityDistribution?.map((p: Record<string, unknown>) => ({
                     priority: p.priority || 'none',
@@ -123,6 +189,19 @@ metricsRoutes.get('/', async (c) => {
                     completed: Number(t.completed || 0),
                     inProgress: Number(t.in_progress || 0),
                     total: Number(t.total || 0),
+                })) || [],
+                velocity: velocity?.map((v: any) => ({
+                    day: v.day,
+                    count: Number(v.count),
+                })) || [],
+                labelDistribution,
+                projectBreakdown: projectBreakdown?.map((p: any) => ({
+                    id: p.id,
+                    name: p.name,
+                    color: p.color,
+                    total: Number(p.total),
+                    completed: Number(p.completed),
+                    percent: Math.round((Number(p.completed) / Number(p.total)) * 100),
                 })) || [],
             },
         });
@@ -329,6 +408,50 @@ metricsRoutes.get('/dashboard', async (c) => {
               AND c.name NOT IN ('Done', 'Completed', 'Finished')
         `).bind(userId, userId).first<{ count: number }>();
 
+        // NEW: My Overdue tasks list
+        const myOverdueTasks = await c.env.DB.prepare(`
+            SELECT t.id, t.title, t.priority, t.due_date, p.name as project_name
+            FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN columns c ON t.column_id = c.id
+            WHERE t.assignee_id = ?
+              AND t.due_date < datetime('now')
+              AND c.name NOT IN ('Done', 'Completed', 'Finished')
+            ORDER BY t.due_date ASC
+            LIMIT 10
+        `).bind(userId).all();
+
+        // NEW: Weekly velocity (last 7 days completions)
+        const weeklyVelocity = await c.env.DB.prepare(`
+            SELECT date(created_at) as day, COUNT(*) as count
+            FROM activity_log
+            WHERE user_id = ? AND action = 'task_completed'
+            AND created_at >= date('now', '-7 days')
+            GROUP BY day
+            ORDER BY day ASC
+        `).bind(userId).all();
+
+        // NEW: Priority distribution for all active tasks
+        const priorityDist = await c.env.DB.prepare(`
+            SELECT t.priority, COUNT(*) as count
+            FROM tasks t
+            JOIN projects p ON t.project_id = p.id
+            JOIN columns c ON t.column_id = c.id
+            WHERE (p.owner_id = ? OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = ?))
+            AND c.name NOT IN ('Done', 'Completed', 'Finished')
+            GROUP BY t.priority
+        `).bind(userId, userId).all();
+
+        // NEW: Automation impact (rules triggered)
+        const automationImpact = await c.env.DB.prepare(`
+            SELECT COUNT(*) as count
+            FROM activity_log al
+            JOIN projects p ON al.project_id = p.id
+            WHERE al.action = 'automation_triggered'
+            AND al.created_at >= date('now', '-7 days')
+            AND (p.owner_id = ? OR EXISTS (SELECT 1 FROM project_members pm WHERE pm.project_id = p.id AND pm.user_id = ?))
+        `).bind(userId, userId).first<{ count: number }>();
+
         return c.json({
             success: true,
             data: {
@@ -377,7 +500,23 @@ metricsRoutes.get('/dashboard', async (c) => {
                     dueThisWeekCount: dueThisWeek.results?.length || 0,
                     myTasksCount: myTasks.results?.length || 0,
                     overdueCount: overdueStats?.count || 0,
+                    automationCount: automationImpact?.count || 0,
                 },
+                myOverdue: (myOverdueTasks.results || []).map((t: Record<string, unknown>) => ({
+                    id: t.id,
+                    title: t.title,
+                    priority: t.priority,
+                    dueDate: t.due_date,
+                    projectName: t.project_name,
+                })),
+                weeklyVelocity: (weeklyVelocity.results || []).map((v: Record<string, unknown>) => ({
+                    day: v.day,
+                    count: Number(v.count),
+                })),
+                priorityDistribution: (priorityDist.results || []).map((p: Record<string, unknown>) => ({
+                    priority: String(p.priority),
+                    count: Number(p.count),
+                })),
             },
         });
     } catch (error) {
