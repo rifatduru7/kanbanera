@@ -18,6 +18,8 @@ export interface Task {
     subtaskCompleted?: number;
     commentCount?: number;
     attachmentCount?: number;
+    isArchived: boolean;
+    coverAttachmentId?: string | null;
     createdAt: string;
     updatedAt: string;
 }

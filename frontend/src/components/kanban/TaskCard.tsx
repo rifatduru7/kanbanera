@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -37,6 +37,30 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         transition,
         opacity: isDragging ? 0.5 : 1,
     };
+
+    const [coverUrl, setCoverUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!task.coverAttachmentId) {
+            setCoverUrl(null);
+            return;
+        }
+
+        let objectUrl: string;
+        const loadCover = async () => {
+            try {
+                const { attachmentsApi } = await import('../../lib/api/client');
+                const url = await attachmentsApi.getDownloadUrl(task.coverAttachmentId!);
+                setCoverUrl(url);
+                objectUrl = url;
+            } catch (err) {
+                console.error('Failed to load card cover', err);
+            }
+        };
+
+        loadCover();
+        return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    }, [task.coverAttachmentId]);
 
     const priorityStyle = PRIORITY_COLORS[task.priority];
 
@@ -78,8 +102,19 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
         transition-all duration-200 cursor-grab active:cursor-grabbing
         hover:-translate-y-1 hover:shadow-lg hover:border-primary/50
         ${isDragging ? 'shadow-2xl scale-105 z-50' : ''}
+        overflow-hidden
       `}
         >
+            {/* Cover Image */}
+            {coverUrl && (
+                <div className="-mx-4 -mt-4 mb-1 h-32 w-[calc(100%+32px)] overflow-hidden">
+                    <img
+                        src={coverUrl}
+                        alt="Cover"
+                        className="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-105 group-hover:opacity-100"
+                    />
+                </div>
+            )}
             {/* Top Row: Label & Menu */}
             <div className="flex w-full items-start justify-between">
                 {labelStyle ? (

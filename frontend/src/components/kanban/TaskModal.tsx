@@ -15,6 +15,7 @@ import {
     FileText,
     Eye,
     CircleNotch as Loader2,
+    Archive,
 } from '@phosphor-icons/react';
 import { useTask, useUpdateTask, useMoveTask, useDeleteTask, useAddComment, useDeleteComment, useAddSubtask, useToggleSubtask, useDeleteSubtask } from '../../hooks/useKanbanData';
 import type { Subtask, Comment, TaskDetail, Attachment } from '../../types/task-detail';
@@ -36,9 +37,12 @@ interface TaskModalProps {
     members?: TaskMember[];
     onMoveTask?: (columnId: string, position: number) => void;
     onDeleteTask?: () => void;
+    onArchiveTask?: () => void;
     onDeleteSubtask?: (subtaskId: string) => Promise<void>;
     onDeleteComment?: (commentId: string) => Promise<void>;
     onDeleteAttachment?: (attachmentId: string) => Promise<void>;
+    onSetCoverImage?: (attachmentId: string) => Promise<void>;
+    onRemoveCoverImage?: () => Promise<void>;
 }
 
 type TaskPriority = TaskDetail['priority'];
@@ -64,9 +68,12 @@ export function TaskModal({
     members,
     onMoveTask,
     onDeleteTask,
+    onArchiveTask,
     onDeleteSubtask,
     onDeleteComment,
     onDeleteAttachment,
+    onSetCoverImage,
+    onRemoveCoverImage,
 }: TaskModalProps) {
     const { t, i18n } = useTranslation();
     const { isMobile } = useViewport();
@@ -267,6 +274,15 @@ export function TaskModal({
                         >
                             <Trash2 className="size-5" />
                         </button>
+                        {onArchiveTask && (
+                            <button
+                                onClick={onArchiveTask}
+                                className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-surface-alt text-text-muted transition-colors hover:text-amber-400"
+                                title={t('archive.archive_task', 'Archive')}
+                            >
+                                <Archive className="size-5" />
+                            </button>
+                        )}
                         <button
                             className="flex items-center justify-center w-8 h-8 lg:w-9 lg:h-9 rounded-lg hover:bg-surface-alt text-text-muted transition-colors"
                             title="More Options"
@@ -291,134 +307,147 @@ export function TaskModal({
                 {/* Body - Unified scroll on mobile, split on desktop */}
                 <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto mobile-scroll lg:overflow-hidden bg-surface-dark/50 lg:bg-transparent">
                     {/* LEFT COLUMN: Main Content */}
-                    <div className="flex-1 p-4 lg:p-8 flex flex-col gap-6 lg:gap-8 border-b lg:border-b-0 lg:border-r border-border lg:overflow-y-auto custom-scrollbar">
-                        {/* Title Input */}
-                        <div className="group">
-                            <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
-                                {t('tasks.title', 'Title')}
-                            </label>
-                            <input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                onBlur={handleTitleUpdate}
-                                placeholder={t('board.task_placeholder')}
-                                className="w-full bg-transparent border-none p-0 text-2xl lg:text-3xl font-bold text-text focus:ring-0 placeholder:text-text-muted/20 leading-tight"
+                    <div className="flex-1 p-0 flex flex-col border-b lg:border-b-0 lg:border-r border-border lg:overflow-y-auto custom-scrollbar">
+                        {/* Cover Image at the Top */}
+                        {task.coverAttachmentId && (
+                            <TaskCoverImage 
+                                attachmentId={task.coverAttachmentId} 
+                                onRemove={onRemoveCoverImage}
                             />
-                        </div>
-
-                        {/* Description */}
-                        <div className="flex flex-col gap-2">
-                            <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
-                                <FileText className="size-4" />
-                                {t('tasks.description', 'Description')}
-                            </label>
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                onBlur={handleDescriptionUpdate}
-                                className="glass-input w-full min-h-[160px] rounded-xl text-text placeholder:text-text-muted/50 p-4 text-base font-normal leading-relaxed resize-none"
-                                placeholder={t('tasks.description_placeholder', 'Add a more detailed description...')}
-                            />
-                        </div>
-
-                        {/* Subtasks */}
-                        <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
-                                    <Check className="size-4" />
-                                    {t('tasks.subtasks', 'Subtasks')}
+                        )}
+                        
+                        <div className="p-4 lg:p-8 flex flex-col gap-6 lg:gap-8">
+                            {/* Title Input */}
+                            <div className="group">
+                                <label className="block text-xs font-medium text-text-muted mb-1 uppercase tracking-wider">
+                                    {t('tasks.title', 'Title')}
                                 </label>
-                                <span className="text-xs font-medium text-text-muted bg-surface-alt px-2 py-1 rounded">
-                                    {completedSubtasks}/{task.subtasks.length} {t('tasks.completed', 'Completed')}
-                                </span>
-                            </div>
-
-                            {/* Progress Bar */}
-                            <div className="h-1.5 w-full bg-surface-alt rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-primary rounded-full transition-all"
-                                    style={{ width: `${subtaskProgress}%` }}
+                                <input
+                                    type="text"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    onBlur={handleTitleUpdate}
+                                    placeholder={t('board.task_placeholder')}
+                                    className="w-full bg-transparent border-none p-0 text-2xl lg:text-3xl font-bold text-text focus:ring-0 placeholder:text-text-muted/20 leading-tight"
                                 />
                             </div>
 
-                            {/* Checklist */}
+                            {/* Description */}
                             <div className="flex flex-col gap-2">
-                                {task.subtasks.map((subtask: Subtask) => (
-                                    <SubtaskItem
-                                        key={subtask.id}
-                                        subtask={subtask}
-                                        onToggle={() => {
-                                            if (onToggleSubtask) {
-                                                onToggleSubtask(subtask.id, !subtask.isCompleted);
-                                            } else {
-                                                toggleSubtask.mutate({ taskId: task.id, subtaskId: subtask.id, isCompleted: !subtask.isCompleted });
-                                            }
-                                        }}
-                                        onDelete={() => setDeleteSubtaskData({ isOpen: true, id: subtask.id })}
-                                    />
-                                ))}
+                                <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
+                                    <FileText className="size-4" />
+                                    {t('tasks.description', 'Description')}
+                                </label>
+                                <textarea
+                                    value={description}
+                                    onChange={(e) => setDescription(e.target.value)}
+                                    onBlur={handleDescriptionUpdate}
+                                    className="glass-input w-full min-h-[160px] rounded-xl text-text placeholder:text-text-muted/50 p-4 text-base font-normal leading-relaxed resize-none"
+                                    placeholder={t('tasks.description_placeholder', 'Add a more detailed description...')}
+                                />
+                            </div>
 
-                                {/* Add New Subtask */}
-                                <div className="flex items-center gap-3 p-2 mt-1">
-                                    <button
-                                        onClick={handleAddSubtask}
-                                        className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-text-muted/50 text-text-muted hover:border-primary hover:text-primary transition-colors"
-                                    >
-                                        <Plus className="size-3" />
-                                    </button>
-                                    <input
-                                        type="text"
-                                        value={newSubtask}
-                                        onChange={(e) => setNewSubtask(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && handleAddSubtask()}
-                                        placeholder={t('tasks.add_subtask', 'Add a subtask')}
-                                        className="flex-1 bg-transparent border-none text-sm text-text placeholder:text-text-muted/50 focus:ring-0 p-0"
+                            {/* Subtasks */}
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
+                                        <Check className="size-4" />
+                                        {t('tasks.subtasks', 'Subtasks')}
+                                    </label>
+                                    <span className="text-xs font-medium text-text-muted bg-surface-alt px-2 py-1 rounded">
+                                        {completedSubtasks}/{task.subtasks.length} {t('tasks.completed', 'Completed')}
+                                    </span>
+                                </div>
+
+                                {/* Progress Bar */}
+                                <div className="h-1.5 w-full bg-surface-alt rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-primary rounded-full transition-all"
+                                        style={{ width: `${subtaskProgress}%` }}
                                     />
                                 </div>
+
+                                {/* Checklist */}
+                                <div className="flex flex-col gap-2">
+                                    {task.subtasks.map((subtask: Subtask) => (
+                                        <SubtaskItem
+                                            key={subtask.id}
+                                            subtask={subtask}
+                                            onToggle={() => {
+                                                if (onToggleSubtask) {
+                                                    onToggleSubtask(subtask.id, !subtask.isCompleted);
+                                                } else {
+                                                    toggleSubtask.mutate({ taskId: task.id, subtaskId: subtask.id, isCompleted: !subtask.isCompleted });
+                                                }
+                                            }}
+                                            onDelete={() => setDeleteSubtaskData({ isOpen: true, id: subtask.id })}
+                                        />
+                                    ))}
+
+                                    {/* Add New Subtask */}
+                                    <div className="flex items-center gap-3 p-2 mt-1">
+                                        <button
+                                            onClick={handleAddSubtask}
+                                            className="flex items-center justify-center w-5 h-5 rounded border border-dashed border-text-muted/50 text-text-muted hover:border-primary hover:text-primary transition-colors"
+                                        >
+                                            <Plus className="size-3" />
+                                        </button>
+                                        <input
+                                            type="text"
+                                            value={newSubtask}
+                                            onChange={(e) => setNewSubtask(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddSubtask()}
+                                            placeholder={t('tasks.add_subtask', 'Add a subtask')}
+                                            className="flex-1 bg-transparent border-none text-sm text-text placeholder:text-text-muted/50 focus:ring-0 p-0"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Attachments */}
-                        <div className="flex flex-col gap-3">
-                            <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
-                                <CloudUpload className="size-4" />
-                                {t('tasks.attachments', 'Attachments')}
-                            </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                {task.attachments.map((attachment: Attachment) => (
-                                    <AttachmentCard
-                                        key={attachment.id}
-                                        attachment={attachment}
-                                        onDelete={() => setDeleteAttachmentData({ isOpen: true, id: attachment.id })}
+                            {/* Attachments */}
+                            <div className="flex flex-col gap-3">
+                                <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
+                                    <CloudUpload className="size-4" />
+                                    {t('tasks.attachments', 'Attachments')}
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {task.attachments.map((attachment: Attachment) => (
+                                        <AttachmentCard
+                                            key={attachment.id}
+                                            attachment={attachment}
+                                            isCover={task.coverAttachmentId === attachment.id}
+                                            onSetCover={onSetCoverImage ? () => onSetCoverImage(attachment.id) : undefined}
+                                            onRemoveCover={onRemoveCoverImage}
+                                            onDelete={() => setDeleteAttachmentData({ isOpen: true, id: attachment.id })}
+                                        />
+                                    ))}
+
+                                    {/* Upload Button */}
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileSelect}
+                                        className="hidden"
+                                        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
                                     />
-                                ))}
-
-                                {/* Upload Button */}
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
-                                />
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={isUploading}
-                                    className="border border-dashed border-border-muted hover:border-primary/50 hover:bg-primary/5 rounded-lg h-full min-h-[140px] flex flex-col items-center justify-center gap-2 text-white/70 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isUploading ? (
-                                        <>
-                                            <Loader2 className="size-6 animate-spin" />
-                                            <span className="text-xs font-medium">{t('common.uploading', 'Uploading...')}</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <CloudUpload className="size-6" />
-                                            <span className="text-xs font-medium">{t('tasks.upload_file', 'Upload File')}</span>
-                                        </>
-                                    )}
-                                </button>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={isUploading}
+                                        className="border border-dashed border-border-muted hover:border-primary/50 hover:bg-primary/5 rounded-lg h-full min-h-[140px] flex flex-col items-center justify-center gap-2 text-white/70 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isUploading ? (
+                                            <>
+                                                <Loader2 className="size-6 animate-spin" />
+                                                <span className="text-xs font-medium">{t('common.uploading', 'Uploading...')}</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CloudUpload className="size-6" />
+                                                <span className="text-xs font-medium">{t('tasks.upload_file', 'Upload File')}</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -837,6 +866,46 @@ export function TaskModal({
     );
 }
 
+// Task Cover Image Component
+function TaskCoverImage({ attachmentId, onRemove }: { attachmentId: string; onRemove?: () => void }) {
+    const [url, setUrl] = useState<string | null>(null);
+    const { t } = useTranslation();
+
+    useEffect(() => {
+        let objectUrl: string;
+        const load = async () => {
+            try {
+                const { attachmentsApi } = await import('../../lib/api/client');
+                const downloadUrl = await attachmentsApi.getDownloadUrl(attachmentId);
+                setUrl(downloadUrl);
+                objectUrl = downloadUrl;
+            } catch (err) {
+                console.error('Failed to load cover image', err);
+            }
+        };
+        load();
+        return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
+    }, [attachmentId]);
+
+    if (!url) return null;
+
+    return (
+        <div className="relative w-full h-48 lg:h-64 bg-surface-dark overflow-hidden shrink-0">
+            <img src={url} alt="Cover" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+            <div className="absolute bottom-4 right-4 flex gap-2">
+                <button
+                    onClick={onRemove}
+                    className="glass-panel px-3 py-1.5 rounded-lg text-xs font-medium text-white hover:bg-red-500/20 hover:text-red-400 transition-all flex items-center gap-2"
+                >
+                    <X className="size-3" />
+                    {t('tasks.remove_cover', 'Remove Cover')}
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // Subtask Item Component
 function SubtaskItem({
     subtask,
@@ -931,8 +1000,19 @@ function CommentItem({
 }
 
 // Attachment Card Component
-
-function AttachmentCard({ attachment, onDelete }: { attachment: Attachment, onDelete?: () => void }) {
+function AttachmentCard({ 
+    attachment, 
+    onDelete, 
+    isCover, 
+    onSetCover, 
+    onRemoveCover 
+}: { 
+    attachment: Attachment; 
+    onDelete?: () => void;
+    isCover?: boolean;
+    onSetCover?: () => void;
+    onRemoveCover?: () => void;
+}) {
     const isImage = attachment.mimeType?.startsWith('image/');
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -1012,6 +1092,18 @@ function AttachmentCard({ attachment, onDelete }: { attachment: Attachment, onDe
                     <button className="p-1.5 bg-black/50 hover:bg-black/80 rounded-md text-text transition-colors" title="View">
                         <Eye className="size-4" />
                     </button>
+                    {isImage && (
+                        <button 
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                isCover ? onRemoveCover?.() : onSetCover?.(); 
+                            }}
+                            className={`p-1.5 rounded-md text-white transition-colors ${isCover ? 'bg-primary shadow-lg shadow-primary/50' : 'bg-black/50 hover:bg-primary/80'}`}
+                            title={isCover ? "Remove Cover" : "Make Cover"}
+                        >
+                            <Check className="size-4" />
+                        </button>
+                    )}
                     {onDelete && (
                         <button
                             onClick={(e) => { e.stopPropagation(); onDelete(); }}

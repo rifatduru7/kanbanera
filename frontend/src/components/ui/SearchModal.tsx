@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { MagnifyingGlass as Search, X, FileText, Kanban as FolderKanban, CalendarBlank as Calendar, User, ChartBar as BarChart3, Command, Checks, SpinnerGap } from '@phosphor-icons/react';
+import { MagnifyingGlass as Search, X, FileText, Kanban as FolderKanban, CalendarBlank as Calendar, User, ChartBar as BarChart3, Command, Checks, SpinnerGap, ClockCounterClockwise } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { searchApi } from '../../lib/api/client';
@@ -13,6 +13,29 @@ interface SearchResult {
     description?: string;
     href: string;
     icon: React.ElementType;
+    priority?: string;
+}
+
+const RECENT_SEARCHES_KEY = 'era_kanban_recent_searches';
+const MAX_RECENT = 5;
+
+function getRecentSearches(): string[] {
+    try {
+        const raw = localStorage.getItem(RECENT_SEARCHES_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveRecentSearch(q: string) {
+    const recents = getRecentSearches().filter((s) => s !== q);
+    recents.unshift(q);
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(recents.slice(0, MAX_RECENT)));
+}
+
+function clearRecentSearches() {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
 }
 
 const navItems = [
@@ -23,6 +46,13 @@ const navItems = [
     { id: 'metrics', type: 'page', labelKey: 'nav.metrics', descKey: 'search.desc.metrics', href: '/metrics', icon: BarChart3 },
     { id: 'profile', type: 'page', labelKey: 'nav.profile', descKey: 'search.desc.profile', href: '/profile', icon: User },
 ] as const;
+
+const priorityColors: Record<string, string> = {
+    critical: 'bg-red-500/20 text-red-400',
+    high: 'bg-orange-500/20 text-orange-400',
+    medium: 'bg-yellow-500/20 text-yellow-400',
+    low: 'bg-blue-500/20 text-blue-400',
+};
 
 interface SearchModalProps {
     isOpen: boolean;
@@ -41,14 +71,66 @@ function useDebouncedValue<T>(value: T, delay = 250) {
     return debounced;
 }
 
+function ResultItem({
+    result,
+    isSelected,
+    onClick,
+    onMouseEnter,
+}: {
+    result: SearchResult;
+    isSelected: boolean;
+    onClick: () => void;
+    onMouseEnter: () => void;
+}) {
+    const Icon = result.icon;
+    return (
+        <button
+            onClick={onClick}
+            onMouseEnter={onMouseEnter}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors text-left ${isSelected
+                ? 'bg-primary/20 text-white shadow-sm'
+                : 'text-text-muted hover:bg-surface-alt'
+                }`}
+        >
+            <div className={`p-2 rounded-lg flex-shrink-0 ${isSelected ? 'bg-primary/30 text-primary' : 'bg-surface-alt'}`}>
+                <Icon className="size-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className={`font-medium text-sm ${isSelected ? 'text-text' : ''}`}>{result.title}</p>
+                {result.description ? (
+                    <p className="text-xs text-text-muted truncate">{result.description}</p>
+                ) : null}
+            </div>
+            {result.priority && (
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase ${priorityColors[result.priority] || ''}`}>
+                    {result.priority}
+                </span>
+            )}
+            {isSelected ? (
+                <kbd className="px-2 py-0.5 rounded bg-surface-alt border border-border-muted text-[10px] font-mono text-text-muted flex-shrink-0">
+                    Enter
+                </kbd>
+            ) : null}
+        </button>
+    );
+}
+
 export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: SearchModalProps) {
     const { t } = useTranslation();
     const [query, setQuery] = useState('');
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
     const debouncedQuery = useDebouncedValue(query.trim(), 250);
     const { isMobile } = useViewport();
+
+    useEffect(() => {
+        if (isOpen) {
+            setRecentSearches(getRecentSearches());
+            window.setTimeout(() => inputRef.current?.focus(), 100);
+        }
+    }, [isOpen]);
 
     const navigationResults: SearchResult[] = useMemo(() => navItems.map((item) => ({
         id: item.id,
@@ -59,10 +141,10 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
         icon: item.icon,
     })), [t]);
 
-    const searchQuery = useQuery({
+    const searchQueryResult = useQuery({
         queryKey: ['search', debouncedQuery],
         queryFn: async () => {
-            const response = await searchApi.search({ q: debouncedQuery, scope: 'all', limit: 6 });
+            const response = await searchApi.search({ q: debouncedQuery, scope: 'all', limit: 8 });
             if (!response.success || !response.data) {
                 throw new Error(response.message || 'Search failed');
             }
@@ -72,28 +154,35 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
         staleTime: 10 * 1000,
     });
 
-    const entityResults: SearchResult[] = useMemo(() => {
-        if (!searchQuery.data) return [];
-
-        const taskResults = searchQuery.data.tasks.map((task) => ({
+    // Grouped entity results
+    const taskResults: SearchResult[] = useMemo(() => {
+        if (!searchQueryResult.data) return [];
+        return searchQueryResult.data.tasks.map((task) => ({
             id: `task-${task.id}`,
             type: 'task' as const,
             title: task.title,
-            description: `${task.projectName} � ${task.priority || 'medium'}`,
+            description: `${task.projectName} · ${task.columnName || ''}`,
             href: `/board?project=${task.projectId}`,
             icon: Checks,
+            priority: task.priority || 'medium',
         }));
+    }, [searchQueryResult.data]);
 
-        const projectResults = searchQuery.data.projects.map((project) => ({
+    const projectResults: SearchResult[] = useMemo(() => {
+        if (!searchQueryResult.data) return [];
+        return searchQueryResult.data.projects.map((project) => ({
             id: `project-${project.id}`,
             type: 'project' as const,
             title: project.name,
-            description: project.description || 'Project',
-            href: '/projects',
+            description: project.description || t('common.project'),
+            href: `/board?project=${project.id}`,
             icon: FolderKanban,
         }));
+    }, [searchQueryResult.data, t]);
 
-        const userResults = searchQuery.data.users.map((user) => ({
+    const userResults: SearchResult[] = useMemo(() => {
+        if (!searchQueryResult.data) return [];
+        return searchQueryResult.data.users.map((user) => ({
             id: `user-${user.id}`,
             type: 'user' as const,
             title: user.fullName,
@@ -101,9 +190,7 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
             href: '/members',
             icon: User,
         }));
-
-        return [...taskResults, ...projectResults, ...userResults].slice(0, 18);
-    }, [searchQuery.data]);
+    }, [searchQueryResult.data]);
 
     const filteredNavigation = useMemo(() => {
         if (!query.trim()) return navigationResults;
@@ -113,16 +200,23 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
         );
     }, [navigationResults, query]);
 
-    const allResults = useMemo(
-        () => (debouncedQuery.length >= 2 ? [...filteredNavigation, ...entityResults] : filteredNavigation),
-        [debouncedQuery.length, entityResults, filteredNavigation]
-    );
+    const hasEntityResults = debouncedQuery.length >= 2 && (taskResults.length > 0 || projectResults.length > 0 || userResults.length > 0);
 
-    useEffect(() => {
-        if (isOpen) {
-            window.setTimeout(() => inputRef.current?.focus(), 100);
+    // Build flat result list for keyboard navigation
+    const allResults = useMemo(() => {
+        if (debouncedQuery.length >= 2) {
+            return [...filteredNavigation, ...taskResults, ...projectResults, ...userResults];
         }
-    }, [isOpen]);
+        return filteredNavigation;
+    }, [debouncedQuery.length, filteredNavigation, taskResults, projectResults, userResults]);
+
+    const handleSelect = useCallback((result: SearchResult) => {
+        if (debouncedQuery.length >= 2) {
+            saveRecentSearch(debouncedQuery);
+        }
+        navigate(result.href);
+        onClose();
+    }, [debouncedQuery, navigate, onClose]);
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
@@ -145,20 +239,25 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
 
             if (event.key === 'Enter' && allResults[selectedIndex]) {
                 event.preventDefault();
-                navigate(allResults[selectedIndex].href);
-                onClose();
+                handleSelect(allResults[selectedIndex]);
             }
         },
-        [allResults, navigate, onClose, selectedIndex]
+        [allResults, handleSelect, onClose, selectedIndex]
     );
 
     const activeIndex = allResults.length === 0
         ? 0
         : Math.min(selectedIndex, allResults.length - 1);
 
+    // Calculate section start indices for keyboard navigation highlighting
+    const navEndIdx = filteredNavigation.length;
+    const taskEndIdx = navEndIdx + taskResults.length;
+    const projectEndIdx = taskEndIdx + projectResults.length;
+
     if (!isOpen) return null;
 
     const isMobileFullScreen = mobileFullScreen && isMobile;
+    const showRecentSearches = !query.trim() && recentSearches.length > 0;
 
     return (
         <div className={`fixed inset-0 z-[100] flex ${isMobileFullScreen ? 'items-stretch justify-stretch pt-0' : 'items-start justify-center pt-[15vh]'}`}>
@@ -192,56 +291,141 @@ export function SearchModal({ isOpen, onClose, mobileFullScreen = true }: Search
                     </button>
                 </div>
 
-                <div className={`${isMobileFullScreen ? 'h-[calc(100dvh-148px)]' : 'max-h-[420px]'} overflow-y-auto p-2 bg-surface/30 mobile-scroll`}>
-                    {searchQuery.isFetching && debouncedQuery.length >= 2 ? (
+                <div className={`${isMobileFullScreen ? 'h-[calc(100dvh-148px)]' : 'max-h-[480px]'} overflow-y-auto p-2 bg-surface/30 mobile-scroll`}>
+                    {searchQueryResult.isFetching && debouncedQuery.length >= 2 ? (
                         <div className="py-8 text-center text-text-muted flex items-center justify-center gap-2 text-sm">
                             <SpinnerGap className="size-4 animate-spin" />
                             {t('common.searching')}
                         </div>
-                    ) : allResults.length === 0 ? (
+                    ) : allResults.length === 0 && debouncedQuery.length >= 2 ? (
                         <div className="py-12 text-center text-text-muted">
                             <Search className="size-10 mx-auto mb-3 opacity-30" />
                             <p>{t('search.no_results', { query })}</p>
                         </div>
                     ) : (
                         <div className="space-y-1">
-                            <div className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                                {debouncedQuery.length >= 2 ? t('search.results_label') : t('search.quick_navigation')}
-                            </div>
-                            {allResults.map((result, index) => {
-                                const Icon = result.icon;
-                                const isSelected = index === activeIndex;
+                            {/* Recent Searches */}
+                            {showRecentSearches && (
+                                <div>
+                                    <div className="flex items-center justify-between px-3 py-2">
+                                        <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">{t('search.recent_searches', 'Recent Searches')}</span>
+                                        <button
+                                            onClick={() => {
+                                                clearRecentSearches();
+                                                setRecentSearches([]);
+                                            }}
+                                            className="text-[10px] text-text-muted hover:text-red-400 transition-colors"
+                                        >
+                                            {t('common.clear', 'Clear')}
+                                        </button>
+                                    </div>
+                                    {recentSearches.map((term) => (
+                                        <button
+                                            key={term}
+                                            onClick={() => setQuery(term)}
+                                            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-text-muted hover:bg-surface-alt transition-colors"
+                                        >
+                                            <ClockCounterClockwise className="size-4 flex-shrink-0" />
+                                            <span className="text-sm">{term}</span>
+                                        </button>
+                                    ))}
+                                    <div className="h-px bg-border-muted mx-3 my-2" />
+                                </div>
+                            )}
 
-                                return (
-                                    <button
-                                        key={result.id}
-                                        onClick={() => {
-                                            navigate(result.href);
-                                            onClose();
-                                        }}
-                                        onMouseEnter={() => setSelectedIndex(index)}
-                                        className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-colors text-left ${isSelected
-                                            ? 'bg-primary/20 text-white shadow-sm'
-                                            : 'text-text-muted hover:bg-surface-alt'
-                                            }`}
-                                    >
-                                        <div className={`p-2 rounded-lg ${isSelected ? 'bg-primary/30 text-primary' : 'bg-surface-alt'}`}>
-                                            <Icon className="size-5" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`font-medium ${isSelected ? 'text-text' : ''}`}>{result.title}</p>
-                                            {result.description ? (
-                                                <p className="text-sm text-text-muted truncate">{result.description}</p>
-                                            ) : null}
-                                        </div>
-                                        {isSelected ? (
-                                            <kbd className="px-2 py-1 rounded bg-surface-alt border border-border-muted text-xs font-mono text-text-muted">
-                                                Enter
-                                            </kbd>
-                                        ) : null}
-                                    </button>
-                                );
-                            })}
+                            {/* Navigation Results */}
+                            {filteredNavigation.length > 0 && (
+                                <div>
+                                    <div className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
+                                        {t('search.quick_navigation', 'Quick Navigation')}
+                                    </div>
+                                    {filteredNavigation.map((result, index) => (
+                                        <ResultItem
+                                            key={result.id}
+                                            result={result}
+                                            isSelected={index === activeIndex}
+                                            onClick={() => handleSelect(result)}
+                                            onMouseEnter={() => setSelectedIndex(index)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Task Results */}
+                            {taskResults.length > 0 && (
+                                <div>
+                                    <div className="px-3 py-2 mt-1 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                                        <Checks className="size-3.5" />
+                                        {t('search.section_tasks', 'Tasks')}
+                                        <span className="text-primary/70">({taskResults.length})</span>
+                                    </div>
+                                    {taskResults.map((result, idx) => {
+                                        const flatIdx = navEndIdx + idx;
+                                        return (
+                                            <ResultItem
+                                                key={result.id}
+                                                result={result}
+                                                isSelected={flatIdx === activeIndex}
+                                                onClick={() => handleSelect(result)}
+                                                onMouseEnter={() => setSelectedIndex(flatIdx)}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Project Results */}
+                            {projectResults.length > 0 && (
+                                <div>
+                                    <div className="px-3 py-2 mt-1 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                                        <FolderKanban className="size-3.5" />
+                                        {t('search.section_projects', 'Projects')}
+                                        <span className="text-primary/70">({projectResults.length})</span>
+                                    </div>
+                                    {projectResults.map((result, idx) => {
+                                        const flatIdx = taskEndIdx + idx;
+                                        return (
+                                            <ResultItem
+                                                key={result.id}
+                                                result={result}
+                                                isSelected={flatIdx === activeIndex}
+                                                onClick={() => handleSelect(result)}
+                                                onMouseEnter={() => setSelectedIndex(flatIdx)}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* User Results */}
+                            {userResults.length > 0 && (
+                                <div>
+                                    <div className="px-3 py-2 mt-1 text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
+                                        <User className="size-3.5" />
+                                        {t('search.section_users', 'Users')}
+                                        <span className="text-primary/70">({userResults.length})</span>
+                                    </div>
+                                    {userResults.map((result, idx) => {
+                                        const flatIdx = projectEndIdx + idx;
+                                        return (
+                                            <ResultItem
+                                                key={result.id}
+                                                result={result}
+                                                isSelected={flatIdx === activeIndex}
+                                                onClick={() => handleSelect(result)}
+                                                onMouseEnter={() => setSelectedIndex(flatIdx)}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* No entity results with search active */}
+                            {debouncedQuery.length >= 2 && !hasEntityResults && !searchQueryResult.isFetching && (
+                                <div className="py-6 text-center text-text-muted text-sm">
+                                    {t('search.no_entity_results', 'No tasks, projects or users found.')}
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

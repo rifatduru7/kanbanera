@@ -719,5 +719,49 @@
     "group_status": "Status",
     "group_assignee": "Assignee",
     "group_priority": "Priority"
+  },
+  "filters": {
+    "status": "Status",
+    "priority": "Priority",
+    "assignee": "Assignee",
+    "label": "Label",
+    "due_date": "Due Date",
+    "all_members": "All Members",
+    "all_labels": "All Labels",
+    "all_dates": "All Dates",
+    "today": "Today",
+    "this_week": "This Week",
+    "overdue": "Overdue",
+    "no_date": "No Date"
+  },
+  "automation": {
+    "title": "Automation Rules",
+    "subtitle": "Automatic actions for your workflow",
+    "create_new": "Create New Rule",
+    "rule_name": "Rule Name",
+    "rule_name_placeholder": "e.g., Auto-low priority for Done",
+    "when": "When...",
+    "trigger": {
+      "task_moved_to": "Task moved to column",
+      "task_created": "Task is created",
+      "task_assigned": "Task is assigned"
+    },
+    "select_column": "Select column...",
+    "any_user": "Any user",
+    "then": "Then...",
+    "action": {
+      "set_priority": "Set priority to...",
+      "set_assignee": "Set assignee to...",
+      "add_label": "Add label...",
+      "move_to_column": "Move to column...",
+      "archive_task": "Archive task"
+    },
+    "select_priority": "Select priority...",
+    "select_user": "Select user...",
+    "type_label": "Type label name...",
+    "save_rule": "Create Rule",
+    "add_rule": "Add New Automation Rule",
+    "active_rules": "Active Rules",
+    "no_rules": "No automation rules yet. Create one to streamline your workflow."
   }
 }

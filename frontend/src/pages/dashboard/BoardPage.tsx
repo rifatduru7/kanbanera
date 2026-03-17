@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Board } from '../../components/kanban/Board';
 import { TaskModal } from '../../components/kanban/TaskModal';
-import { Funnel as Filter, CircleNotch as Loader2, WarningCircle as AlertCircle, Kanban as FolderKanban, CaretDown as ChevronDown } from '@phosphor-icons/react';
+import { BoardFilterBar } from '../../components/kanban/BoardFilterBar';
+import { Funnel as Filter, CircleNotch as Loader2, WarningCircle as AlertCircle, Kanban as FolderKanban, CaretDown as ChevronDown, Archive, Lightning } from '@phosphor-icons/react';
+import { ArchivedTasksDrawer } from '../../components/kanban/ArchivedTasksDrawer';
+import { AutomationRulesModal } from '../../components/kanban/AutomationRulesModal';
 import { useProjects, useProject, useMoveTask, useUpdateTask, useDeleteTask, useAddSubtask, useToggleSubtask, useDeleteSubtask, useAddComment, useDeleteComment, useUploadAttachment, useDeleteAttachment, useUpdateColumn, useDeleteColumn, useAddColumn, useUpdateProject, useDeleteProject } from '../../hooks/useKanbanData';
 import { CreateTaskModal } from '../../components/task/CreateTaskModal';
 import { ProjectSettingsModal } from '../../components/project/ProjectSettingsModal';
@@ -48,11 +51,14 @@ interface ApiTaskRow {
     position: number;
     labels?: unknown;
     due_date?: string | null;
+    assignee_id?: string | null;
     assignee_name?: string | null;
     subtask_count?: number | null;
     subtask_completed?: number | null;
     comment_count?: number | null;
     attachment_count?: number | null;
+    is_archived?: number | null;
+    cover_attachment_id?: string | null;
     created_at: string;
     updated_at: string;
 }
@@ -97,6 +103,8 @@ interface ApiTaskDetails {
     subtasks?: ApiSubtaskRow[];
     comments?: ApiCommentRow[];
     attachments?: ApiAttachmentRow[];
+    cover_attachment_id?: string | null;
+    is_archived?: boolean;
 }
 
 interface ProjectDataShape {
@@ -121,9 +129,14 @@ export function BoardPage() {
 
     // Filter state
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [isArchivedDrawerOpen, setIsArchivedDrawerOpen] = useState(false);
+    const [isAutomationRulesOpen, setIsAutomationRulesOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [priorityFilter, setPriorityFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
+    const [assigneeFilter, setAssigneeFilter] = useState('');
+    const [labelFilter, setLabelFilter] = useState('');
+    const [dateFilter, setDateFilter] = useState('');
 
     // Fetch projects list
     const { data: projectsData, isLoading: isLoadingProjects } = useProjects();
@@ -169,6 +182,30 @@ export function BoardPage() {
     const updateProject = useUpdateProject();
     const deleteProject = useDeleteProject();
 
+    // Collect all unique labels from tasks for the filter dropdown
+    const availableLabels = useMemo(() => {
+        if (!projectData?.tasks) return [];
+        const labelSet = new Set<string>();
+        projectData.tasks.forEach((task) => {
+            safeParseLabels(task.labels).forEach((l) => labelSet.add(l));
+        });
+        return Array.from(labelSet).sort();
+    }, [projectData?.tasks]);
+
+    // Active filter count for badge
+    const activeFilterCount = useMemo(() => {
+        return (searchQuery ? 1 : 0) + (priorityFilter ? 1 : 0) + (statusFilter ? 1 : 0) + (assigneeFilter ? 1 : 0) + (labelFilter ? 1 : 0) + (dateFilter ? 1 : 0);
+    }, [searchQuery, priorityFilter, statusFilter, assigneeFilter, labelFilter, dateFilter]);
+
+    const clearAllFilters = () => {
+        setSearchQuery('');
+        setPriorityFilter('');
+        setStatusFilter('');
+        setAssigneeFilter('');
+        setLabelFilter('');
+        setDateFilter('');
+    };
+
     // Transform API columns to Board component format
     const columns: Column[] = useMemo(() => {
         if (!projectData?.columns) return [];
@@ -188,6 +225,39 @@ export function BoardPage() {
             projectTasks = projectTasks.filter((task) =>
                 normalizePriority(task.priority) === priorityFilter
             );
+        }
+
+        if (assigneeFilter) {
+            if (assigneeFilter === '__unassigned__') {
+                projectTasks = projectTasks.filter((task) => !task.assignee_id);
+            } else {
+                projectTasks = projectTasks.filter((task) => task.assignee_id === assigneeFilter);
+            }
+        }
+
+        if (labelFilter) {
+            projectTasks = projectTasks.filter((task) => {
+                const labels = safeParseLabels(task.labels);
+                return labels.includes(labelFilter);
+            });
+        }
+
+        if (dateFilter) {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const weekEnd = new Date(now);
+            weekEnd.setDate(now.getDate() + (7 - now.getDay()));
+            const weekEndStr = weekEnd.toISOString().split('T')[0];
+
+            projectTasks = projectTasks.filter((task) => {
+                const dueDate = task.due_date;
+                if (dateFilter === 'no_date') return !dueDate;
+                if (!dueDate) return false;
+                if (dateFilter === 'today') return dueDate === todayStr;
+                if (dateFilter === 'this_week') return dueDate >= todayStr && dueDate <= weekEndStr;
+                if (dateFilter === 'overdue') return dueDate < todayStr;
+                return true;
+            });
         }
 
         let filteredColumns = projectData.columns;
@@ -212,16 +282,19 @@ export function BoardPage() {
                     position: task.position,
                     labels: safeParseLabels(task.labels),
                     dueDate: task.due_date || undefined,
+                    assigneeId: task.assignee_id || undefined,
                     assigneeName: task.assignee_name || undefined,
                     subtaskCount: task.subtask_count || 0,
                     subtaskCompleted: task.subtask_completed || 0,
                     commentCount: task.comment_count || 0,
                     attachmentCount: task.attachment_count || 0,
+                    isArchived: !!task.is_archived,
+                    coverAttachmentId: task.cover_attachment_id || undefined,
                     createdAt: task.created_at,
                     updatedAt: task.updated_at,
                 })),
         })).sort((a: Column, b: Column) => a.position - b.position);
-    }, [priorityFilter, projectData, searchQuery, statusFilter]);
+    }, [priorityFilter, projectData, searchQuery, statusFilter, assigneeFilter, labelFilter, dateFilter]);
 
     const selectedProject = projects.find((p) => p.id === effectiveProjectId);
 
@@ -276,6 +349,8 @@ export function BoardPage() {
                         thumbnailUrl: a.thumbnail_url,
                         createdAt: a.created_at,
                     })),
+                    coverAttachmentId: normalizedTaskData.cover_attachment_id || undefined,
+                    isArchived: !!normalizedTaskData.is_archived,
                     createdAt: normalizedTaskData.created_at,
                     updatedAt: normalizedTaskData.updated_at,
                 };
@@ -467,6 +542,30 @@ export function BoardPage() {
         }
     };
 
+    const handleSetCoverImage = async (attachmentId: string) => {
+        if (selectedTask) {
+            try {
+                const { tasksApi } = await import('../../lib/api/client');
+                await tasksApi.setCoverImage(selectedTask.id, attachmentId);
+                setSelectedTask(prev => prev ? { ...prev, coverAttachmentId: attachmentId } : null);
+            } catch (error) {
+                console.error('Failed to set cover image:', error);
+            }
+        }
+    };
+
+    const handleRemoveCoverImage = async () => {
+        if (selectedTask) {
+            try {
+                const { tasksApi } = await import('../../lib/api/client');
+                await tasksApi.removeCoverImage(selectedTask.id);
+                setSelectedTask(prev => prev ? { ...prev, coverAttachmentId: undefined } : null);
+            } catch (error) {
+                console.error('Failed to remove cover image:', error);
+            }
+        }
+    };
+
     // Loading state
     if (isLoadingProjects) {
         return (
@@ -547,18 +646,36 @@ export function BoardPage() {
                     {/* Filter Button */}
                     <button
                         onClick={() => setIsFilterOpen(!isFilterOpen)}
-                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${isFilterOpen || searchQuery || priorityFilter || statusFilter
+                        className={`flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm font-medium transition-all ${isFilterOpen || activeFilterCount > 0
                             ? 'bg-primary/10 border-primary/30 text-primary'
                             : 'bg-surface border-border hover:bg-surface-alt text-text'
                             }`}
                     >
                         <Filter className="size-4" />
                         {t('common.filter')}
-                        {(searchQuery || priorityFilter || statusFilter) && (
+                        {activeFilterCount > 0 && (
                             <span className="flex items-center justify-center size-4 rounded-full bg-primary text-black text-[10px] font-bold">
-                                {(searchQuery ? 1 : 0) + (priorityFilter ? 1 : 0) + (statusFilter ? 1 : 0)}
+                                {activeFilterCount}
                             </span>
                         )}
+                    </button>
+
+                    {/* Archive Button */}
+                    <button
+                        onClick={() => setIsArchivedDrawerOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface border border-border hover:bg-surface-alt text-text text-sm font-medium transition-all"
+                    >
+                        <Archive className="size-4" />
+                        {t('archive.title', 'Archive')}
+                    </button>
+
+                    {/* Automation Rules Button */}
+                    <button
+                        onClick={() => setIsAutomationRulesOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-surface border border-border hover:bg-surface-alt text-text text-sm font-medium transition-all"
+                    >
+                        <Lightning className="size-4" />
+                        {t('automation.title', 'Automation')}
                     </button>
 
                     {/* Activity Button */}
@@ -579,59 +696,27 @@ export function BoardPage() {
                 </div>
             </div>
 
-            {/* Filter Bar */}
+            {/* Enhanced Filter Bar */}
             {isFilterOpen && (
-                <div className="flex flex-col sm:flex-row gap-3 mb-6 p-4 rounded-xl bg-surface border border-border shadow-sm animate-in fade-in slide-in-from-top-2">
-                    <div className="flex-1">
-                        <input
-                            type="text"
-                            placeholder={t('common.search_tasks')}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full glass-input h-10 px-3 rounded-lg text-text text-sm"
-                        />
-                    </div>
-                    <div className="w-full sm:w-48 shrink-0">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="w-full glass-input h-10 px-3 rounded-lg text-text text-sm appearance-none bg-surface/50 cursor-pointer focus:ring-2 focus:ring-primary"
-                            style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="">{t('common.all_statuses')}</option>
-                            {projectData?.columns?.map((col) => (
-                                <option key={col.id} value={col.id}>{col.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="w-full sm:w-48 shrink-0">
-                        <select
-                            value={priorityFilter}
-                            onChange={(e) => setPriorityFilter(e.target.value)}
-                            className="w-full glass-input h-10 px-3 rounded-lg text-text text-sm appearance-none bg-surface/50 cursor-pointer focus:ring-2 focus:ring-primary"
-                            style={{ backgroundImage: 'url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'currentColor\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3e%3cpolyline points=\'6 9 12 15 18 9\'%3e%3c/polyline%3e%3c/svg%3e")', backgroundRepeat: 'no-repeat', backgroundPosition: 'right 0.5rem center', backgroundSize: '1em' }}
-                        >
-                            <option value="">{t('common.all_priorities')}</option>
-                            <option value="high">{t('common.priority.high')}</option>
-                            <option value="medium">{t('common.priority.medium')}</option>
-                            <option value="low">{t('common.priority.low')}</option>
-                        </select>
-                    </div>
-                    <div className="w-full sm:w-auto shrink-0 flex items-center">
-                        {(searchQuery || priorityFilter || statusFilter) ? (
-                            <button
-                                onClick={() => {
-                                    setSearchQuery('');
-                                    setPriorityFilter('');
-                                    setStatusFilter('');
-                                }}
-                                className="w-full px-4 h-10 rounded-lg text-sm font-medium text-text-muted hover:text-text hover:bg-surface-alt transition-colors whitespace-nowrap"
-                            >
-                                {t('common.clear_filters')}
-                            </button>
-                        ) : null}
-                    </div>
-                </div>
+                <BoardFilterBar
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    priorityFilter={priorityFilter}
+                    onPriorityChange={setPriorityFilter}
+                    statusFilter={statusFilter}
+                    onStatusChange={setStatusFilter}
+                    assigneeFilter={assigneeFilter}
+                    onAssigneeChange={setAssigneeFilter}
+                    labelFilter={labelFilter}
+                    onLabelChange={setLabelFilter}
+                    dateFilter={dateFilter}
+                    onDateFilterChange={setDateFilter}
+                    onClearAll={clearAllFilters}
+                    members={(projectData?.members || []) as { user_id: string; full_name: string; avatar_url?: string | null }[]}
+                    columns={(projectData?.columns || []).map((c) => ({ id: c.id, name: c.name }))}
+                    availableLabels={availableLabels}
+                    activeFilterCount={activeFilterCount}
+                />
             )}
 
             {/* Error State */}
@@ -743,9 +828,36 @@ export function BoardPage() {
                         deleteTask.mutate(selectedTask.id);
                         handleCloseModal();
                     }}
+                    onArchiveTask={() => {
+                        tasksApi.archiveTask(selectedTask.id).then(() => {
+                            handleCloseModal();
+                        });
+                    }}
                     onDeleteSubtask={handleDeleteSubtask}
                     onDeleteComment={handleDeleteComment}
                     onDeleteAttachment={handleDeleteAttachment}
+                    onSetCoverImage={handleSetCoverImage}
+                    onRemoveCoverImage={handleRemoveCoverImage}
+                />
+            )}
+
+            {/* Archived Tasks Drawer */}
+            {selectedProject && (
+                <ArchivedTasksDrawer
+                    isOpen={isArchivedDrawerOpen}
+                    onClose={() => setIsArchivedDrawerOpen(false)}
+                    projectId={selectedProject.id}
+                />
+            )}
+
+            {/* Automation Rules Modal */}
+            {selectedProject && (
+                <AutomationRulesModal 
+                    isOpen={isAutomationRulesOpen}
+                    onClose={() => setIsAutomationRulesOpen(false)}
+                    projectId={selectedProject.id}
+                    columns={columns}
+                    members={projectData?.members || []}
                 />
             )}
         </div>

@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Task, Subtask, Comment } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { dispatchOutgoingWebhooks } from '../services/dispatcher';
+import { runAutomations } from './automations';
 
 export const taskRoutes = new Hono<{ Bindings: Env }>();
 
@@ -251,6 +252,160 @@ taskRoutes.get('/gantt', async (c) => {
     }
 });
 
+// PATCH /api/tasks/:id/archive - Archive a task
+taskRoutes.patch('/:id/archive', async (c) => {
+    const userId = c.get('userId');
+    const taskId = c.req.param('id');
+
+    try {
+        const task = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')
+            .bind(taskId)
+            .first<Task>();
+
+        if (!task) {
+            return c.json({ success: false, error: 'Not Found', message: 'Task not found' }, 404);
+        }
+
+        const access = await getProjectAccess(c.env, task.project_id, userId);
+        if (!access) {
+            return c.json({ success: false, error: 'Forbidden', message: 'Access denied' }, 403);
+        }
+
+        await c.env.DB.prepare(
+            `UPDATE tasks SET is_archived = 1, updated_at = datetime('now') WHERE id = ?`
+        ).bind(taskId).run();
+
+        // Log activity
+        await c.env.DB.prepare(
+            `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details) VALUES (?, ?, ?, ?, 'task_archived', ?)`
+        ).bind(crypto.randomUUID(), task.project_id, taskId, userId, JSON.stringify({ title: task.title })).run();
+
+        return c.json({ success: true, message: 'Task archived successfully' });
+    } catch (error) {
+        console.error('Archive task error:', error);
+        return c.json({ success: false, error: 'Server Error', message: 'Failed to archive task' }, 500);
+    }
+});
+
+// PATCH /api/tasks/:id/restore - Restore an archived task
+taskRoutes.patch('/:id/restore', async (c) => {
+    const userId = c.get('userId');
+    const taskId = c.req.param('id');
+
+    try {
+        const task = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')
+            .bind(taskId)
+            .first<Task>();
+
+        if (!task) {
+            return c.json({ success: false, error: 'Not Found', message: 'Task not found' }, 404);
+        }
+
+        const access = await getProjectAccess(c.env, task.project_id, userId);
+        if (!access) {
+            return c.json({ success: false, error: 'Forbidden', message: 'Access denied' }, 403);
+        }
+
+        await c.env.DB.prepare(
+            `UPDATE tasks SET is_archived = 0, updated_at = datetime('now') WHERE id = ?`
+        ).bind(taskId).run();
+
+        // Log activity
+        await c.env.DB.prepare(
+            `INSERT INTO activity_log (id, project_id, task_id, user_id, action, details) VALUES (?, ?, ?, ?, 'task_restored', ?)`
+        ).bind(crypto.randomUUID(), task.project_id, taskId, userId, JSON.stringify({ title: task.title })).run();
+
+        return c.json({ success: true, message: 'Task restored successfully' });
+    } catch (error) {
+        console.error('Restore task error:', error);
+        return c.json({ success: false, error: 'Server Error', message: 'Failed to restore task' }, 500);
+    }
+});
+
+// GET /api/tasks/archived?project_id=xxx - List archived tasks for a project
+taskRoutes.get('/archived', async (c) => {
+    const userId = c.get('userId');
+    const projectId = c.req.query('project_id');
+
+    if (!projectId) {
+        return c.json({ success: false, error: 'Validation Error', message: 'project_id is required' }, 400);
+    }
+
+    try {
+        const access = await getProjectAccess(c.env, projectId, userId);
+        if (!access) {
+            return c.json({ success: false, error: 'Forbidden', message: 'Access denied' }, 403);
+        }
+
+        const { results: tasks } = await c.env.DB.prepare(
+            `SELECT t.*, u.full_name as assignee_name, c.name as column_name
+             FROM tasks t
+             LEFT JOIN users u ON t.assignee_id = u.id
+             LEFT JOIN columns c ON t.column_id = c.id
+             WHERE t.project_id = ? AND t.is_archived = 1
+             ORDER BY t.updated_at DESC`
+        ).bind(projectId).all();
+
+        return c.json({ success: true, data: { tasks: tasks || [] } });
+    } catch (error) {
+        console.error('Get archived tasks error:', error);
+        return c.json({ success: false, error: 'Server Error', message: 'Failed to fetch archived tasks' }, 500);
+    }
+});
+
+// PATCH /api/tasks/:id/cover - Set task cover image
+taskRoutes.patch('/:id/cover', async (c) => {
+    const userId = c.get('userId');
+    const taskId = c.req.param('id');
+
+    try {
+        const body = await c.req.json();
+        const { cover_attachment_id } = body;
+
+        const task = await c.env.DB.prepare('SELECT project_id FROM tasks WHERE id = ?').bind(taskId).first<{ project_id: string }>();
+        if (!task) return c.json({ success: false, error: 'Not Found', message: 'Task not found' }, 404);
+
+        const access = await getProjectAccess(c.env, task.project_id, userId);
+        if (!access || (access.owner_id !== userId && access.role === 'viewer')) {
+            return c.json({ success: false, error: 'Forbidden', message: 'Access denied' }, 403);
+        }
+
+        await c.env.DB.prepare(
+            `UPDATE tasks SET cover_attachment_id = ?, updated_at = datetime('now') WHERE id = ?`
+        ).bind(cover_attachment_id || null, taskId).run();
+
+        return c.json({ success: true, message: 'Cover image updated' });
+    } catch (error) {
+        console.error('Update cover image error:', error);
+        return c.json({ success: false, error: 'Server Error', message: 'Failed to update cover image' }, 500);
+    }
+});
+
+// DELETE /api/tasks/:id/cover - Remove task cover image
+taskRoutes.delete('/:id/cover', async (c) => {
+    const userId = c.get('userId');
+    const taskId = c.req.param('id');
+
+    try {
+        const task = await c.env.DB.prepare('SELECT project_id FROM tasks WHERE id = ?').bind(taskId).first<{ project_id: string }>();
+        if (!task) return c.json({ success: false, error: 'Not Found', message: 'Task not found' }, 404);
+
+        const access = await getProjectAccess(c.env, task.project_id, userId);
+        if (!access || (access.owner_id !== userId && access.role === 'viewer')) {
+            return c.json({ success: false, error: 'Forbidden', message: 'Access denied' }, 403);
+        }
+
+        await c.env.DB.prepare(
+            `UPDATE tasks SET cover_attachment_id = NULL, updated_at = datetime('now') WHERE id = ?`
+        ).bind(taskId).run();
+
+        return c.json({ success: true, message: 'Cover image removed' });
+    } catch (error) {
+        console.error('Remove cover image error:', error);
+        return c.json({ success: false, error: 'Server Error', message: 'Failed to remove cover image' }, 500);
+    }
+});
+
 // POST /api/tasks - Create task
 taskRoutes.post('/', async (c) => {
     const userId = c.get('userId');
@@ -328,6 +483,10 @@ taskRoutes.post('/', async (c) => {
                  VALUES (?, ?, ?, ?, 'task_created', ?)`
             ).bind(crypto.randomUUID(), project_id, taskId, userId, JSON.stringify({ title })),
         ]);
+
+        // Run automations (fire-and-forget)
+        runAutomations(c.env, project_id, 'task_created', {}, taskId)
+            .catch((err: unknown) => console.error('Automation error:', err));
 
         if (assignee_id && assignee_id !== userId) {
             await c.env.DB.prepare(
@@ -630,6 +789,12 @@ taskRoutes.put('/:id/move', async (c) => {
         );
 
         await c.env.DB.batch(statements);
+
+        // Run automations (fire-and-forget)
+        if (oldColumnId !== column_id) {
+            runAutomations(c.env, task.project_id, 'task_moved_to', { column_id }, taskId)
+                .catch((err: unknown) => console.error('Automation error:', err));
+        }
 
         const user = await c.env.DB.prepare('SELECT full_name as name FROM users WHERE id = ?').bind(userId).first<{ name: string }>();
         const fromCol = await c.env.DB.prepare('SELECT name FROM columns WHERE id = ?').bind(oldColumnId).first<{ name: string }>();

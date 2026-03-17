@@ -75,6 +75,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   assignee_id TEXT,
   due_date TEXT,
   labels TEXT, -- JSON array of labels
+  is_archived INTEGER DEFAULT 0,
+  cover_attachment_id TEXT,
   created_by TEXT NOT NULL,
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now')),
@@ -226,6 +228,23 @@ CREATE TABLE IF NOT EXISTS system_settings (
   value TEXT NOT NULL,
   description TEXT,
   updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- Automations (project-level trigger-action rules)
+CREATE TABLE IF NOT EXISTS automations (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  trigger_type TEXT NOT NULL, -- 'task_moved_to', 'task_created', 'task_assigned', 'due_date_passed'
+  trigger_value TEXT, -- JSON: e.g. { "column_id": "xxx" }
+  action_type TEXT NOT NULL, -- 'set_priority', 'set_assignee', 'add_label', 'move_to_column', 'archive_task'
+  action_value TEXT, -- JSON: e.g. { "priority": "high" }
+  is_active INTEGER DEFAULT 1,
+  created_by TEXT NOT NULL,
+  created_at TEXT DEFAULT (datetime('now')),
+  updated_at TEXT DEFAULT (datetime('now')),
+  FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
 -- Seed initial settings

@@ -180,12 +180,12 @@ projectRoutes.get('/:id', async (c) => {
             .bind(projectId)
             .all<Column>();
 
-        // Get tasks with assignee info
+        // Get tasks with assignee info (exclude archived)
         const { results: tasks } = await c.env.DB.prepare(
             `SELECT t.*, u.full_name as assignee_name, u.avatar_url as assignee_avatar
        FROM tasks t
        LEFT JOIN users u ON t.assignee_id = u.id
-       WHERE t.project_id = ?
+       WHERE t.project_id = ? AND (t.is_archived = 0 OR t.is_archived IS NULL)
        ORDER BY t.position`
         )
             .bind(projectId)

@@ -50,7 +50,8 @@ export function useTasksByDateRange(from: string, to: string, filters: CalendarF
 
             return response.data.data?.tasks || [];
         },
-        staleTime: 60 * 1000, // 1 minute
+        staleTime: 30 * 1000,
+        refetchInterval: 30 * 1000, // Poll every 30 seconds
         enabled: !!from && !!to, // Only fetch when dates are provided
     });
 }

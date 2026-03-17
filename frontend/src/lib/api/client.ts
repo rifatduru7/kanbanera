@@ -487,6 +487,32 @@ export const tasksApi = {
         const response = await api.delete<ApiResponse<null>>(`/api/tasks/${taskId}/comments/${commentId}`);
         return response.data;
     },
+
+    // Archive
+    archiveTask: async (id: string) => {
+        const response = await api.patch<ApiResponse<null>>(`/api/tasks/${id}/archive`, {});
+        return response.data;
+    },
+
+    restoreTask: async (id: string) => {
+        const response = await api.patch<ApiResponse<null>>(`/api/tasks/${id}/restore`, {});
+        return response.data;
+    },
+
+    getArchivedTasks: async (projectId: string) => {
+        const response = await api.get<ApiResponse<{ tasks: Record<string, unknown>[] }>>(`/api/tasks/archived?project_id=${projectId}`);
+        return response.data;
+    },
+
+    setCoverImage: async (id: string, coverImageKey: string) => {
+        const response = await api.patch<ApiResponse<null>>(`/api/tasks/${id}/cover`, { cover_image_key: coverImageKey });
+        return response.data;
+    },
+
+    removeCoverImage: async (id: string) => {
+        const response = await api.delete<ApiResponse<null>>(`/api/tasks/${id}/cover`);
+        return response.data;
+    },
 };
 
 // Columns API
@@ -565,6 +591,44 @@ export const usersApi = {
     },
 };
 
+// Automations API
+export interface ApiAutomation {
+    id: string;
+    project_id: string;
+    name: string;
+    trigger_type: 'task_moved_to' | 'task_created' | 'task_assigned' | 'due_date_passed';
+    trigger_value: string | null;
+    action_type: 'set_priority' | 'set_assignee' | 'add_label' | 'move_to_column' | 'archive_task';
+    action_value: string | null;
+    is_active: number;
+    created_by: string;
+    created_by_name?: string;
+    created_at: string;
+    updated_at: string;
+}
+
+export const automationsApi = {
+    getAutomations: async (projectId: string) => {
+        const response = await api.get<ApiResponse<{ automations: ApiAutomation[] }>>(`/api/projects/${projectId}/automations`);
+        return response.data;
+    },
+
+    createAutomation: async (projectId: string, data: Partial<ApiAutomation>) => {
+        const response = await api.post<ApiResponse<{ automation: ApiAutomation }>>(`/api/projects/${projectId}/automations`, data);
+        return response.data;
+    },
+
+    updateAutomation: async (projectId: string, automationId: string, data: Partial<ApiAutomation>) => {
+        const response = await api.patch<ApiResponse<{ automation: ApiAutomation }>>(`/api/projects/${projectId}/automations/${automationId}`, data);
+        return response.data;
+    },
+
+    deleteAutomation: async (projectId: string, automationId: string) => {
+        const response = await api.delete<ApiResponse<null>>(`/api/projects/${projectId}/automations/${automationId}`);
+        return response.data;
+    },
+};
+
 export interface ActivityResponseItem {
     id: string;
     type: 'task_created' | 'task_moved' | 'comment' | 'file_uploaded' | 'member_joined';
@@ -605,6 +669,7 @@ export interface SearchTaskResult {
     dueDate?: string;
     projectId: string;
     projectName: string;
+    columnName?: string;
 }
 
 export interface SearchProjectResult {

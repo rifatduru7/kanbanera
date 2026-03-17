@@ -91,6 +91,8 @@ export interface Task {
     assignee_id: string | null;
     due_date: string | null;
     labels: string | null; // JSON array
+    is_archived: number;
+    cover_attachment_id: string | null;
     created_by: string;
     created_at: string;
     updated_at: string;

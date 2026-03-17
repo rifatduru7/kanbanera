@@ -16,6 +16,7 @@ import searchRoutes from './routes/search';
 import { adminRoutes } from './routes/admin';
 import { webhookRoutes } from './routes/webhooks';
 import { notificationRoutes } from './routes/notifications';
+import { automationRoutes } from './routes/automations';
 import { maintenanceMiddleware } from './middleware/maintenance';
 import {
     apiRateLimit,
@@ -113,6 +114,7 @@ app.route('/api/search', searchRoutes);
 app.route('/api/admin', adminRoutes);
 app.route('/api/webhooks', webhookRoutes);
 app.route('/api/notifications', notificationRoutes);
+app.route('/api/projects', automationRoutes);
 
 // 404 Handler
 app.notFound((c) => {

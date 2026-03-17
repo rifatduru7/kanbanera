@@ -47,6 +47,8 @@ export interface TaskDetail {
     subtasks: Subtask[];
     comments: Comment[];
     attachments: Attachment[];
+    coverAttachmentId?: string;
+    isArchived?: boolean;
     createdAt: string;
     updatedAt: string;
 }

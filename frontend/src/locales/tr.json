@@ -808,5 +808,49 @@
     "group_status": "Durum",
     "group_assignee": "Atanan",
     "group_priority": "Öncelik"
+  },
+  "filters": {
+    "status": "Durum",
+    "priority": "Öncelik",
+    "assignee": "Atanan",
+    "label": "Etiket",
+    "due_date": "Bitiş Tarihi",
+    "all_members": "Tüm Üyeler",
+    "all_labels": "Tüm Etiketler",
+    "all_dates": "Tüm Tarihler",
+    "today": "Bugün",
+    "this_week": "Bu Hafta",
+    "overdue": "Gecikmiş",
+    "no_date": "Tarihsiz"
+  },
+  "automation": {
+    "title": "Otomasyon Kuralları",
+    "subtitle": "İş akışınız için otomatik eylemler",
+    "create_new": "Yeni Kural Oluştur",
+    "rule_name": "Kural Adı",
+    "rule_name_placeholder": "Örn: Tamamlananlar için düşük öncelik",
+    "when": "Zaman...",
+    "trigger": {
+      "task_moved_to": "Görev sütuna taşındığında",
+      "task_created": "Görev oluşturulduğunda",
+      "task_assigned": "Görev atandığında"
+    },
+    "select_column": "Sütun seçin...",
+    "any_user": "Herhangi bir kullanıcı",
+    "then": "Yap...",
+    "action": {
+      "set_priority": "Önceliği ayarla...",
+      "set_assignee": "Atananı ayarla...",
+      "add_label": "Etiket ekle...",
+      "move_to_column": "Sütuna taşı...",
+      "archive_task": "Görevi arşivle"
+    },
+    "select_priority": "Öncelik seçin...",
+    "select_user": "Kullanıcı seçin...",
+    "type_label": "Etiket adını yazın...",
+    "save_rule": "Kuralı Oluştur",
+    "add_rule": "Yeni Otomasyon Kuralı Ekle",
+    "active_rules": "Aktif Kurallar",
+    "no_rules": "Henüz otomasyon kuralı yok. İş akışınızı kolaylaştırmak için bir tane oluşturun."
   }
 }

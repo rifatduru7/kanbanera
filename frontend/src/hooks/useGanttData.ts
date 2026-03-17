@@ -19,7 +19,8 @@ export function useGanttTasks(from: string, to: string, projectId?: string) {
             }
             return response.data?.tasks || [];
         },
-        staleTime: 60 * 1000,
+        staleTime: 30 * 1000,
+        refetchInterval: 30 * 1000, // Poll every 30 seconds
         enabled: !!from && !!to,
     });
 }

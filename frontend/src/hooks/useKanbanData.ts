@@ -32,6 +32,8 @@ export function useProjects() {
             }
             throw new Error(response.message || 'Failed to fetch projects');
         },
+        staleTime: 15 * 1000,
+        refetchInterval: 30 * 1000, // Poll every 30 seconds
     });
 }
 
@@ -47,6 +49,8 @@ export function useProject(projectId: string) {
             throw new Error(response.message || 'Failed to fetch project');
         },
         enabled: !!projectId,
+        staleTime: 10 * 1000,
+        refetchInterval: 15 * 1000, // Poll every 15 seconds for active board
     });
 }
 
@@ -118,6 +122,8 @@ export function useProjectColumns(projectId: string) {
             throw new Error(response.message || 'Failed to fetch columns');
         },
         enabled: !!projectId,
+        staleTime: 15 * 1000,
+        refetchInterval: 30 * 1000, // Poll every 30 seconds
     });
 }
 
