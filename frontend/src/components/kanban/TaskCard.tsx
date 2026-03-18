@@ -12,6 +12,7 @@ import {
 } from '@phosphor-icons/react';
 import type { Task } from '../../types/kanban';
 import { PRIORITY_COLORS, LABEL_COLORS } from '../../types/kanban';
+import { TaskTimerButton } from '../time/Timer';
 
 interface TaskCardProps {
     task: Task;
@@ -185,6 +186,9 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
                             <span className="text-xs font-bold">{task.attachmentCount}</span>
                         </div>
                     )}
+                    <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <TaskTimerButton taskId={task.id} taskTitle={task.title} />
+                    </div>
                 </div>
 
                 {/* Assignee Avatar */}

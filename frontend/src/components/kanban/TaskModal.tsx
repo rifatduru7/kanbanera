@@ -22,6 +22,7 @@ import type { Subtask, Comment, TaskDetail, Attachment } from '../../types/task-
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/authStore';
 import { useViewport } from '../../hooks/useViewport';
+import { TaskTimerButton } from '../time/Timer';
 
 interface TaskModalProps {
     taskId: string;
@@ -267,6 +268,9 @@ export function TaskModal({
                         >
                             {linkCopied ? <Check className="size-5 text-green-500" /> : <Link2 className="size-5" />}
                         </button>
+                        <div className="flex items-center gap-1.5 px-2">
+                            <TaskTimerButton taskId={task.id} taskTitle={task.title} />
+                        </div>
                         <button
                             onClick={() => setIsDeleteOpen(true)}
                             className="hidden lg:flex items-center justify-center w-9 h-9 rounded-lg hover:bg-surface-alt text-text-muted transition-colors hover:text-red-400"

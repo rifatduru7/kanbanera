@@ -16,10 +16,13 @@ import {
     ShieldCheck as Shield,
     User,
     SignOut,
+    Lightning,
+    Timer,
 } from '@phosphor-icons/react';
 import { useAuthStore } from '../../stores/authStore';
 import { AnimatedIcon } from '../ui/AnimatedIcon';
 import { BrandLogoMark } from '../ui/BrandLogoMark';
+import { ActiveTimerBar } from '../time/Timer';
 
 interface NavItem {
     labelKey: string;
@@ -34,6 +37,8 @@ const menuItems: NavItem[] = [
     { labelKey: 'nav.calendar', icon: Calendar, href: '/calendar' },
     { labelKey: 'nav.gantt', icon: GanttIcon, href: '/gantt' },
     { labelKey: 'nav.metrics', icon: BarChart3, href: '/metrics' },
+    { labelKey: 'nav.flows', icon: Lightning, href: '/flows' },
+    { labelKey: 'nav.timesheet', icon: Timer, href: '/timesheet' },
     { labelKey: 'nav.settings', icon: Settings, href: '/settings' },
 ];
 
@@ -103,7 +108,14 @@ export function Sidebar({ isCollapsed = false, onToggle }: SidebarProps) {
                     </div>
                 )}
             </div>
-
+            
+            {/* Active Timer */}
+            {!collapsed && (
+                <div className="px-6 mb-4">
+                    <ActiveTimerBar />
+                </div>
+            )}
+            
             {/* Navigation */}
             <nav className="flex-1 flex flex-col gap-2 px-4 py-2 overflow-y-auto mobile-scroll">
                 {!collapsed && (

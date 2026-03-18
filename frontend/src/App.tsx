@@ -16,6 +16,7 @@ import { MembersPage } from './pages/dashboard/MembersPage';
 import { AdminPage } from './pages/dashboard/AdminPage';
 import { GanttPage } from './pages/dashboard/GanttPage';
 import { FlowsPage } from './pages/dashboard/FlowsPage';
+import { TimesheetPage } from './pages/dashboard/TimesheetPage';
 import { PortalView } from './pages/portal/PortalView';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { useTheme } from './hooks/useTheme';
@@ -100,6 +101,7 @@ function App() {
             <Route path="settings" element={<ProfilePage />} />
             <Route path="members" element={<MembersPage />} />
             <Route path="flows" element={<FlowsPage />} />
+            <Route path="timesheet" element={<TimesheetPage />} />
           </Route>
 
           {/* Fallback */}

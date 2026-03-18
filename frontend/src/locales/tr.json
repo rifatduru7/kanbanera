@@ -215,7 +215,9 @@
     "settings": "Ayarlar",
     "logout": "Çıkış Yap",
     "members": "Üyeler",
-    "admin": "Yönetim"
+    "admin": "Yönetim",
+    "flows": "Akışlar",
+    "timesheet": "Zaman Takibi"
   },
   "dashboard": {
     "welcome": "Tekrar hoş geldiniz",
