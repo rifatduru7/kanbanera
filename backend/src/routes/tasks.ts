@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { Env, Task, Subtask, Comment } from '../types';
 import { authMiddleware } from '../middleware/auth';
 import { dispatchOutgoingWebhooks } from '../services/dispatcher';
+import { createNotification } from '../services/notifications/createNotification';
 import { runAutomations } from './automations';
 
 export const taskRoutes = new Hono<{ Bindings: Env }>();
@@ -488,15 +489,28 @@ taskRoutes.post('/', async (c) => {
         runAutomations(c.env, project_id, 'task_created', {}, taskId)
             .catch((err: unknown) => console.error('Automation error:', err));
 
+        const projectQuery = await c.env.DB.prepare('SELECT name FROM projects WHERE id = ?').bind(project_id).first<{ name: string }>();
+
         if (assignee_id && assignee_id !== userId) {
-            await c.env.DB.prepare(
-                `INSERT INTO notifications (id, user_id, type, title, message, link, metadata)
-                 VALUES (?, ?, 'task_assigned', ?, ?, ?, ?)`
-            ).bind(crypto.randomUUID(), assignee_id, 'task_assigned', `You have been assigned to task: ${title}`, `/projects/${project_id}`, JSON.stringify({ task_id: taskId, project_id })).run();
+            await createNotification(c.env, {
+                userId: assignee_id,
+                type: 'task_assigned',
+                title: 'Task assigned',
+                message: `You have been assigned to "${title.trim()}" in ${projectQuery?.name || 'Unknown project'}.`,
+                link: `/board?project=${project_id}&task=${taskId}`,
+                metadata: {
+                    task_id: taskId,
+                    project_id,
+                    project_name: projectQuery?.name || null,
+                    task_title: title.trim(),
+                },
+            });
+
+            runAutomations(c.env, project_id, 'task_assigned', { user_id: assignee_id }, taskId)
+                .catch((err: unknown) => console.error('Automation error:', err));
         }
 
         const user = await c.env.DB.prepare('SELECT full_name as name FROM users WHERE id = ?').bind(userId).first<{ name: string }>();
-
         const task = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')
             .bind(taskId)
             .first<Task>();
@@ -658,10 +672,26 @@ taskRoutes.put('/:id', async (c) => {
             .run();
 
         if (assignee_id && assignee_id !== task.assignee_id && assignee_id !== userId) {
-            await c.env.DB.prepare(
-                `INSERT INTO notifications (id, user_id, type, title, message, link, metadata)
-                 VALUES (?, ?, 'task_assigned', ?, ?, ?, ?)`
-            ).bind(crypto.randomUUID(), assignee_id, 'task_assigned', `You have been assigned to task: ${title || task.title}`, `/projects/${task.project_id}`, JSON.stringify({ task_id: taskId, project_id: task.project_id })).run();
+            const projectInfo = await c.env.DB.prepare(
+                'SELECT name FROM projects WHERE id = ?'
+            ).bind(task.project_id).first<{ name: string }>();
+
+            await createNotification(c.env, {
+                userId: assignee_id,
+                type: 'task_assigned',
+                title: 'Task assigned',
+                message: `You have been assigned to "${title || task.title}" in ${projectInfo?.name || 'Unknown project'}.`,
+                link: `/board?project=${task.project_id}&task=${taskId}`,
+                metadata: {
+                    task_id: taskId,
+                    project_id: task.project_id,
+                    project_name: projectInfo?.name || null,
+                    task_title: title || task.title,
+                },
+            });
+
+            runAutomations(c.env, task.project_id, 'task_assigned', { user_id: assignee_id }, taskId)
+                .catch((err: unknown) => console.error('Automation error:', err));
         }
 
         const updatedTask = await c.env.DB.prepare('SELECT * FROM tasks WHERE id = ?')

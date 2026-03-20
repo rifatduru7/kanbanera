@@ -17,7 +17,7 @@ import {
     CircleNotch as Loader2,
     Archive,
 } from '@phosphor-icons/react';
-import { useTask, useUpdateTask, useMoveTask, useDeleteTask, useAddComment, useDeleteComment, useAddSubtask, useToggleSubtask, useDeleteSubtask } from '../../hooks/useKanbanData';
+import { useUpdateTask, useMoveTask, useDeleteTask, useAddComment, useDeleteComment, useAddSubtask, useToggleSubtask, useDeleteSubtask } from '../../hooks/useKanbanData';
 import type { Subtask, Comment, TaskDetail, Attachment } from '../../types/task-detail';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useAuthStore } from '../../stores/authStore';
@@ -28,7 +28,7 @@ interface TaskModalProps {
     taskId: string;
     isOpen: boolean;
     onClose: () => void;
-    task?: TaskDetail;
+    task: TaskDetail;
     onUpdate?: (updates: Partial<TaskDetail>) => void;
     onAddSubtask?: (title: string) => Promise<void>;
     onToggleSubtask?: (subtaskId: string, completed: boolean) => Promise<void>;
@@ -59,7 +59,7 @@ export function TaskModal({
     taskId,
     isOpen,
     onClose,
-    task: propTask,
+    task,
     onUpdate,
     onAddSubtask,
     onToggleSubtask,
@@ -79,11 +79,7 @@ export function TaskModal({
     const { t, i18n } = useTranslation();
     const { isMobile } = useViewport();
     const currentUserId = useAuthStore((state) => state.user?.id);
-    const { data: fetchedTask } = useTask(taskId);
-    const task = propTask || fetchedTask;
-
-    // We need projectId for the other hooks, but we only get it once task is loaded
-    const projectId = task?.projectId || '';
+    const projectId = task.projectId;
 
     const updateTask = useUpdateTask(projectId);
     const moveTask = useMoveTask(projectId);
@@ -123,13 +119,32 @@ export function TaskModal({
     };
 
     useEffect(() => {
-        if (task) {
-            setTitle(task.title);
-            setDescription(task.description || '');
-        }
-    }, [task]);
+        setTitle(task.title);
+        setDescription(task.description || '');
+    }, [task.description, task.id, task.title]);
 
-    if (!isOpen || !task) return null; // Render nothing if not open or task data is not loaded
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+
+        setIsStatusOpen(false);
+        setIsAssigneeOpen(false);
+        setIsPriorityOpen(false);
+        setIsAddingTag(false);
+        setNewTagInput('');
+    }, [isOpen, task.id]);
+
+    if (!isOpen) return null;
 
     const normalizedDueDate = task.dueDate ? String(task.dueDate).split(/[T ]/)[0] : '';
     const resolvedAssigneeName = task.assigneeId
@@ -231,17 +246,17 @@ export function TaskModal({
     };
 
     return createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 z-[10000] isolate pointer-events-auto flex items-center justify-center">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                className="absolute inset-0 z-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
             />
 
             {/* Modal Content */}
-            <div className="glass-panel w-full h-[100dvh] lg:h-auto lg:max-h-[90vh] lg:max-w-6xl flex flex-col lg:rounded-2xl shadow-2xl overflow-hidden relative z-20 mx-0 lg:mx-4 bg-surface lg:bg-transparent">
+            <div className="glass-panel w-full h-[100dvh] lg:h-auto lg:max-h-[90vh] lg:max-w-6xl flex flex-col lg:rounded-2xl shadow-2xl overflow-hidden relative z-10 mx-0 lg:mx-4 bg-surface lg:bg-transparent">
                 {/* Header */}
-                <div className="flex items-center justify-between px-4 lg:px-6 py-3 lg:py-4 border-b border-border-muted shrink-0 bg-surface/50 backdrop-blur-md">
+                <div className="flex items-center justify-between px-4 lg:px-6 py-3 lg:py-4 border-b border-border-muted shrink-0 bg-surface/50 backdrop-blur-md relative z-40">
                     <div className="flex flex-col gap-1 min-w-0 overflow-hidden">
                         {/* Breadcrumbs */}
                         <div className="flex items-center gap-1.5 lg:gap-2 text-xs lg:text-sm whitespace-nowrap overflow-hidden">
@@ -269,7 +284,7 @@ export function TaskModal({
                             {linkCopied ? <Check className="size-5 text-green-500" /> : <Link2 className="size-5" />}
                         </button>
                         <div className="flex items-center gap-1.5 px-2">
-                            <TaskTimerButton taskId={task.id} taskTitle={task.title} />
+                            <TaskTimerButton taskId={taskId} taskTitle={task.title} />
                         </div>
                         <button
                             onClick={() => setIsDeleteOpen(true)}
@@ -305,7 +320,7 @@ export function TaskModal({
                 </div>
 
                 {(isStatusOpen || isAssigneeOpen || isPriorityOpen) && (
-                    <div className="fixed inset-0 z-30" onClick={closeDropdowns} />
+                    <div className="absolute inset-0 z-30" onClick={closeDropdowns} />
                 )}
 
                 {/* Body - Unified scroll on mobile, split on desktop */}
@@ -457,9 +472,9 @@ export function TaskModal({
                     </div>
 
                     {/* RIGHT COLUMN: Sidebar & Comments */}
-                    <div className="w-full lg:w-[360px] flex flex-col bg-black/20 backdrop-blur-sm lg:h-full lg:overflow-hidden">
+                    <div className="w-full lg:w-[360px] flex flex-col bg-black/20 backdrop-blur-sm lg:h-full lg:overflow-hidden relative z-40">
                         {/* Metadata Panel */}
-                        <div className="p-6 flex flex-col gap-6 border-b border-border">
+                        <div className="flex-none p-6 flex flex-col gap-6 border-b border-border lg:overflow-y-auto custom-scrollbar lg:max-h-[min(400px,50%)]">
                             <div className="flex flex-col gap-2">
                                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                                     {t('tasks.status', 'Status')}
@@ -481,7 +496,7 @@ export function TaskModal({
                                     </button>
 
                                     {isStatusOpen && (
-                                        <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1">
+                                        <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-50 py-1">
                                             {(columns || []).map((col: { id: string; name: string }) => (
                                                 <button
                                                     key={col.id}
@@ -528,7 +543,7 @@ export function TaskModal({
                                     </button>
 
                                     {isPriorityOpen && (
-                                        <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1">
+                                        <div className="absolute top-full left-0 w-full mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-50 py-1">
                                             {PRIORITY_OPTIONS.map((p) => (
                                                 <button
                                                     key={p}
@@ -575,7 +590,7 @@ export function TaskModal({
                                         </button>
 
                                         {isAssigneeOpen && (
-                                            <div className={`absolute top-full left-0 mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-40 py-1 max-h-48 overflow-y-auto custom-scrollbar ${isMobile ? 'w-full' : 'w-[200px]'}`}>
+                                            <div className={`absolute top-full left-0 mt-1.5 bg-surface border border-border-muted rounded-lg shadow-xl overflow-hidden z-50 py-1 max-h-48 overflow-y-auto custom-scrollbar ${isMobile ? 'w-full' : 'w-[200px]'}`}>
                                                 <button
                                                     onClick={() => {
                                                         if (onUpdate) {
@@ -725,10 +740,11 @@ export function TaskModal({
                                     )}
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Comments Section */}
-                        <div className="flex-1 flex flex-col bg-black/10 min-h-[400px] lg:min-h-0 lg:overflow-hidden">
+
+
+                            {/* Comments Section */}
+                            <div className="flex-1 flex flex-col bg-black/10 min-h-[400px] lg:min-h-0 lg:overflow-hidden">
                             <div className="p-4 border-b border-white/5 flex items-center justify-between">
                                 <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
                                     <span>💬</span>
@@ -771,9 +787,9 @@ export function TaskModal({
                                     </button>
                                 </div>
                             </div>
-                        </div >
-                    </div >
-                </div >
+                        </div>
+                    </div>
+                </div>
 
                 {/* Footer */}
                 <div className="p-4 sm:px-6 pt-4 pb-[max(0.75rem,var(--safe-bottom))] border-t border-border-muted flex justify-end gap-3 bg-surface/50 shrink-0">
@@ -865,7 +881,8 @@ export function TaskModal({
                     setDeleteCommentData({ isOpen: false, id: '' });
                 }}
             />
-        </div>,
+        </div>
+    </div>,
         document.body
     );
 }

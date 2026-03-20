@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
+import { createBulkNotifications } from '../services/notifications/createBulkNotifications';
 
 // ─── Portal Management Routes (JWT auth required) ───────────────────────────
 
@@ -500,6 +501,45 @@ portalPublicRoutes.post('/:token/approve/:taskId', async (c) => {
         const approval = await c.env.DB.prepare('SELECT * FROM portal_approvals WHERE id = ?')
             .bind(approvalId)
             .first();
+
+        const taskContext = await c.env.DB.prepare(
+            `SELECT t.title, t.created_by, p.owner_id
+             FROM tasks t
+             JOIN projects p ON p.id = t.project_id
+             WHERE t.id = ? AND p.id = ?`
+        )
+            .bind(taskId, portal.project_id)
+            .first<{ title: string; created_by: string; owner_id: string }>();
+
+        if (taskContext) {
+            const type = status === 'approved'
+                ? 'task_approval_approved'
+                : 'task_approval_revision_requested';
+            const title = status === 'approved' ? 'Task approved' : 'Revision requested';
+            const message = status === 'approved'
+                ? `${reviewer_name.trim()} approved "${taskContext.title}".`
+                : `${reviewer_name.trim()} requested revision for "${taskContext.title}".`;
+            const recipientIds = Array.from(new Set([taskContext.created_by, taskContext.owner_id].filter(Boolean)));
+
+            await createBulkNotifications(
+                c.env,
+                recipientIds.map((recipientId) => ({
+                    userId: recipientId,
+                    type,
+                    title,
+                    message,
+                    link: `/board?project=${portal.project_id}&task=${taskId}`,
+                    metadata: {
+                        task_id: taskId,
+                        project_id: portal.project_id,
+                        portal_id: portal.id,
+                        approval_id: approvalId,
+                        status,
+                        reviewer_name: reviewer_name.trim(),
+                    },
+                }))
+            );
+        }
 
         return c.json({ success: true, data: { approval } }, 201);
     } catch (error) {

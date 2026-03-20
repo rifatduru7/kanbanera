@@ -187,6 +187,68 @@
       }
     }
   },
+  "notifications": {
+    "title": "Bildirimler",
+    "loading": "Bildirimler yükleniyor...",
+    "empty_title": "Hepsi tamam",
+    "empty_description": "Şu anda bildiriminiz yok.",
+    "mark_read": "Okundu işaretle",
+    "mark_all_read": "Tümünü okundu işaretle",
+    "new_count": "{{count}} yeni",
+    "load_more": "Daha fazla yükle",
+    "view_details": "Detayları gör",
+    "no_link": "Bağlı detay yok",
+    "browser_summary": "{{count}} yeni bildiriminiz var",
+    "sections": {
+      "unread": "Okunmamış",
+      "earlier": "Öncekiler"
+    },
+    "types": {
+      "project_invite": "Proje daveti",
+      "task_assigned": "Görev atandı",
+      "task_mentioned": "Bahsedildiniz",
+      "task_overdue": "Geciken görev",
+      "task_approval_approved": "Onaylandı",
+      "task_approval_revision_requested": "Revizyon istendi",
+      "automation_succeeded": "Otomasyon",
+      "automation_failed": "Otomasyon hatası",
+      "system": "Sistem"
+    }
+  },
+  "docs": {
+    "title": "Dokümantasyon",
+    "kicker": "Ürün rehberi",
+    "description": "Era Kanban akışlarını, otomasyonlarını ve ekip işleyişini öğrenmek için ihtiyaç duyduğunuz tüm rehberler burada.",
+    "search_placeholder": "Dokümantasyonda ara...",
+    "no_results": "Eşleşen doküman bulunamadı.",
+    "on_this_page": "Bu sayfada",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "loading": "Dokümantasyon yükleniyor...",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "open_navigation": "Gezinmeyi aç",
+    "close_navigation": "Gezinmeyi kapat",
+    "last_updated": "Güncellendi: {{date}}",
+    "not_found_title": "Doküman bulunamadı",
+    "not_found_description": "İstediğiniz sayfa yok veya bu dilde henüz hazırlanmadı.",
+    "back_home": "Doküman ana sayfasına dön",
+    "sections": {
+      "getting_started": "Başlarken",
+      "projects": "Projeler",
+      "board": "Pano",
+      "calendar": "Takvim",
+      "gantt": "Gantt",
+      "automations": "Otomasyonlar",
+      "flows": "Akışlar",
+      "portal": "Portal",
+      "metrics": "Metrikler",
+      "timesheet": "Zaman Takibi",
+      "members": "Üyeler",
+      "settings": "Ayarlar",
+      "admin": "Yönetim"
+    }
+  },
   "search": {
     "placeholder": "Sayfa, görev, proje ara...",
     "esc_to_close": "kapatmak için esc",
@@ -217,7 +279,8 @@
     "members": "Üyeler",
     "admin": "Yönetim",
     "flows": "Akışlar",
-    "timesheet": "Zaman Takibi"
+    "timesheet": "Zaman Takibi",
+    "docs": "Dokümanlar"
   },
   "dashboard": {
     "welcome": "Tekrar hoş geldiniz",
@@ -458,6 +521,8 @@
     "theme": "Arayüz Teması",
     "language": "Tercih Edilen Dil",
     "notifications": "Bildirimler",
+    "notifications_email": "E-posta bildirimleri",
+    "notifications_push": "Tarayıcı bildirimleri",
     "security": "Güvenlik",
     "password_desc": "Hesap güvenliğinizi güncelleyin.",
     "change_password": "Şifreyi Değiştir",

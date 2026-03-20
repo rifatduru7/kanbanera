@@ -151,6 +151,68 @@
       "owner": "Owner"
     }
   },
+  "notifications": {
+    "title": "Notifications",
+    "loading": "Loading notifications...",
+    "empty_title": "All caught up",
+    "empty_description": "You do not have any notifications right now.",
+    "mark_read": "Mark read",
+    "mark_all_read": "Mark all as read",
+    "new_count": "{{count}} new",
+    "load_more": "Load more",
+    "view_details": "View details",
+    "no_link": "No linked detail",
+    "browser_summary": "You have {{count}} new notifications",
+    "sections": {
+      "unread": "Unread",
+      "earlier": "Earlier"
+    },
+    "types": {
+      "project_invite": "Project invite",
+      "task_assigned": "Task assigned",
+      "task_mentioned": "Mention",
+      "task_overdue": "Overdue",
+      "task_approval_approved": "Approval",
+      "task_approval_revision_requested": "Revision",
+      "automation_succeeded": "Automation",
+      "automation_failed": "Automation error",
+      "system": "System"
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "kicker": "Product docs",
+    "description": "Everything your team needs to learn Era Kanban workflows, automations, and collaboration patterns.",
+    "search_placeholder": "Search documentation...",
+    "no_results": "No matching documentation found.",
+    "on_this_page": "On this page",
+    "previous": "Previous",
+    "next": "Next",
+    "loading": "Loading documentation...",
+    "copy": "Copy",
+    "copied": "Copied",
+    "open_navigation": "Open navigation",
+    "close_navigation": "Close navigation",
+    "last_updated": "Updated {{date}}",
+    "not_found_title": "Document not found",
+    "not_found_description": "The page you requested does not exist or has not been translated yet.",
+    "back_home": "Back to docs home",
+    "sections": {
+      "getting_started": "Getting Started",
+      "projects": "Projects",
+      "board": "Board",
+      "calendar": "Calendar",
+      "gantt": "Gantt",
+      "automations": "Automations",
+      "flows": "Flows",
+      "portal": "Portal",
+      "metrics": "Metrics",
+      "timesheet": "Timesheet",
+      "members": "Members",
+      "settings": "Settings",
+      "admin": "Admin"
+    }
+  },
   "search": {
     "placeholder": "Search pages, tasks, projects...",
     "esc_to_close": "esc to close",
@@ -181,7 +243,8 @@
     "members": "Members",
     "admin": "Admin",
     "flows": "Flows",
-    "timesheet": "Timesheet"
+    "timesheet": "Timesheet",
+    "docs": "Docs"
   },
   "dashboard": {
     "welcome": "Welcome back",
@@ -415,6 +478,8 @@
     "theme": "Interface Theme",
     "language": "Preferred Language",
     "notifications": "Notifications",
+    "notifications_email": "Email notifications",
+    "notifications_push": "Browser notifications",
     "security": "Security",
     "password_desc": "Update your account security.",
     "change_password": "Change Password",

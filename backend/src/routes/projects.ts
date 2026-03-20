@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env, Project, Column } from '../types';
 import { authMiddleware } from '../middleware/auth';
+import { createNotification } from '../services/notifications/createNotification';
 
 export const projectRoutes = new Hono<{ Bindings: Env }>();
 
@@ -439,10 +440,18 @@ projectRoutes.post('/:id/members', async (c) => {
             .run();
 
         const projectQuery = await c.env.DB.prepare('SELECT name FROM projects WHERE id = ?').bind(projectId).first<{ name: string }>();
-        await c.env.DB.prepare(
-            `INSERT INTO notifications (id, user_id, type, title, message, link, metadata)
-             VALUES (?, ?, 'project_invite', ?, ?, ?, ?)`
-        ).bind(crypto.randomUUID(), targetUser.id, 'project_invite', `You have been added to the project: ${projectQuery?.name || 'Unknown'}`, `/projects/${projectId}`, JSON.stringify({ project_id: projectId, role: assignedRole })).run();
+        await createNotification(c.env, {
+            userId: targetUser.id,
+            type: 'project_invite',
+            title: 'Project invitation',
+            message: `You have been added to the project "${projectQuery?.name || 'Unknown'}".`,
+            link: `/projects`,
+            metadata: {
+                project_id: projectId,
+                project_name: projectQuery?.name || null,
+                role: assignedRole,
+            },
+        });
 
         // Fetch newly added member details
         const member = await c.env.DB.prepare(

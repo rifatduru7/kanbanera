@@ -302,11 +302,18 @@ timeEntriesRoutes.get('/user/weekly', async (c) => {
 
         const weekTotalSeconds = Object.values(byDay).reduce((sum, day) => sum + day.total_seconds, 0);
 
+        // Convert to sorted array
+        const daysArray = Object.entries(byDay).map(([date, dayData]) => ({
+            date,
+            entries: dayData.entries,
+            totalSeconds: dayData.total_seconds,
+        })).sort((a, b) => b.date.localeCompare(a.date)); // Newest first
+
         return c.json({
             success: true,
             data: {
-                days: byDay,
-                week_total_seconds: weekTotalSeconds,
+                days: daysArray,
+                totalSeconds: weekTotalSeconds,
             },
         });
     } catch (error) {

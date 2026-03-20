@@ -16,7 +16,9 @@ import { MembersPage } from './pages/dashboard/MembersPage';
 import { AdminPage } from './pages/dashboard/AdminPage';
 import { GanttPage } from './pages/dashboard/GanttPage';
 import { FlowsPage } from './pages/dashboard/FlowsPage';
+import FlowEditorPage from './pages/dashboard/flow-editor-page';
 import { TimesheetPage } from './pages/dashboard/TimesheetPage';
+import { DocsPage } from './pages/dashboard/DocsPage';
 import { PortalView } from './pages/portal/PortalView';
 import { RequireAuth } from './components/auth/RequireAuth';
 import { useTheme } from './hooks/useTheme';
@@ -102,7 +104,17 @@ function App() {
             <Route path="members" element={<MembersPage />} />
             <Route path="flows" element={<FlowsPage />} />
             <Route path="timesheet" element={<TimesheetPage />} />
+            <Route path="docs/*" element={<DocsPage />} />
           </Route>
+
+          <Route
+            path="/flows/editor"
+            element={
+              <RequireAuth>
+                <FlowEditorPage />
+              </RequireAuth>
+            }
+          />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

@@ -983,7 +983,16 @@ export const ganttApi = {
 export interface ApiNotification {
     id: string;
     user_id: string;
-    type: 'project_invite' | 'task_assigned' | 'task_mentioned' | 'system';
+    type:
+        | 'project_invite'
+        | 'task_assigned'
+        | 'task_mentioned'
+        | 'task_overdue'
+        | 'task_approval_approved'
+        | 'task_approval_revision_requested'
+        | 'automation_succeeded'
+        | 'automation_failed'
+        | 'system';
     title: string;
     message: string;
     link?: string;
@@ -992,9 +1001,22 @@ export interface ApiNotification {
     created_at: string;
 }
 
+export interface ApiNotificationPage {
+    items: ApiNotification[];
+    nextCursor?: string;
+    unreadCount: number;
+    hasMore: boolean;
+}
+
 export const notificationsApi = {
-    getNotifications: async () => {
-        const response = await api.get<ApiResponse<ApiNotification[]>>('/api/notifications');
+    getNotifications: async (params?: { limit?: number; cursor?: string; unreadOnly?: boolean }) => {
+        const search = new URLSearchParams();
+        if (params?.limit) search.set('limit', String(params.limit));
+        if (params?.cursor) search.set('cursor', params.cursor);
+        if (params?.unreadOnly) search.set('unreadOnly', 'true');
+
+        const query = search.toString();
+        const response = await api.get<ApiResponse<ApiNotificationPage>>(`/api/notifications${query ? `?${query}` : ''}`);
         return response.data;
     },
 

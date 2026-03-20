@@ -211,7 +211,7 @@ CREATE INDEX IF NOT EXISTS idx_mfa_challenges_user_purpose ON mfa_challenges(use
 CREATE TABLE IF NOT EXISTS notifications (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('project_invite', 'task_assigned', 'task_mentioned', 'system')),
+  type TEXT NOT NULL CHECK (type IN ('project_invite', 'task_assigned', 'task_mentioned', 'task_overdue', 'task_approval_approved', 'task_approval_revision_requested', 'automation_succeeded', 'automation_failed', 'system')),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
   link TEXT,
@@ -222,6 +222,8 @@ CREATE TABLE IF NOT EXISTS notifications (
 );
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_unread ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications(user_id, created_at DESC, id DESC);
+CREATE INDEX IF NOT EXISTS idx_notifications_unread_created ON notifications(user_id, is_read, created_at DESC, id DESC);
 
 -- System Settings
 CREATE TABLE IF NOT EXISTS system_settings (

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types';
 import { authMiddleware } from '../middleware/auth';
+import { createBulkNotifications } from '../services/notifications/createBulkNotifications';
 
 export const automationRoutes = new Hono<{ Bindings: Env }>();
 automationRoutes.use('*', authMiddleware);
@@ -167,54 +168,148 @@ export async function runAutomations(
 
         if (!automations || automations.length === 0) return;
 
+        const task = await env.DB.prepare(
+            'SELECT title FROM tasks WHERE id = ?'
+        ).bind(taskId).first<{ title: string }>();
+
+        const project = await env.DB.prepare(
+            'SELECT owner_id FROM projects WHERE id = ?'
+        ).bind(projectId).first<{ owner_id: string }>();
+
         for (const auto of automations) {
-            let triggerMatch = false;
-            const autoTriggerValue = auto.trigger_value ? JSON.parse(auto.trigger_value) : {};
+            try {
+                let triggerMatch = false;
+                const autoTriggerValue = auto.trigger_value ? JSON.parse(auto.trigger_value) : {};
 
-            // Check if the trigger matches
-            if (triggerType === 'task_moved_to') {
-                triggerMatch = autoTriggerValue.column_id === triggerValue.column_id;
-            } else if (triggerType === 'task_created') {
-                triggerMatch = true; // Always matches on create
-            } else if (triggerType === 'task_assigned') {
-                triggerMatch = !autoTriggerValue.user_id || autoTriggerValue.user_id === triggerValue.user_id;
-            } else if (triggerType === 'due_date_passed') {
-                triggerMatch = true;
-            }
-
-            if (!triggerMatch) continue;
-
-            const actionVal = auto.action_value ? JSON.parse(auto.action_value) : {};
-
-            // Execute actions
-            if (auto.action_type === 'set_priority' && actionVal.priority) {
-                await env.DB.prepare(
-                    `UPDATE tasks SET priority = ?, updated_at = datetime('now') WHERE id = ?`
-                ).bind(actionVal.priority, taskId).run();
-            } else if (auto.action_type === 'add_label' && actionVal.label) {
-                const task = await env.DB.prepare('SELECT labels FROM tasks WHERE id = ?').bind(taskId).first<{ labels: string | null }>();
-                const labels: string[] = task?.labels ? JSON.parse(task.labels) : [];
-                if (!labels.includes(actionVal.label)) {
-                    labels.push(actionVal.label);
-                    await env.DB.prepare(
-                        `UPDATE tasks SET labels = ?, updated_at = datetime('now') WHERE id = ?`
-                    ).bind(JSON.stringify(labels), taskId).run();
+                if (triggerType === 'task_moved_to') {
+                    triggerMatch = autoTriggerValue.column_id === triggerValue.column_id;
+                } else if (triggerType === 'task_created') {
+                    triggerMatch = true;
+                } else if (triggerType === 'task_assigned') {
+                    triggerMatch = !autoTriggerValue.user_id || autoTriggerValue.user_id === triggerValue.user_id;
+                } else if (triggerType === 'due_date_passed') {
+                    triggerMatch = true;
                 }
-            } else if (auto.action_type === 'move_to_column' && actionVal.column_id) {
-                await env.DB.prepare(
-                    `UPDATE tasks SET column_id = ?, updated_at = datetime('now') WHERE id = ?`
-                ).bind(actionVal.column_id, taskId).run();
-            } else if (auto.action_type === 'archive_task') {
-                await env.DB.prepare(
-                    `UPDATE tasks SET is_archived = 1, updated_at = datetime('now') WHERE id = ?`
-                ).bind(taskId).run();
-            } else if (auto.action_type === 'set_assignee' && actionVal.user_id) {
-                await env.DB.prepare(
-                    `UPDATE tasks SET assignee_id = ?, updated_at = datetime('now') WHERE id = ?`
-                ).bind(actionVal.user_id, taskId).run();
+
+                if (!triggerMatch) continue;
+
+                const actionVal = auto.action_value ? JSON.parse(auto.action_value) : {};
+
+                if (auto.action_type === 'set_priority' && actionVal.priority) {
+                    await env.DB.prepare(
+                        `UPDATE tasks SET priority = ?, updated_at = datetime('now') WHERE id = ?`
+                    ).bind(actionVal.priority, taskId).run();
+                } else if (auto.action_type === 'add_label' && actionVal.label) {
+                    const taskWithLabels = await env.DB.prepare('SELECT labels FROM tasks WHERE id = ?').bind(taskId).first<{ labels: string | null }>();
+                    const labels: string[] = taskWithLabels?.labels ? JSON.parse(taskWithLabels.labels) : [];
+                    if (!labels.includes(actionVal.label)) {
+                        labels.push(actionVal.label);
+                        await env.DB.prepare(
+                            `UPDATE tasks SET labels = ?, updated_at = datetime('now') WHERE id = ?`
+                        ).bind(JSON.stringify(labels), taskId).run();
+                    }
+                } else if (auto.action_type === 'move_to_column' && actionVal.column_id) {
+                    await env.DB.prepare(
+                        `UPDATE tasks SET column_id = ?, updated_at = datetime('now') WHERE id = ?`
+                    ).bind(actionVal.column_id, taskId).run();
+                } else if (auto.action_type === 'archive_task') {
+                    await env.DB.prepare(
+                        `UPDATE tasks SET is_archived = 1, updated_at = datetime('now') WHERE id = ?`
+                    ).bind(taskId).run();
+                } else if (auto.action_type === 'set_assignee' && actionVal.user_id) {
+                    await env.DB.prepare(
+                        `UPDATE tasks SET assignee_id = ?, updated_at = datetime('now') WHERE id = ?`
+                    ).bind(actionVal.user_id, taskId).run();
+                }
+
+                await notifyAutomationResult(env, {
+                    automationId: auto.id,
+                    automationName: auto.name,
+                    createdBy: auto.created_by,
+                    projectId,
+                    projectOwnerId: project?.owner_id || '',
+                    taskId,
+                    taskTitle: task?.title || 'Task',
+                    triggerType,
+                    actionType: auto.action_type,
+                    result: 'success',
+                }).catch((notifyError) => console.error('Automation success notification error:', notifyError));
+            } catch (error) {
+                console.error('Automation execution error:', error);
+
+                await notifyAutomationResult(env, {
+                    automationId: auto.id,
+                    automationName: auto.name,
+                    createdBy: auto.created_by,
+                    projectId,
+                    projectOwnerId: project?.owner_id || '',
+                    taskId,
+                    taskTitle: task?.title || 'Task',
+                    triggerType,
+                    actionType: auto.action_type,
+                    result: 'failure',
+                    errorMessage: error instanceof Error ? error.message : 'Unknown automation error',
+                }).catch((notifyError) => console.error('Automation failure notification error:', notifyError));
             }
         }
     } catch (error) {
         console.error('Automation execution error:', error);
     }
+}
+
+interface AutomationNotificationContext {
+    automationId: string;
+    automationName: string;
+    createdBy: string;
+    projectId: string;
+    projectOwnerId: string;
+    taskId: string;
+    taskTitle: string;
+    triggerType: string;
+    actionType: string;
+    result: 'success' | 'failure';
+    errorMessage?: string;
+}
+
+async function notifyAutomationResult(env: Env, context: AutomationNotificationContext) {
+    const recipientIds = Array.from(new Set([context.createdBy, context.projectOwnerId].filter(Boolean)));
+    if (recipientIds.length === 0) return;
+
+    const type = context.result === 'success' ? 'automation_succeeded' : 'automation_failed';
+    const title = context.result === 'success' ? 'Automation executed' : 'Automation failed';
+    const message = context.result === 'success'
+        ? `"${context.automationName}" ran for "${context.taskTitle}".`
+        : `"${context.automationName}" failed for "${context.taskTitle}".`;
+
+    await createBulkNotifications(
+        env,
+        recipientIds.map((recipientId) => ({
+            userId: recipientId,
+            type,
+            title,
+            message,
+            link: `/board?project=${context.projectId}&task=${context.taskId}`,
+            metadata: {
+                automation_id: context.automationId,
+                automation_name: context.automationName,
+                project_id: context.projectId,
+                task_id: context.taskId,
+                trigger_type: context.triggerType,
+                action_type: context.actionType,
+                result: context.result,
+                error_message: context.errorMessage || null,
+            },
+        })),
+        {
+            dedupe: {
+                where: `
+                    json_extract(metadata, '$.automation_id') = ?
+                    AND json_extract(metadata, '$.task_id') = ?
+                    AND json_extract(metadata, '$.result') = ?
+                    AND created_at >= datetime('now', '-5 minutes')
+                `,
+                params: [context.automationId, context.taskId, context.result],
+            },
+        },
+    );
 }

@@ -13,14 +13,60 @@ import {
     FolderSimple,
     Stack,
 } from '@phosphor-icons/react';
-import { useGanttTasks } from '../../hooks/useGanttData';
-import { useProjects, useTask, useUpdateTask, useMoveTask, useDeleteTask, useAddSubtask, useToggleSubtask, useDeleteSubtask, useAddComment, useDeleteComment, useUploadAttachment, useDeleteAttachment, useProject } from '../../hooks/useKanbanData';
+import { useGanttTasks, type GanttTask } from '../../hooks/useGanttData';
+import { useProjects, useUpdateTask, useMoveTask, useDeleteTask, useAddSubtask, useToggleSubtask, useDeleteSubtask, useAddComment, useDeleteComment, useUploadAttachment, useDeleteAttachment, useProject } from '../../hooks/useKanbanData';
 import { GanttChart, type ZoomLevel, type GroupBy } from '../../components/gantt/GanttChart';
 import { TaskModal } from '../../components/kanban/TaskModal';
 import { useViewport } from '../../hooks/useViewport';
 import { toast } from 'react-hot-toast';
 import { tasksApi } from '../../lib/api/client';
 import type { TaskDetail } from '../../types/task-detail';
+
+type TaskPriority = TaskDetail['priority'];
+
+interface ApiSubtaskRow {
+    id: string;
+    title: string;
+    is_completed: number;
+    position: number;
+    created_at: string;
+}
+
+interface ApiCommentRow {
+    id: string;
+    user_id: string;
+    full_name?: string | null;
+    content: string;
+    created_at: string;
+}
+
+interface ApiAttachmentRow {
+    id: string;
+    file_name: string;
+    file_size: number;
+    mime_type?: string | null;
+    download_url?: string;
+    thumbnail_url?: string;
+    created_at: string;
+}
+
+interface ApiTaskDetails {
+    id: string;
+    title: string;
+    description?: string | null;
+    priority?: string | null;
+    assignee_id?: string | null;
+    assignee_name?: string | null;
+    due_date?: string | null;
+    labels?: unknown;
+    created_at: string;
+    updated_at: string;
+    subtasks?: ApiSubtaskRow[];
+    comments?: ApiCommentRow[];
+    attachments?: ApiAttachmentRow[];
+    cover_attachment_id?: string | null;
+    is_archived?: boolean;
+}
 
 export function GanttPage() {
     const { t } = useTranslation();
@@ -34,7 +80,7 @@ export function GanttPage() {
     const [monthOffset, setMonthOffset] = useState(0);
 
     // Task Detail Modal State
-    const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+    const [selectedTask, setSelectedTask] = useState<TaskDetail | null>(null);
     const [currentTaskProjectId, setCurrentTaskProjectId] = useState<string | null>(null);
 
     // Date range based on month offset
@@ -53,9 +99,8 @@ export function GanttPage() {
     const { data: projectsData } = useProjects();
     const projects = projectsData?.projects || [];
 
-    // Task detail data
-    const { data: taskDetail } = useTask(selectedTaskId || '');
     const { data: projectData } = useProject(currentTaskProjectId || '');
+    const selectedTaskId = selectedTask?.id || null;
 
     // Mutation hooks for TaskModal
     const updateTask = useUpdateTask(currentTaskProjectId || '');
@@ -70,82 +115,265 @@ export function GanttPage() {
     const moveTask = useMoveTask(currentTaskProjectId || '');
 
     // Handlers
-    const handleTaskClick = useCallback((task: any) => {
-        setSelectedTaskId(task.id);
+    const handleTaskClick = useCallback(async (task: GanttTask) => {
         setCurrentTaskProjectId(task.projectId);
-    }, []);
+
+        try {
+            const response = await tasksApi.getTask(task.id);
+            if (!response.success || !response.data?.task) {
+                throw new Error(response.message || 'Failed to load task details');
+            }
+
+            setSelectedTask(normalizeTaskDetail(response.data.task as ApiTaskDetails, task, t('common.user')));
+        } catch (error) {
+            setSelectedTask(null);
+            setCurrentTaskProjectId(null);
+            toast.error(t('common.error'));
+        }
+    }, [t]);
 
     const handleCloseModal = useCallback(() => {
-        setSelectedTaskId(null);
+        setSelectedTask(null);
         setCurrentTaskProjectId(null);
     }, []);
 
     const handleUpdateTask = useCallback(async (updates: Partial<TaskDetail>) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        let nextAssigneeName = updates.assigneeName;
+        if (updates.assigneeId !== undefined && updates.assigneeName === undefined) {
+            if (!updates.assigneeId) {
+                nextAssigneeName = null;
+            } else {
+                const matchedMember = (projectData?.members || []).find((member) => member.user_id === updates.assigneeId);
+                nextAssigneeName = matchedMember?.full_name || null;
+            }
+        }
+
+        const nextTask: TaskDetail = {
+            ...previousTask,
+            ...updates,
+            ...(nextAssigneeName !== undefined ? { assigneeName: nextAssigneeName } : {}),
+        };
+
+        setSelectedTask(nextTask);
+
         try {
-            await updateTask.mutateAsync({ id: selectedTaskId, ...updates });
+            await updateTask.mutateAsync({
+                id: selectedTaskId,
+                title: updates.title,
+                description: updates.description,
+                priority: updates.priority,
+                due_date: updates.dueDate === undefined ? undefined : (updates.dueDate || null),
+                assignee_id: updates.assigneeId === undefined ? undefined : (updates.assigneeId || null),
+                labels: updates.labels,
+            });
             refetchGantt();
-        } catch (err) {
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
             toast.error(t('common.error'));
         }
-    }, [selectedTaskId, currentTaskProjectId, updateTask, refetchGantt, t]);
+    }, [currentTaskProjectId, projectData?.members, refetchGantt, selectedTask, selectedTaskId, t, updateTask]);
 
     const handleTaskMove = useCallback(async (columnId: string, position: number) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        const nextStatus = projectData?.columns.find((column) => column.id === columnId)?.name || previousTask.status;
+        setSelectedTask({ ...previousTask, columnId, status: nextStatus });
+
         try {
             await moveTask.mutateAsync({ taskId: selectedTaskId, columnId, position });
             refetchGantt();
-        } catch (err) {
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
             toast.error(t('common.error'));
         }
-    }, [selectedTaskId, currentTaskProjectId, moveTask, refetchGantt, t]);
+    }, [currentTaskProjectId, moveTask, projectData?.columns, refetchGantt, selectedTask, selectedTaskId, t]);
 
     const handleAddSubtask = useCallback(async (title: string) => {
         if (!selectedTaskId || !currentTaskProjectId) return;
-        await addSubtask.mutateAsync({ taskId: selectedTaskId, title });
-    }, [selectedTaskId, currentTaskProjectId, addSubtask]);
+
+        try {
+            const newSubtask = await addSubtask.mutateAsync({ taskId: selectedTaskId, title });
+            if (newSubtask) {
+                setSelectedTask((current) => current ? {
+                    ...current,
+                    subtasks: [
+                        ...current.subtasks,
+                        {
+                            id: newSubtask.id,
+                            taskId: newSubtask.task_id,
+                            title: newSubtask.title,
+                            isCompleted: Boolean(newSubtask.is_completed),
+                            position: newSubtask.position ?? 0,
+                            createdAt: newSubtask.created_at || new Date().toISOString(),
+                        },
+                    ],
+                } : current);
+            }
+            refetchGantt();
+        } catch (error) {
+            toast.error(t('common.error'));
+        }
+    }, [addSubtask, currentTaskProjectId, refetchGantt, selectedTaskId, t]);
 
     const handleToggleSubtask = useCallback(async (subtaskId: string, isCompleted: boolean) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
-        await toggleSubtask.mutateAsync({ taskId: selectedTaskId, subtaskId, isCompleted });
-    }, [selectedTaskId, currentTaskProjectId, toggleSubtask]);
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        setSelectedTask({
+            ...previousTask,
+            subtasks: previousTask.subtasks.map((subtask) =>
+                subtask.id === subtaskId ? { ...subtask, isCompleted } : subtask
+            ),
+        });
+
+        try {
+            await toggleSubtask.mutateAsync({ taskId: selectedTaskId, subtaskId, isCompleted });
+            refetchGantt();
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, refetchGantt, selectedTask, selectedTaskId, t, toggleSubtask]);
 
     const handleDeleteSubtask = useCallback(async (subtaskId: string) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
-        await deleteSubtask.mutateAsync({ taskId: selectedTaskId, subtaskId });
-    }, [selectedTaskId, currentTaskProjectId, deleteSubtask]);
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        setSelectedTask({
+            ...previousTask,
+            subtasks: previousTask.subtasks.filter((subtask) => subtask.id !== subtaskId),
+        });
+
+        try {
+            await deleteSubtask.mutateAsync({ taskId: selectedTaskId, subtaskId });
+            refetchGantt();
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, deleteSubtask, refetchGantt, selectedTask, selectedTaskId, t]);
 
     const handleAddComment = useCallback(async (content: string) => {
         if (!selectedTaskId || !currentTaskProjectId) return;
-        await addComment.mutateAsync({ taskId: selectedTaskId, content });
-    }, [selectedTaskId, currentTaskProjectId, addComment]);
+
+        try {
+            const newComment = await addComment.mutateAsync({ taskId: selectedTaskId, content });
+            if (newComment) {
+                setSelectedTask((current) => current ? {
+                    ...current,
+                    comments: [
+                        {
+                            id: newComment.id,
+                            taskId: newComment.task_id,
+                            userId: newComment.user_id || 'unknown',
+                            userName: newComment.full_name || String(t('common.you')),
+                            content: newComment.content,
+                            createdAt: newComment.created_at || new Date().toISOString(),
+                        },
+                        ...current.comments,
+                    ],
+                } : current);
+            }
+        } catch (error) {
+            toast.error(t('common.error'));
+        }
+    }, [addComment, currentTaskProjectId, selectedTaskId, t]);
 
     const handleDeleteComment = useCallback(async (commentId: string) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
-        await deleteComment.mutateAsync({ taskId: selectedTaskId, commentId });
-    }, [selectedTaskId, currentTaskProjectId, deleteComment]);
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        setSelectedTask({
+            ...previousTask,
+            comments: previousTask.comments.filter((comment) => comment.id !== commentId),
+        });
+
+        try {
+            await deleteComment.mutateAsync({ taskId: selectedTaskId, commentId });
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, deleteComment, selectedTask, selectedTaskId, t]);
 
     const handleUploadAttachment = useCallback(async (file: File) => {
         if (!selectedTaskId || !currentTaskProjectId) return;
-        await uploadAttachment.mutateAsync({ taskId: selectedTaskId, file });
-    }, [selectedTaskId, currentTaskProjectId, uploadAttachment]);
+
+        try {
+            const newAttachment = await uploadAttachment.mutateAsync({ taskId: selectedTaskId, file });
+            if (newAttachment) {
+                setSelectedTask((current) => current ? {
+                    ...current,
+                    attachments: [
+                        {
+                            id: newAttachment.id,
+                            taskId: newAttachment.task_id,
+                            fileName: newAttachment.file_name || file.name,
+                            fileSize: newAttachment.file_size || file.size,
+                            mimeType: newAttachment.mime_type,
+                            downloadUrl: typeof newAttachment.download_url === 'string' ? newAttachment.download_url : undefined,
+                            thumbnailUrl: typeof newAttachment.thumbnail_url === 'string' ? newAttachment.thumbnail_url : undefined,
+                            createdAt: newAttachment.created_at || new Date().toISOString(),
+                        },
+                        ...current.attachments,
+                    ],
+                } : current);
+            }
+        } catch (error) {
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, selectedTaskId, t, uploadAttachment]);
 
     const handleDeleteAttachment = useCallback(async (attachmentId: string) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
-        await deleteAttachment.mutateAsync(attachmentId);
-    }, [selectedTaskId, currentTaskProjectId, deleteAttachment]);
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        setSelectedTask({
+            ...previousTask,
+            attachments: previousTask.attachments.filter((attachment) => attachment.id !== attachmentId),
+        });
+
+        try {
+            await deleteAttachment.mutateAsync(attachmentId);
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, deleteAttachment, selectedTask, selectedTaskId, t]);
 
     const handleSetCoverImage = useCallback(async (attachmentId: string) => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
-        await tasksApi.updateTask(selectedTaskId, { cover_attachment_id: attachmentId });
-        refetchGantt();
-    }, [selectedTaskId, currentTaskProjectId, refetchGantt]);
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        setSelectedTask({ ...previousTask, coverAttachmentId: attachmentId });
+
+        try {
+            await tasksApi.updateTask(selectedTaskId, { cover_attachment_id: attachmentId });
+            refetchGantt();
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, refetchGantt, selectedTask, selectedTaskId, t]);
 
     const handleRemoveCoverImage = useCallback(async () => {
-        if (!selectedTaskId || !currentTaskProjectId) return;
-        await tasksApi.updateTask(selectedTaskId, { cover_attachment_id: null });
-        refetchGantt();
-    }, [selectedTaskId, currentTaskProjectId, refetchGantt]);
+        if (!selectedTaskId || !currentTaskProjectId || !selectedTask) return;
+
+        const previousTask = selectedTask;
+        setSelectedTask({ ...previousTask, coverAttachmentId: undefined });
+
+        try {
+            await tasksApi.updateTask(selectedTaskId, { cover_attachment_id: null });
+            refetchGantt();
+        } catch (error) {
+            setSelectedTask((current) => current?.id === previousTask.id ? previousTask : current);
+            toast.error(t('common.error'));
+        }
+    }, [currentTaskProjectId, refetchGantt, selectedTask, selectedTaskId, t]);
 
     // Update task date change mutation
     const handleTaskDateChange = useCallback(async (taskId: string, newStart: string, newEnd: string) => {
@@ -366,10 +594,10 @@ export function GanttPage() {
             )}
 
             {/* Task Modal */}
-            {selectedTaskId && taskDetail && projectData && (
+            {selectedTask && projectData && (
                 <TaskModal
-                    taskId={selectedTaskId}
-                    task={taskDetail}
+                    taskId={selectedTask.id}
+                    task={selectedTask}
                     isOpen={true}
                     onClose={handleCloseModal}
                     onUpdate={handleUpdateTask}
@@ -378,16 +606,13 @@ export function GanttPage() {
                     onAddComment={handleAddComment}
                     onUploadAttachment={handleUploadAttachment}
                     columns={projectData.columns.map(c => ({ id: c.id, name: c.name }))}
-                    members={(projectData.members || []).filter(m => !!m.user_id).map(m => ({
-                        user_id: m.user_id as string,
-                        full_name: m.full_name || '',
-                        avatar_url: m.avatar_url,
-                        email: m.email,
-                        role: m.role as any
+                    members={(projectData.members || []).filter((member) => !!member.user_id).map((member) => ({
+                        user_id: member.user_id as string,
+                        full_name: member.full_name || '',
                     }))}
                     onMoveTask={handleTaskMove}
                     onDeleteTask={() => {
-                        deleteTask.mutate(selectedTaskId, {
+                        deleteTask.mutate(selectedTask.id, {
                             onSuccess: () => {
                                 handleCloseModal();
                                 refetchGantt();
@@ -395,7 +620,7 @@ export function GanttPage() {
                         });
                     }}
                     onArchiveTask={() => {
-                        tasksApi.archiveTask(selectedTaskId).then(() => {
+                        tasksApi.archiveTask(selectedTask.id).then(() => {
                             handleCloseModal();
                             refetchGantt();
                         });
@@ -409,4 +634,78 @@ export function GanttPage() {
             )}
         </div>
     );
+}
+
+function normalizeTaskDetail(task: ApiTaskDetails, fallbackTask: GanttTask, fallbackUserName: string): TaskDetail {
+    return {
+        id: task.id,
+        title: task.title,
+        description: task.description || undefined,
+        priority: normalizePriority(task.priority),
+        status: fallbackTask.columnName,
+        columnId: fallbackTask.columnId,
+        projectId: fallbackTask.projectId,
+        projectName: fallbackTask.projectName,
+        assigneeId: task.assignee_id || fallbackTask.assigneeId || undefined,
+        assigneeName: task.assignee_name || fallbackTask.assigneeName || undefined,
+        assigneeAvatar: fallbackTask.assigneeAvatar || undefined,
+        dueDate: task.due_date || fallbackTask.endDate || null,
+        labels: safeParseLabels(task.labels ?? fallbackTask.labels),
+        subtasks: (task.subtasks || []).map((subtask) => ({
+            id: subtask.id,
+            taskId: task.id,
+            title: subtask.title,
+            isCompleted: Boolean(subtask.is_completed),
+            position: subtask.position,
+            createdAt: subtask.created_at,
+        })),
+        comments: (task.comments || []).map((comment) => ({
+            id: comment.id,
+            taskId: task.id,
+            userId: comment.user_id,
+            userName: comment.full_name || fallbackUserName,
+            content: comment.content,
+            createdAt: comment.created_at,
+        })),
+        attachments: (task.attachments || []).map((attachment) => ({
+            id: attachment.id,
+            taskId: task.id,
+            fileName: attachment.file_name,
+            fileSize: attachment.file_size,
+            mimeType: attachment.mime_type || undefined,
+            downloadUrl: attachment.download_url,
+            thumbnailUrl: attachment.thumbnail_url,
+            createdAt: attachment.created_at,
+        })),
+        coverAttachmentId: task.cover_attachment_id || undefined,
+        isArchived: !!task.is_archived,
+        createdAt: task.created_at,
+        updatedAt: task.updated_at,
+    };
+}
+
+function safeParseLabels(value: unknown): string[] {
+    if (Array.isArray(value)) {
+        return value.filter((entry): entry is string => typeof entry === 'string');
+    }
+
+    if (typeof value === 'string' && value.trim()) {
+        try {
+            const parsed = JSON.parse(value);
+            if (Array.isArray(parsed)) {
+                return parsed.filter((entry): entry is string => typeof entry === 'string');
+            }
+        } catch {
+            return [];
+        }
+    }
+
+    return [];
+}
+
+function normalizePriority(value: unknown): TaskPriority {
+    if (value === 'low' || value === 'medium' || value === 'high' || value === 'critical') {
+        return value;
+    }
+    return 'medium';
 }

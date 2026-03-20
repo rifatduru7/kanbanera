@@ -298,8 +298,9 @@ flowsRoutes.post('/:flowId/execute', async (c) => {
 
             let executedCount = 0;
             const visited = new Set<string>();
+            const executionLog: { nodeId: string; type: string; result: string }[] = [];
 
-            // Simple BFS execution
+            // BFS execution with condition branching
             const queue = [...triggerNodes];
             while (queue.length > 0) {
                 const node = queue.shift();
@@ -308,29 +309,108 @@ flowsRoutes.post('/:flowId/execute', async (c) => {
                 executedCount++;
 
                 const nodeData = (node.data || {}) as Record<string, unknown>;
-                const actionType = nodeData.actionType as string;
+                const nodeType = node.type as string;
                 const projectId = existing.project_id as string;
 
-                // Execute action nodes
-                if (actionType === 'set_priority' && nodeData.taskFilter && nodeData.priority) {
-                    await c.env.DB.prepare(
-                        `UPDATE tasks SET priority = ?, updated_at = datetime('now') WHERE project_id = ? AND priority != ?`
-                    ).bind(nodeData.priority, projectId, nodeData.priority).run();
-                } else if (actionType === 'move_to_column' && nodeData.targetColumnId) {
-                    // Move tasks matching filter to target column
-                    const targetColumnId = nodeData.targetColumnId as string;
-                    if (nodeData.sourceColumnId) {
-                        await c.env.DB.prepare(
-                            `UPDATE tasks SET column_id = ?, updated_at = datetime('now') WHERE project_id = ? AND column_id = ?`
-                        ).bind(targetColumnId, projectId, nodeData.sourceColumnId).run();
+                // Handle condition nodes — evaluate and pick correct branch
+                if (nodeType === 'conditionNode') {
+                    const conditionType = nodeData.conditionType as string;
+                    const conditionValue = (nodeData.conditionValue as string || '').toLowerCase();
+                    let conditionResult = false;
+
+                    if (conditionType === 'priority_is' && conditionValue) {
+                        const { results: tasks } = await c.env.DB.prepare(
+                            'SELECT COUNT(*) as cnt FROM tasks WHERE project_id = ? AND priority = ? AND is_archived = 0'
+                        ).bind(projectId, conditionValue).all();
+                        conditionResult = Number((tasks[0] as Record<string, unknown>)?.cnt || 0) > 0;
+                    } else if (conditionType === 'column_is' && conditionValue) {
+                        const { results: cols } = await c.env.DB.prepare(
+                            'SELECT COUNT(*) as cnt FROM columns WHERE project_id = ? AND LOWER(name) = ?'
+                        ).bind(projectId, conditionValue).all();
+                        conditionResult = Number((cols[0] as Record<string, unknown>)?.cnt || 0) > 0;
+                    } else if (conditionType === 'has_label' && conditionValue) {
+                        const { results: tasks } = await c.env.DB.prepare(
+                            "SELECT COUNT(*) as cnt FROM tasks WHERE project_id = ? AND LOWER(labels) LIKE ? AND is_archived = 0"
+                        ).bind(projectId, `%${conditionValue}%`).all();
+                        conditionResult = Number((tasks[0] as Record<string, unknown>)?.cnt || 0) > 0;
                     }
-                } else if (actionType === 'archive_task' && nodeData.sourceColumnId) {
-                    await c.env.DB.prepare(
-                        `UPDATE tasks SET is_archived = 1, updated_at = datetime('now') WHERE project_id = ? AND column_id = ?`
-                    ).bind(projectId, nodeData.sourceColumnId).run();
+
+                    executionLog.push({ nodeId: node.id as string, type: 'condition', result: conditionResult ? 'true' : 'false' });
+
+                    // Follow true or false branch based on sourceHandle
+                    const branchHandle = conditionResult ? 'true' : 'false';
+                    const branchEdges = edges.filter((e: Record<string, unknown>) =>
+                        e.source === node.id && e.sourceHandle === branchHandle
+                    );
+                    for (const edge of branchEdges) {
+                        const nextNode = nodes.find((n: Record<string, unknown>) => n.id === edge.target);
+                        if (nextNode) queue.push(nextNode);
+                    }
+                    continue; // Skip the generic edge following below
                 }
 
-                // Find next nodes via edges
+                // Handle action nodes
+                if (nodeType === 'actionNode') {
+                    const actionType = nodeData.actionType as string;
+                    const actionValue = nodeData.actionValue as string;
+
+                    if (actionType === 'set_priority' && actionValue) {
+                        await c.env.DB.prepare(
+                            `UPDATE tasks SET priority = ?, updated_at = datetime('now') WHERE project_id = ? AND is_archived = 0`
+                        ).bind(actionValue, projectId).run();
+                        executionLog.push({ nodeId: node.id as string, type: 'action', result: `set_priority -> ${actionValue}` });
+                    } else if (actionType === 'move_to_column' && actionValue) {
+                        // Find column by name
+                        const targetCol = await c.env.DB.prepare(
+                            'SELECT id FROM columns WHERE project_id = ? AND LOWER(name) = ?'
+                        ).bind(projectId, actionValue.toLowerCase()).first();
+                        if (targetCol) {
+                            // Move all tasks from the source column if specified, otherwise move overdue or all
+                            await c.env.DB.prepare(
+                                `UPDATE tasks SET column_id = ?, updated_at = datetime('now') WHERE project_id = ? AND is_archived = 0 AND column_id != ?`
+                            ).bind(targetCol.id, projectId, targetCol.id).run();
+                            executionLog.push({ nodeId: node.id as string, type: 'action', result: `move_to_column -> ${actionValue}` });
+                        }
+                    } else if (actionType === 'archive_task') {
+                        await c.env.DB.prepare(
+                            `UPDATE tasks SET is_archived = 1, updated_at = datetime('now') WHERE project_id = ? AND is_archived = 0`
+                        ).bind(projectId).run();
+                        executionLog.push({ nodeId: node.id as string, type: 'action', result: 'archive_task' });
+                    } else if (actionType === 'add_label' && actionValue) {
+                        // Add label to all tasks that don't have it
+                        const { results: tasks } = await c.env.DB.prepare(
+                            "SELECT id, labels FROM tasks WHERE project_id = ? AND is_archived = 0"
+                        ).bind(projectId).all();
+                        let updated = 0;
+                        for (const task of tasks) {
+                            const currentLabels: string[] = task.labels ? JSON.parse(task.labels as string) : [];
+                            if (!currentLabels.includes(actionValue)) {
+                                currentLabels.push(actionValue);
+                                await c.env.DB.prepare(
+                                    `UPDATE tasks SET labels = ?, updated_at = datetime('now') WHERE id = ?`
+                                ).bind(JSON.stringify(currentLabels), task.id).run();
+                                updated++;
+                            }
+                        }
+                        executionLog.push({ nodeId: node.id as string, type: 'action', result: `add_label "${actionValue}" to ${updated} tasks` });
+                    } else if (actionType === 'set_assignee' && actionValue) {
+                        // Find user by email or id
+                        const targetUser = await c.env.DB.prepare(
+                            'SELECT id FROM users WHERE id = ? OR email = ?'
+                        ).bind(actionValue, actionValue).first();
+                        if (targetUser) {
+                            await c.env.DB.prepare(
+                                `UPDATE tasks SET assignee_id = ?, updated_at = datetime('now') WHERE project_id = ? AND assignee_id IS NULL AND is_archived = 0`
+                            ).bind(targetUser.id, projectId).run();
+                            executionLog.push({ nodeId: node.id as string, type: 'action', result: `set_assignee -> ${actionValue}` });
+                        }
+                    }
+                } else {
+                    // Trigger or unknown node type - just log
+                    executionLog.push({ nodeId: node.id as string, type: nodeType, result: 'executed' });
+                }
+
+                // Find next nodes via generic edges (no sourceHandle filter for non-condition nodes)
                 const outgoingEdges = edges.filter((e: Record<string, unknown>) => e.source === node.id);
                 for (const edge of outgoingEdges) {
                     const nextNode = nodes.find((n: Record<string, unknown>) => n.id === edge.target);
@@ -338,7 +418,7 @@ flowsRoutes.post('/:flowId/execute', async (c) => {
                 }
             }
 
-            resultData = { nodesExecuted: executedCount };
+            resultData = { nodesExecuted: executedCount, log: executionLog };
         } catch (execError) {
             status = 'failed';
             errorMessage = execError instanceof Error ? execError.message : 'Unknown execution error';

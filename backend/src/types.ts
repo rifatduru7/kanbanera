@@ -46,6 +46,17 @@ export interface UserPreferences {
     updated_at: string;
 }
 
+export type NotificationType =
+    | 'project_invite'
+    | 'task_assigned'
+    | 'task_mentioned'
+    | 'task_overdue'
+    | 'task_approval_approved'
+    | 'task_approval_revision_requested'
+    | 'automation_succeeded'
+    | 'automation_failed'
+    | 'system';
+
 // Project Types
 export interface Project {
     id: string;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Board } from '../../components/kanban/Board';
@@ -120,6 +120,8 @@ export function BoardPage() {
     const { t } = useTranslation();
     const [searchParams, setSearchParams] = useSearchParams();
     const queryProjectId = searchParams.get('project');
+    const queryTaskId = searchParams.get('task');
+    const lastClosedTaskIdRef = useRef<string | null>(null);
     const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
     const [selectedTask, setSelectedTask] = useState<TaskDetail | null>(null);
     const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
@@ -303,20 +305,21 @@ export function BoardPage() {
         moveTask.mutate({ taskId, columnId: toColumnId, position: newPosition });
     };
 
-    const handleTaskClick = async (task: Task) => {
+    const openTaskDetails = async (taskId: string, columnIdHint?: string) => {
         try {
-            const response = await tasksApi.getTask(task.id);
+            const response = await tasksApi.getTask(taskId);
             if (response.success && response.data) {
                 const taskData = response.data.task;
-                const column = columns.find(c => c.id === task.columnId);
-                const normalizedTaskData = taskData as ApiTaskDetails;
+                const normalizedTaskData = taskData as ApiTaskDetails & { column_id?: string };
+                const columnId = columnIdHint || normalizedTaskData.column_id || '';
+                const column = columns.find(c => c.id === columnId);
                 const taskDetail: TaskDetail = {
                     id: normalizedTaskData.id,
                     title: normalizedTaskData.title,
                     description: normalizedTaskData.description || undefined,
                     priority: normalizePriority(normalizedTaskData.priority),
                     status: column?.name || t('common.unknown'),
-                    columnId: task.columnId,
+                    columnId,
                     projectId: effectiveProjectId,
                     projectName: selectedProject?.name || t('common.project'),
                     assigneeId: normalizedTaskData.assignee_id || undefined,
@@ -355,10 +358,19 @@ export function BoardPage() {
                     updatedAt: normalizedTaskData.updated_at,
                 };
                 setSelectedTask(taskDetail);
+
+                const next = new URLSearchParams(searchParams);
+                next.set('project', effectiveProjectId);
+                next.set('task', normalizedTaskData.id);
+                setSearchParams(next, { replace: true });
             }
         } catch (error) {
             console.error('Failed to load task details:', error);
         }
+    };
+
+    const handleTaskClick = async (task: Task) => {
+        await openTaskDetails(task.id, task.columnId);
     };
 
     const handleAddTask = (columnId: string) => {
@@ -367,8 +379,35 @@ export function BoardPage() {
     };
 
     const handleCloseModal = () => {
+        if (selectedTask) {
+            lastClosedTaskIdRef.current = selectedTask.id;
+        }
         setSelectedTask(null);
+        const next = new URLSearchParams(searchParams);
+        next.delete('task');
+        setSearchParams(next, { replace: true });
     };
+
+    // Task Opening/Closing Sync
+    useEffect(() => {
+        // If queryTaskId is gone, clear selectedTask and reset our "just closed" tracker
+        if (!queryTaskId) {
+            setSelectedTask(null);
+            lastClosedTaskIdRef.current = null;
+            return;
+        }
+
+        // If we just clicked close for THIS specific task, don't re-open it 
+        // until the URL actually clears or changes to something else
+        if (queryTaskId === lastClosedTaskIdRef.current) return;
+
+        // If we already have this task selected, stop
+        if (selectedTask?.id === queryTaskId) return;
+
+        // Otherwise, find and open it
+        const matchingTask = columns.flatMap((column) => column.tasks).find((task) => task.id === queryTaskId);
+        void openTaskDetails(queryTaskId, matchingTask?.columnId);
+    }, [queryTaskId, selectedTask?.id, columns]);
 
     const handleUpdateTask = (updates: Partial<TaskDetail>) => {
         if (selectedTask) {

@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { projectsApi, tasksApi, columnsApi, notificationsApi } from '../lib/api/client';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { projectsApi, tasksApi, columnsApi, notificationsApi, usersApi } from '../lib/api/client';
 import type { TaskDetail } from '../types/task-detail';
 
 // Query keys
@@ -569,15 +569,17 @@ export function useUpdateIntegration(projectId: string) {
 
 // Notifications
 export function useNotifications() {
-    return useQuery({
+    return useInfiniteQuery({
         queryKey: ['notifications'],
-        queryFn: async () => {
-            const response = await notificationsApi.getNotifications();
+        initialPageParam: undefined as string | undefined,
+        queryFn: async ({ pageParam }) => {
+            const response = await notificationsApi.getNotifications({ limit: 20, cursor: pageParam });
             if (response.success && response.data) {
                 return response.data;
             }
             throw new Error(response.message || 'Failed to fetch notifications');
         },
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
         refetchInterval: 30000, // Poll every 30 seconds
     });
 }
@@ -613,5 +615,19 @@ export function useMarkAllNotificationsRead() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
         },
+    });
+}
+
+export function useNotificationPreferences() {
+    return useQuery({
+        queryKey: ['notification-preferences'],
+        queryFn: async () => {
+            const response = await usersApi.getMyPreferences();
+            if (response.success && response.data) {
+                return response.data.preferences;
+            }
+            throw new Error(response.message || 'Failed to load notification preferences');
+        },
+        staleTime: 60 * 1000,
     });
 }

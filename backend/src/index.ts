@@ -22,6 +22,7 @@ import { presenceRoutes } from './routes/presence';
 import { portalManagementRoutes, portalPublicRoutes } from './routes/portal';
 import flowsRoutes from './routes/flows';
 import { maintenanceMiddleware } from './middleware/maintenance';
+import { runOverdueNotifications } from './services/notifications/runOverdueNotifications';
 import {
     apiRateLimit,
     authChallengeRateLimit,
@@ -34,7 +35,9 @@ const app = new Hono<{ Bindings: Env }>();
 
 // Global Middleware
 app.use('*', logger());
-app.use('*', secureHeaders());
+app.use('*', secureHeaders({
+    crossOriginResourcePolicy: 'cross-origin',
+}));
 app.use('*', maintenanceMiddleware);
 app.use(
     '*',
@@ -154,4 +157,9 @@ app.onError((err, c) => {
     );
 });
 
-export default app;
+export default {
+    fetch: app.fetch,
+    scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext) {
+        ctx.waitUntil(runOverdueNotifications(env));
+    },
+};

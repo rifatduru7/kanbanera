@@ -13,6 +13,9 @@ import { useSearchModal } from '../../hooks/useSearchModal';
 import { useTranslation } from 'react-i18next';
 import { useProjects } from '../../hooks/useKanbanData';
 import { usePushNotifications } from '../../hooks/usePushNotifications';
+import { PageTransition } from '../../components/ui/PageTransition';
+import { AnimatePresence } from 'framer-motion';
+import { TopLoader } from '../../components/ui/TopLoader';
 
 export function DashboardLayout() {
     const { t } = useTranslation();
@@ -82,6 +85,9 @@ export function DashboardLayout() {
         if (path.startsWith('/members')) {
             return { projectName: t('nav.members'), sprintName: undefined, isActive: false };
         }
+        if (path.startsWith('/docs')) {
+            return { projectName: t('nav.docs'), sprintName: t('docs.title'), isActive: false };
+        }
         if (path.startsWith('/admin')) {
             return { projectName: t('nav.admin'), sprintName: undefined, isActive: false };
         }
@@ -115,6 +121,7 @@ export function DashboardLayout() {
 
     return (
         <div className="flex h-[100dvh] w-full relative">
+            <TopLoader />
             {/* Sidebar - Desktop */}
             <div className="hidden lg:block h-full">
                 <Sidebar
@@ -161,7 +168,11 @@ export function DashboardLayout() {
                 {/* Content - Extra bottom padding for mobile nav */}
                 <div className="flex-1 min-h-0 overflow-y-auto mobile-scroll p-4 sm:p-5 md:p-8 pb-safe-nav lg:pb-8 z-0 relative">
                     <div className="max-w-7xl mx-auto w-full lg:h-full min-h-0 flex flex-col gap-8">
-                        <Outlet />
+                        <AnimatePresence mode="wait">
+                            <PageTransition key={location.pathname}>
+                                <Outlet />
+                            </PageTransition>
+                        </AnimatePresence>
                     </div>
                 </div>
             </main>

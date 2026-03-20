@@ -101,9 +101,7 @@ export function Header({
                 </div>
 
                 {/* Notifications */}
-                <span className="hidden sm:inline-block">
-                    <NotificationDropdown />
-                </span>
+                <NotificationDropdown />
 
                 {/* Refresh Button */}
                 <button

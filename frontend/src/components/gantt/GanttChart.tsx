@@ -628,7 +628,7 @@ function GanttTooltip({ task, x, y, t }: { task: GanttTask; x: number; y: number
 
     return (
         <div
-            className="fixed z-[9999] pointer-events-none"
+            className="fixed z-[50] pointer-events-none"
             style={{ left: x + 12, top: y - 10 }}
         >
             <div className="bg-surface border border-border rounded-xl shadow-2xl p-3 min-w-[220px] max-w-[300px]">
