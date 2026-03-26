@@ -1,28 +1,47 @@
 ---
 title: "Portal approval flow"
-description: "Collect external approvals and revision requests without exposing the full internal workspace."
+description: "Collect comments, approvals, and revision requests from external reviewers without exposing the full dashboard."
 slug: "portal/approval-flow"
 section: "portal"
-order: 70
-tags: ["portal", "approval", "revision"]
+order: 710
+tags: ["portal", "approval", "review"]
 updatedAt: "2026-03-20"
 ---
 
-## When to use the portal
+## Why Portal exists
 
-Portal is designed for people who need to review work but should not operate inside the complete project dashboard.
+Portal gives you a controlled review surface for clients, stakeholders, or approvers who should not work inside the full dashboard.
+
+## What reviewers can do
+
+Portal supports review actions such as:
+
+- reading task context
+- leaving comments
+- approving work
+- requesting revision
 
 ## Approval outcomes
 
-An approval flow should end in one of two outcomes:
+The cleanest approval process has two explicit outcomes:
 
 - approved
 - revision requested
 
-### Capture precise feedback
+Anything else creates uncertainty and slows handoff.
 
-Revision requests should explain what must change, not just that something feels incomplete.
+## Reviewer input quality
 
-## Connect portal review to execution
+Revision notes should explain what has to change, not just that something is wrong. Good feedback reduces follow-up loops.
 
-When feedback is actionable, convert it into task updates, comments, or subtasks so the next assignee can execute quickly.
+## Internal follow-through
+
+Portal feedback should not stay in the portal mentally. Convert it into:
+
+- updated task descriptions
+- comments for the working team
+- subtasks for revision items
+
+## Notifications and traceability
+
+Approval and revision events also feed the wider notification and task workflow, so the operational team can react from inside the dashboard.

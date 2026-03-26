@@ -230,9 +230,9 @@ export function TaskModal({
         const days = Math.floor(hours / 24);
 
         if (mins < 1) return t('common.time.just_now', 'Just now');
-        if (mins < 60) return `${mins}${t('common.time.mins_ago', 'm ago')}`;
-        if (hours < 24) return `${hours}${t('common.time.hours_ago', 'h ago')}`;
-        return `${days}${t('common.time.days_ago', 'd ago')}`;
+        if (mins < 60) return t('common.time.mins_ago', { count: mins, defaultValue: '{{count}}m ago' });
+        if (hours < 24) return t('common.time.hours_ago', { count: hours, defaultValue: '{{count}}h ago' });
+        return t('common.time.days_ago', { count: days, defaultValue: '{{count}}d ago' });
     };
 
     const openDueDatePicker = () => {
@@ -324,9 +324,9 @@ export function TaskModal({
                 )}
 
                 {/* Body - Unified scroll on mobile, split on desktop */}
-                <div className="flex flex-col lg:flex-row flex-1 overflow-y-auto mobile-scroll lg:overflow-hidden bg-surface-dark/50 lg:bg-transparent">
+                <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-y-auto mobile-scroll lg:overflow-hidden bg-surface-dark/50 lg:bg-transparent">
                     {/* LEFT COLUMN: Main Content */}
-                    <div className="flex-1 p-0 flex flex-col border-b lg:border-b-0 lg:border-r border-border lg:overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 min-h-0 p-0 flex flex-col border-b lg:border-b-0 lg:border-r border-border lg:overflow-y-auto custom-scrollbar">
                         {/* Cover Image at the Top */}
                         {task.coverAttachmentId && (
                             <TaskCoverImage 
@@ -472,9 +472,9 @@ export function TaskModal({
                     </div>
 
                     {/* RIGHT COLUMN: Sidebar & Comments */}
-                    <div className="w-full lg:w-[360px] flex flex-col bg-black/20 backdrop-blur-sm lg:h-full lg:overflow-hidden relative z-40">
+                    <div className="w-full lg:w-[360px] min-h-0 flex flex-col bg-black/20 backdrop-blur-sm lg:h-full lg:overflow-hidden relative z-40">
                         {/* Metadata Panel */}
-                        <div className="flex-none p-6 flex flex-col gap-6 border-b border-border lg:overflow-y-auto custom-scrollbar lg:max-h-[min(400px,50%)]">
+                        <div className="shrink-0 p-6 flex flex-col gap-6 border-b border-border lg:overflow-y-auto custom-scrollbar lg:max-h-[min(400px,50%)]">
                             <div className="flex flex-col gap-2">
                                 <label className="text-xs font-medium text-text-muted uppercase tracking-wider">
                                     {t('tasks.status', 'Status')}
@@ -740,11 +740,10 @@ export function TaskModal({
                                     )}
                                 </div>
                             </div>
+                        </div>
 
-
-
-                            {/* Comments Section */}
-                            <div className="flex-1 flex flex-col bg-black/10 min-h-[400px] lg:min-h-0 lg:overflow-hidden">
+                        {/* Comments Section */}
+                        <div className="flex-1 min-h-[400px] lg:min-h-0 flex flex-col bg-black/10 lg:overflow-hidden">
                             <div className="p-4 border-b border-white/5 flex items-center justify-between">
                                 <label className="flex items-center gap-2 text-sm font-medium text-text-muted">
                                     <span>💬</span>
@@ -752,11 +751,11 @@ export function TaskModal({
                                 </label>
                                 <span className="text-[10px] text-text-muted uppercase tracking-wider cursor-pointer hover:text-primary">
                                     {t('tasks.show_details', 'Show Details')}
-                                </span >
-                            </div >
+                                </span>
+                            </div>
 
                             {/* Comment List */}
-                            <div className="flex-1 p-4 flex flex-col gap-4 lg:overflow-y-auto custom-scrollbar">
+                            <div className="flex-1 min-h-0 p-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar">
                                 {task.comments.map((comment: Comment) => (
                                     <CommentItem
                                         key={comment.id}
@@ -769,7 +768,7 @@ export function TaskModal({
                             </div>
 
                             {/* Comment Input */}
-                            <div className="p-4 border-t border-border-muted bg-surface-alt/30">
+                            <div className="shrink-0 p-4 border-t border-border-muted bg-surface-alt/30">
                                 <div className="relative">
                                     <input
                                         type="text"
@@ -810,7 +809,7 @@ export function TaskModal({
                         {t('common.save_changes')}
                     </button>
                 </div>
-            </div >
+            </div>
 
             {/* Confirmation Dialogs */}
             <ConfirmDialog
@@ -881,8 +880,7 @@ export function TaskModal({
                     setDeleteCommentData({ isOpen: false, id: '' });
                 }}
             />
-        </div>
-    </div>,
+        </div>,
         document.body
     );
 }
@@ -990,7 +988,7 @@ function CommentItem({
             <div className="size-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center text-[10px] font-semibold text-primary flex-shrink-0 mt-1">
                 {comment.userName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
-            <div className={`flex flex-col gap-1 max-w-[85%] ${isOwn ? 'items-end' : ''}`}>
+            <div className={`flex flex-col gap-1 max-w-[85%] min-w-0 ${isOwn ? 'items-end' : ''}`}>
                 <div className={`flex items-baseline gap-2 ${isOwn ? 'flex-row-reverse' : ''}`}>
                     <span className="text-xs font-bold text-text">{comment.userName}</span>
                     <span className="text-[10px] text-text-muted">{formatTimeAgo(comment.createdAt)}</span>
@@ -1000,7 +998,7 @@ function CommentItem({
                         className={`text-sm leading-relaxed p-3 rounded-lg ${isOwn
                             ? 'bg-primary/20 border border-primary/20 text-white rounded-tr-none text-right'
                             : 'bg-surface-alt text-text/80 rounded-tl-none'
-                            }`}
+                            } whitespace-pre-wrap break-words`}
                     >
                         {comment.content}
                     </p>
@@ -1091,7 +1089,7 @@ function AttachmentCard({
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
         if (days === 0) return t('common.time.today', 'Today');
         if (days === 1) return t('common.time.yesterday', 'Yesterday');
-        return `${days}${t('common.time.days_ago', 'd ago')}`;
+        return t('common.time.days_ago', { count: days, defaultValue: '{{count}}d ago' });
     }
 
     return (

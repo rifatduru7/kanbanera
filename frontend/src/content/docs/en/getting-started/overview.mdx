@@ -1,6 +1,6 @@
 ---
 title: "Era Kanban overview"
-description: "Understand how projects, tasks, timelines, and automation fit together inside Era Kanban."
+description: "Understand how projects, tasks, planning views, automation, and collaboration fit together inside Era Kanban."
 slug: "getting-started/overview"
 section: "getting_started"
 order: 10
@@ -8,50 +8,71 @@ tags: ["overview", "workspace", "navigation"]
 updatedAt: "2026-03-20"
 ---
 
-<Callout title="What this guide covers">
-This page gives your team the shared mental model for how Era Kanban is organized before you start creating work.
+<Callout title="Who this page is for">
+This overview is for anyone who needs the big picture before they start creating projects, tasks, and workflows.
 </Callout>
 
-## Workspace structure
+## What Era Kanban is built for
 
-Era Kanban keeps day-to-day execution inside a single authenticated workspace. The core layers are:
+Era Kanban is a single workspace for planning, executing, reviewing, and measuring project work. The product combines:
 
-- projects for grouping work
-- board for daily task flow
-- gantt for schedule visibility
-- automations for reducing repetitive actions
-- portal for external approvals and client feedback
+- projects for structure and ownership
+- board for day-to-day execution
+- calendar and Gantt for date-based planning
+- rule-based automations and visual flows for repeatable work
+- portal for external review and approvals
+- metrics, notifications, and timesheets for follow-through
 
-## How teams usually work
+## Core navigation model
 
-Most teams start in the board view, move into Gantt for planning, and use automations once the workflow stabilizes.
+Most teams move through the product in a simple loop:
 
-### Board-first execution
+1. Create a project and invite the right people.
+2. Define columns that match the real workflow.
+3. Create and assign tasks from the board.
+4. Add due dates and validate the schedule in Calendar or Gantt.
+5. Reduce repetitive work with automations or flows.
+6. Use Portal when outside stakeholders need to review work.
+7. Track delivery with metrics, notifications, and timesheets.
 
-Board is the fastest way to create, assign, comment on, and move tasks between statuses.
+## Main screens and what they do
 
-### Timeline visibility
+### Projects
 
-Gantt adds due dates, dependencies in planning terms, and a broader picture of delivery risk.
+Projects define the workspace boundary for columns, tasks, members, and integrations.
 
-### External review
+### Board
 
-Portal gives you a controlled space for review and revision without opening the full dashboard.
+Board is the main operational surface. This is where teams create tasks, move work between statuses, and collaborate on details.
 
-## Recommended first steps
+### Calendar
 
-<Steps>
-  <li>Create a project with a clear owner.</li>
-  <li>Define the columns your team actually uses.</li>
-  <li>Add real tasks with assignees and due dates.</li>
-  <li>Open the Gantt view and validate the timeline.</li>
-  <li>Add one automation only after the manual process is clear.</li>
-</Steps>
+Calendar helps teams understand due dates in month and week layouts and add dated work quickly.
 
-## Navigate the product
+### Gantt
+
+Gantt gives a longer planning horizon with zoom, grouping, and date adjustment directly on the timeline.
+
+### Automations and Flows
+
+Automations handle focused workflow rules inside a project. Flows provide a more visual builder with trigger, condition, and action nodes.
+
+### Portal
+
+Portal allows non-dashboard reviewers to leave comments, approve deliverables, or request revisions.
+
+## How permissions usually work
+
+- owners and admins manage project structure, members, and settings
+- members work with tasks and collaboration features
+- viewers are limited to read-oriented access where supported
+- only admins can access the global admin console
+
+## Recommended next reads
 
 <DocsCardGrid>
-  <DocsCard title="Quick start" description="Set up a working project in a few minutes." href="/docs/getting-started/quick-start" />
-  <DocsCard title="Creating projects" description="Learn how to structure projects and members." href="/docs/projects/creating-projects" />
-  <DocsCard title="Task management" description="Run execution from the board view." href="/docs/board/task-management" />
+  <DocsCard title="Quick start" description="Create a real project and reach a usable workflow fast." href="/docs/getting-started/quick-start" />
+  <DocsCard title="Navigation and search" description="Learn how to move through the workspace efficiently." href="/docs/getting-started/navigation-and-search" />
+  <DocsCard title="Task management" description="See how the board and task detail workflow fit together." href="/docs/board/task-management" />
+  <DocsCard title="Timeline basics" description="Understand when to use Gantt instead of the board." href="/docs/gantt/timeline-basics" />
 </DocsCardGrid>

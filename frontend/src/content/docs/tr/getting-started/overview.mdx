@@ -1,57 +1,78 @@
 ---
 title: "Era Kanban genel bakış"
-description: "Projelerin, görevlerin, zaman çizelgelerinin ve otomasyonların Era Kanban içinde nasıl birleştiğini anlayın."
+description: "Projelerin, görevlerin, planlama görünümlerinin, otomasyonların ve iş birliği akışlarının Era Kanban içinde nasıl birleştiğini anlayın."
 slug: "getting-started/overview"
 section: "getting_started"
 order: 10
-tags: ["genel-bakis", "calisma-alani", "gezinme"]
+tags: ["genel-bakis", "calisma-alani", "gezinti"]
 updatedAt: "2026-03-20"
 ---
 
-<Callout title="Bu rehber neyi anlatır">
-Bu sayfa, ekiplerin gerçek iş oluşturmadan önce Era Kanban yapısını ortak bir zihinsel modelle kavramasını sağlar.
+<Callout title="Bu sayfa kimler için">
+Bu genel bakış, proje ve görev oluşturmadan önce ürünün tamamını anlamak isteyen herkes içindir.
 </Callout>
 
-## Çalışma alanı yapısı
+## Era Kanban ne için tasarlandı
 
-Era Kanban günlük yürütmeyi tek bir giriş yapılmış çalışma alanında toplar. Ana katmanlar şunlardır:
+Era Kanban; planlama, yürütme, dış inceleme ve ölçüm katmanlarını tek bir çalışma alanında toplar. Ürün şunları bir araya getirir:
 
-- işlerin gruplanması için projeler
-- günlük akış için pano
-- takvim baskısını görmek için Gantt
-- tekrar eden işleri azaltmak için otomasyonlar
+- yapı ve sahiplik için projeler
+- günlük yürütme için pano
+- tarih odaklı planlama için takvim ve Gantt
+- tekrar eden işleri azaltmak için otomasyonlar ve akışlar
 - dış onay ve geri bildirim için portal
+- sürdürülebilir takip için metrikler, bildirimler ve zaman kaydı
 
-## Ekipler genelde nasıl çalışır
+## Temel gezinme modeli
 
-Birçok ekip önce panoda başlar, planlama için Gantt'e geçer ve iş akışı oturduğunda otomasyon ekler.
+Çoğu ekip ürün içinde şu döngüyle ilerler:
 
-### Pano merkezli yürütme
+1. Proje oluşturur ve doğru kişileri davet eder.
+2. Gerçek iş akışına uygun sütunları tanımlar.
+3. Panodan görev oluşturur ve atama yapar.
+4. Tarihleri Takvim veya Gantt üzerinde doğrular.
+5. Tekrarlayan işleri otomasyonlar veya akışlarla azaltır.
+6. Dış paydaşlar gerektiğinde Portal üzerinden inceleme alır.
+7. Teslimatı metrikler, bildirimler ve zaman takibiyle izler.
 
-Pano görünümü görev oluşturmanın, atamanın, yorum yapmanın ve durum değiştirmenin en hızlı yoludur.
+## Ana ekranlar ve rolleri
 
-### Zaman görünürlüğü
+### Projeler
 
-Gantt, teslimat riskini ve tarihlere göre genel resmi görünür kılar.
+Projeler; sütunlar, görevler, üyeler ve entegrasyonlar için çalışma sınırını belirler.
 
-### Dış inceleme
+### Pano
 
-Portal, tam dashboard erişimi vermeden kontrollü bir onay ve revizyon alanı sunar.
+Pano günlük operasyon yüzeyidir. Görevler burada oluşturulur, taşınır ve takip edilir.
 
-## Önerilen ilk adımlar
+### Takvim
 
-<Steps>
-  <li>Net bir sahibi olan proje oluşturun.</li>
-  <li>Ekipte gerçekten kullanılan kolonları tanımlayın.</li>
-  <li>Atananı ve tarihi olan gerçek görevler ekleyin.</li>
-  <li>Gantt görünümünü açıp zamanlamayı doğrulayın.</li>
-  <li>Manuel süreç netleşmeden otomasyon eklemeyin.</li>
-</Steps>
+Takvim, teslim tarihlerini ay ve hafta bağlamında görmeyi ve tarih odaklı görev eklemeyi kolaylaştırır.
 
-## Üründe gezinme
+### Gantt
+
+Gantt daha geniş zaman çizelgesi görünümü, zoom seviyeleri ve gruplu planlama bakışı sunar.
+
+### Otomasyonlar ve Akışlar
+
+Otomasyon kuralları proje içindeki basit tekrarları yönetir. Akışlar ise tetikleyici, koşul ve aksiyon düğümleriyle daha görsel bir yapı sağlar.
+
+### Portal
+
+Portal, tam dashboard erişimi vermeden dış paydaşlardan yorum, onay ve revizyon almanızı sağlar.
+
+## Yetki modeli nasıl düşünülmeli
+
+- sahip ve admin rolleri proje yapısını ve erişimi yönetir
+- üyeler görevler üzerinde aktif çalışır
+- izleyiciler mümkün olduğu kadar okuma odaklı kalır
+- global yönetim ekranına yalnızca adminler erişir
+
+## Sonraki okumalar
 
 <DocsCardGrid>
-  <DocsCard title="Hızlı başlangıç" description="Çalışan bir projeyi birkaç dakikada kurun." href="/docs/getting-started/quick-start" />
-  <DocsCard title="Proje oluşturma" description="Projeleri ve üyeleri nasıl yapılandıracağınızı öğrenin." href="/docs/projects/creating-projects" />
-  <DocsCard title="Görev yönetimi" description="Günlük yürütmeyi pano görünümünden yönetin." href="/docs/board/task-management" />
+  <DocsCard title="Hızlı başlangıç" description="Gerçek bir projeyi kısa sürede kullanılabilir hale getirin." href="/docs/getting-started/quick-start" />
+  <DocsCard title="Gezinme ve arama" description="Çalışma alanında hızlı hareket etmeyi öğrenin." href="/docs/getting-started/navigation-and-search" />
+  <DocsCard title="Görev yönetimi" description="Pano ve görev detay akışını birlikte görün." href="/docs/board/task-management" />
+  <DocsCard title="Gantt temelleri" description="Zaman çizelgesini ne zaman ve nasıl kullanacağınızı anlayın." href="/docs/gantt/timeline-basics" />
 </DocsCardGrid>

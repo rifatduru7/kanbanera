@@ -1,27 +1,57 @@
 ---
 title: "Automation rules"
-description: "Reduce repetitive task updates with targeted automations that keep the workflow predictable."
+description: "Create project-level rules that respond to task events and reduce repetitive board work."
 slug: "automations/rules-basics"
 section: "automations"
-order: 60
+order: 510
 tags: ["automation", "rules", "workflow"]
 updatedAt: "2026-03-20"
 ---
 
-## Start with one painful repetition
+## What automation rules are for
 
-Automations are most useful when they remove a task update people repeatedly forget to perform.
+Automation rules handle narrow, repeatable workflow decisions inside a project. They are best for actions that always follow the same event.
 
-## Good first automation examples
+## Supported trigger patterns
 
-- set priority when a task reaches a critical review column
-- auto-assign a reviewer for specific work types
-- move tasks after a predictable trigger
+The current product exposes rule triggers such as:
 
-### Keep actions understandable
+- task moved to a column
+- task created
+- task assigned
 
-If someone cannot explain what a rule does in one sentence, it is too complex for the first version.
+## Supported action patterns
 
-<WarningCallout title="Avoid rule chains">
-Stacking multiple automations on top of each other makes failures and notifications harder to reason about.
+Available actions include:
+
+- set priority
+- set assignee
+- add label
+- move to another column
+- archive task
+
+## Good first rules
+
+Start with one of these:
+
+- when a task enters Review, assign a reviewer
+- when a task is created, add a default label
+- when a task reaches Done, archive it or move it to the final column
+
+## What not to automate first
+
+Avoid rules that:
+
+- make critical decisions without team trust
+- change multiple fields unexpectedly
+- hide workflow problems instead of exposing them
+
+<WarningCallout title="Keep rules observable">
+If the team cannot predict what a rule will do, the rule is too opaque. Start simple and review outcomes frequently.
 </WarningCallout>
+
+## Rules vs Flows
+
+Use automation rules when a single trigger should produce a single operational response.
+
+Use Flows when the logic needs a visual chain with triggers, branching, and multiple connected steps.

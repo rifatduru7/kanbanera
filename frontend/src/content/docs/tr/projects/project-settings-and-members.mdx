@@ -1,0 +1,61 @@
+---
+title: "Proje ayarları ve üyeler"
+description: "Proje rolleri, üyelik, arşiv durumu ve proje düzeyi ayarları güvenli biçimde yönetin."
+slug: "projects/project-settings-and-members"
+section: "projects"
+order: 120
+tags: ["ayarlar", "uyeler", "roller"]
+updatedAt: "2026-03-20"
+---
+
+## Proje ayarları neyi kontrol eder
+
+Proje ayarları; operasyonel çerçeveyi belirleyen yönetim alanıdır. Genellikle şunları kapsar:
+
+- genel proje bilgileri
+- üyeler ve rolleri
+- varsa entegrasyon ayarları
+- arşivleme ve silme aksiyonları
+
+## Proje içi rol modeli
+
+Ürün şu rol setini destekler:
+
+- owner
+- admin
+- member
+- viewer
+
+Sahip ve admin rolleri yalnızca gerçekten yönetim sorumluluğu olan kişilerde kalmalıdır.
+
+## Üye davet etme
+
+Üyeleri e-posta ile davet edip rolü davet anında belirleyebilirsiniz. Başlangıçta en dar yetkiyle başlamak genelde daha güvenlidir.
+
+Önerilen yaklaşım:
+
+- katkı veren kişiler için `member`
+- yalnızca görünürlük gereken paydaşlar için `viewer`
+- süreci yöneten az sayıda kişi için `admin`
+
+## Rol güncelleme ve erişim kaldırma
+
+Erişim statik değildir. Şu durumlarda üyelikleri gözden geçirin:
+
+- proje faz değiştirdiğinde
+- dış paydaşın görünürlüğe ihtiyacı kalmadığında
+- ekip yapısı değiştiğinde
+
+## Entegrasyonlar
+
+Bazı proje ayarları entegrasyon tabı da içerebilir. Kullanıcı tercihi yerine proje seviyesinde durması gereken bağlantılar burada tutulmalıdır.
+
+## Arşiv ve silme kararları
+
+Aktif yürütme bitmişse ama tarihçe korunacaksa proje arşivlenmelidir.
+
+Silme yalnızca projenin ve ilişkili işlerin kalıcı olarak kaldırılması gerektiğinde kullanılmalıdır.
+
+<WarningCallout title="Kalıcı işlem">
+Proje silindiğinde görevler, sütunlar, dosyalar ve tartışma geçmişi de kaybolur. Bu işlemi geri döndüremezsiniz.
+</WarningCallout>

@@ -1,29 +1,65 @@
 ---
 title: "Görev yönetimi"
-description: "Günlük yürütmeyi pano üzerinden öncelik, yorum, alt görev ve durum hareketleriyle yönetin."
+description: "Günlük yürütmeyi pano üzerinden yönetin; sütunlar, filtreler, arşiv ve otomasyon girişlerini birlikte kullanın."
 slug: "board/task-management"
 section: "board"
-order: 40
-tags: ["gorev", "pano", "alt-gorev"]
+order: 210
+tags: ["pano", "gorev", "akis"]
 updatedAt: "2026-03-20"
 ---
 
-## Kullanılabilir bağlamla görev oluşturun
+## Pano neden operasyon merkezidir
 
-İyi bir görev başlığı tek başına anlam taşır. Açıklama alanı uzun durum raporları için değil, kabul kriterleri için kullanılmalıdır.
+Pano, ekiplerin yürütme zamanının büyük kısmını geçirdiği yerdir. Durum görünürlüğü ile hızlı güncellemeyi birleştirdiği için günlük iş akışının doğal merkezidir.
 
-## Atanan ve tarih birlikte anlamlıdır
+## Temel pano aksiyonları
 
-Atanan sahiplik yaratır. Bitiş tarihi plan baskısı yaratır. Birinin eksik olduğu görevler çoğu zaman yarımdır.
+Panodan şunları yapabilirsiniz:
 
-### Alt görevlerle yürütme detayını ayırın
+- proje değiştirme
+- belirli sütuna görev ekleme
+- görevleri sütunlar arasında taşıma
+- durum, atanan, öncelik, etiket ve tarihe göre filtreleme
+- arşivlenmiş görevleri açma
+- otomasyon kurallarını açma
+- sütun ve proje ayarlarını yönetme
 
-Büyük bir işin aynı kişi veya ekibe ait birden fazla somut adımı varsa alt görevler iyi çalışır.
+## Sütunlar ve WIP mantığı
 
-## Yorumlar işi ilerletsin
+Sütunlar sürecin aşamalarını temsil eder. İyi bir pano az ama anlamlı sayıda sütundan oluşur.
 
-Yorumları karar, blokaj ve inceleme notları için kullanın. Görev alanlarında zaten görünen bilgiyi tekrar etmeyin.
+WIP limiti varsa, ekip yükünün kontrol dışına çıkmasını daha erken fark etmenizi sağlar.
 
-<SuccessCallout title="Sağlıklı pano alışkanlığı">
-Bir görev durum değiştiriyorsa, alanlarını hemen güncelleyin. Böylece pano ve bildirimler güvenilir kalır.
-</SuccessCallout>
+## Filtrelerle odaklanma
+
+Filtreler özellikle görev sayısı büyüdüğünde anlam kazanır. Şu tür sorular için kullanın:
+
+- bana atanmış işler neler
+- hangi görevler gecikmiş
+- hangi işler yüksek öncelikli
+- hangi işler belirli bir durumda birikmiş
+
+## Panodan görev oluşturma
+
+İyi görev başlıkları kısa, eylem odaklı ve bağlamdan kopsa bile anlaşılır olmalıdır.
+
+Örnekler:
+
+- Müşteri onay sunumunu hazırla
+- Büyük dosya yükleme hatasını düzelt
+- Onboarding hatırlatma bildirimini ekle
+
+## Arşivlenmiş görevler
+
+Arşiv, aktif envanter değil geçmiş işler alanıdır. Geri bakmak veya gerekirse geri almak için kullanın.
+
+## Otomasyon giriş noktası
+
+Otomasyon kuralları pano olaylarına bağlı çalıştığı için bu ekrana yakındır. Önce manuel akış otursun, sonra otomasyon ekleyin.
+
+## Buradan devam edin
+
+<DocsCardGrid>
+  <DocsCard title="Görev detayları ve iş birliği" description="Görev modalında yorum, alt görev ve dosyaları yönetin." href="/docs/board/task-details-and-collaboration" />
+  <DocsCard title="Otomasyon kuralları" description="Tekrarlayan pano aksiyonlarını otomatikleştirin." href="/docs/automations/rules-basics" />
+</DocsCardGrid>

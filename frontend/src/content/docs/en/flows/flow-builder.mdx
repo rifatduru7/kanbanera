@@ -1,0 +1,55 @@
+---
+title: "Flow builder"
+description: "Design visual flows with trigger, condition, and action nodes, then save or execute them per project."
+slug: "flows/flow-builder"
+section: "flows"
+order: 610
+tags: ["flows", "visual-automation", "editor"]
+updatedAt: "2026-03-20"
+---
+
+## What Flows are
+
+Flows are a visual automation layer. They are created inside a project and managed from the Flows page, then edited in a dedicated canvas.
+
+## Flow lifecycle
+
+From the Flows screen you can:
+
+- create a new flow
+- toggle whether it is active
+- execute it manually
+- inspect execution history
+- open the visual editor
+- delete a flow
+
+## Editor building blocks
+
+The flow editor currently exposes three node categories:
+
+- trigger node
+- condition node
+- action node
+
+You drag these into the canvas and connect them to describe the flow logic.
+
+## When to use Flows instead of rules
+
+Choose Flows when:
+
+- logic needs branching
+- a visual chain is easier to reason about
+- you expect the automation to evolve over time
+
+Choose basic automation rules when the behavior is simple and immediate.
+
+## Saving and executing
+
+Saving stores the current node and edge graph for the selected flow. Manual execution is available for active flows and is useful for testing or replaying logic.
+
+## Good operational habits
+
+- name flows after the business outcome, not the technical implementation
+- keep the first version small
+- test with real but low-risk project data
+- review execution history after changes

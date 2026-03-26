@@ -1,0 +1,63 @@
+---
+title: "Project settings and members"
+description: "Manage project roles, membership, archival state, and project-level settings safely."
+slug: "projects/project-settings-and-members"
+section: "projects"
+order: 120
+tags: ["settings", "members", "roles"]
+updatedAt: "2026-03-20"
+---
+
+## What project settings control
+
+Project settings are the operational controls around a project. They typically include:
+
+- general project metadata
+- members and their roles
+- integrations where enabled
+- archive and delete actions
+
+## Roles inside a project
+
+The product supports a project role model that includes:
+
+- owner
+- admin
+- member
+- viewer
+
+Owners and admins should be limited to people who actually manage the workflow, not everyone on the team.
+
+## Inviting members
+
+You can invite members by email and assign their project role during the invite flow. Keep the first role restrictive unless broader permissions are required.
+
+Use:
+
+- `member` for contributors
+- `viewer` for read-heavy stakeholders
+- `admin` for trusted operators
+
+## Updating or removing access
+
+Membership is not static. Review it when:
+
+- a project changes phase
+- an external stakeholder no longer needs access
+- the delivery team changes
+
+Removing access is safer than leaving broad permissions in place.
+
+## Integrations
+
+Project settings can also host integration-specific configuration. Use this area when the project needs environment-level values or external connections rather than user-level preferences.
+
+## Archive and delete rules
+
+Archive a project when the team is done with active execution but still needs history.
+
+Delete a project only when you are certain the workspace and associated work should disappear permanently.
+
+<WarningCallout title="Permanent action">
+Deleting a project removes its tasks, columns, files, and discussion context. Treat it as a destructive action.
+</WarningCallout>

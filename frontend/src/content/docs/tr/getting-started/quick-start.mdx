@@ -1,42 +1,94 @@
 ---
 title: "Hızlı başlangıç"
-description: "Bir proje oluşturun, üyeleri davet edin ve ilk iş akışınızı birkaç adımda kurun."
+description: "Çalışan bir proje kurun, üyeleri davet edin ve ilk görevlerinizi gerçek bir iş akışında ilerletin."
 slug: "getting-started/quick-start"
 section: "getting_started"
 order: 20
-tags: ["kurulum", "proje", "baslangic"]
+tags: ["hizli-baslangic", "proje", "pano"]
 updatedAt: "2026-03-20"
 ---
 
-## İlk projenizi oluşturun
+<Callout title="Hedef">
+Bu rehberin sonunda canlı bir proje, kullanılabilir bir sütun yapısı, atanmış görevler ve temel bir planlama görünümü elde etmiş olacaksınız.
+</Callout>
 
-**Projeler** sayfasından bir ekip, müşteri veya girişim için yeni bir alan açın. Proje adı net olsun, genel ifadelerden kaçının.
+## Başlamadan önce
 
-### Kısa ama açıklayıcı bir tanım yazın
+Şunlara ihtiyacınız var:
 
-İyi bir açıklama, panoyu açmadan bile projenin amacını anlatır.
+- giriş yapılmış bir çalışma alanı hesabı
+- proje oluşturma yetkisi
+- davet edebileceğiniz en az bir gerçek ekip üyesi veya test kullanıcısı
 
-## Doğru üyeleri ekleyin
+## 1. Adım: Projeyi oluşturun
 
-Yalnızca planlayan, yürüten veya gözden geçiren kişileri ekleyin. Rolleri daha sonra güncelleyebilirsiniz.
+**Projeler** ekranından yeni bir proje oluşturun. Anlamlı bir isim, kısa açıklama ve ekip tarafından kolay fark edilecek bir renk seçin.
 
-## Minimal bir iş akışı tanımlayın
+Mümkünse test yerine gerçek proje adı kullanın. Belgeler ancak gerçek akışa temas ettiğinde değer üretir.
 
-Başlangıç için iyi bir kolon yapısı:
+## 2. Adım: Sütun yapısını netleştirin
+
+Projeyi **Pano** ekranında açın ve mevcut sütunları gözden geçirin. Sütunlar gerçek süreci yansıtmalı; görsel karmaşa yaratmamalıdır.
+
+İlk kurulum için iyi örnekler:
 
 - Backlog
-- Devam Eden
-- İnceleme
+- Hazır
+- Devam Ediyor
+- İncelemede
 - Tamamlandı
 
-<WarningCallout title="Erken aşamada fazla model kurmayın">
-Ekip ürüne yeni alışıyorsa fazla kolon ve fazla kural benimsenmeyi yavaşlatır.
-</WarningCallout>
+## 3. Adım: İlk görevleri ekleyin
 
-## Gerçek görevler ekleyin
+Yer tutucu görevler yerine birkaç gerçek iş maddesi ekleyin. En azından şunları düşünün:
 
-Örnek görevler yerine gerçek işi ekleyin. Atanan, öncelik, bitiş tarihi ve gerekiyorsa alt görevleri kullanın.
+- net görev başlığı
+- mümkünse atanan kişi
+- gerekiyorsa bitiş tarihi
+- yalnızca karar kalitesini artırıyorsa öncelik
 
-## Zaman çizelgesini kontrol edin
+## 4. Adım: Görev detaylarını doldurun
 
-Görevler oluştuktan sonra Gantt sayfasını açıp tarihlerin gerçekçi olup olmadığını doğrulayın.
+Görev modalında şunları ekleyin:
+
+- açıklama
+- alt görevler
+- dosya ekleri
+- yorumlar
+- etiketler
+
+Kartın çalışılabilir hale geldiği yer burasıdır.
+
+## 5. Adım: Planı doğrulayın
+
+Önce **Takvim** ekranında tarih dağılımına bakın. Daha geniş planlama gerekiyorsa **Gantt** ekranını açın. Tarihi olmayan görevler planlama ekranlarında daha az faydalı olur.
+
+## 6. Adım: Tek bir otomasyon ekleyin
+
+Manuel süreç oturduktan sonra yalnızca bir basit kural ekleyin. İyi ilk örnekler:
+
+- görev Done sütununa geçtiğinde arşivleme
+- görev atandığında etiket ekleme
+- görev Review durumuna geldiğinde öncelik güncelleme
+
+## 7. Adım: Ekibi davet edin
+
+**Üyeler** ekranı veya proje ayarları üzerinden ekip üyelerini davet edin. Rolleri başlangıçta gereğinden geniş vermeyin.
+
+## “Kurulum tamam” demek için
+
+Şunlar oluştuysa sistem kullanılabilir durumdadır:
+
+- proje var
+- pano gerçek akışı yansıtıyor
+- birkaç görev atandı
+- tarihler planlama görünümünde görünüyor
+- ekip yorum ve güncelleme yapabiliyor
+
+## Buradan devam edin
+
+<DocsCardGrid>
+  <DocsCard title="Proje oluşturma" description="Proje kurulum kararlarını daha detaylı öğrenin." href="/docs/projects/creating-projects" />
+  <DocsCard title="Proje ayarları ve üyeler" description="Rolleri, erişimi ve proje yönetimini kontrol edin." href="/docs/projects/project-settings-and-members" />
+  <DocsCard title="Görev detayları ve iş birliği" description="Alt görev, yorum, etiket ve ekleri doğru kullanın." href="/docs/board/task-details-and-collaboration" />
+</DocsCardGrid>

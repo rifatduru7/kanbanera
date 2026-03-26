@@ -1,29 +1,67 @@
 ---
 title: "Task management"
-description: "Run daily execution from the board with priorities, comments, subtasks, and status movement."
+description: "Run the daily workflow from the board with columns, filters, archived work, and automation entry points."
 slug: "board/task-management"
 section: "board"
-order: 40
-tags: ["tasks", "board", "subtasks"]
+order: 210
+tags: ["board", "tasks", "workflow"]
 updatedAt: "2026-03-20"
 ---
 
-## Create tasks with usable context
+## Why the board is the operational center
 
-A good task title is specific enough to stand on its own. Descriptions should capture acceptance criteria, not a long status report.
+Board is where teams spend most of their execution time. It combines status visibility with fast updates, which makes it the right place for everyday task movement.
 
-## Use assignees and due dates together
+## Core board actions
 
-Assignees create accountability. Due dates create planning pressure. One without the other is usually incomplete.
+From the board you can:
 
-### Subtasks for execution detail
+- switch projects
+- create tasks in specific columns
+- move tasks between columns
+- filter by status, assignee, priority, label, and date
+- open archived tasks
+- open automation rules
+- manage columns and project settings
 
-Subtasks are best when a larger task has multiple concrete checkpoints owned by the same person or team.
+## Columns and WIP control
 
-## Comments should move work forward
+Columns represent workflow states. A good board uses a small number of meaningful columns.
 
-Use comments for decisions, blockers, and review notes. Avoid duplicating information already visible in the task fields.
+Where supported, WIP limits help teams spot overload before work stalls.
 
-<SuccessCallout title="Healthy board habit">
-If a task changes state, update the task fields immediately so the board and notifications stay trustworthy.
-</SuccessCallout>
+## Filtering and focus
+
+Filters are most useful when the board starts to carry real volume. Use them to answer concrete questions such as:
+
+- what is assigned to me
+- what is overdue
+- what is high priority
+- what is blocked in a specific status
+
+Do not over-filter by default. The board should stay understandable even without a heavy query layer.
+
+## Creating tasks from the board
+
+The best task titles are short, action-oriented, and specific enough to survive outside the original conversation.
+
+Examples:
+
+- Prepare approval deck for client review
+- Fix upload error for large attachments
+- Add onboarding reminder notification
+
+## Archived tasks
+
+Archived work should be treated as inactive history, not active inventory. Use the archive drawer to review or recover work when needed.
+
+## Board-level automation entry points
+
+Automation rules are close to the board because they act on board events. Add them only after the manual workflow is stable enough to automate confidently.
+
+## Continue with
+
+<DocsCardGrid>
+  <DocsCard title="Task details and collaboration" description="Work inside the task modal with comments, subtasks, and files." href="/docs/board/task-details-and-collaboration" />
+  <DocsCard title="Automation rules" description="Automate repetitive board behavior." href="/docs/automations/rules-basics" />
+</DocsCardGrid>

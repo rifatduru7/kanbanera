@@ -1,27 +1,57 @@
 ---
 title: "Otomasyon kuralları"
-description: "Tekrarlayan görev güncellemelerini azaltmak için hedefli otomasyonlar kurun."
+description: "Görev olaylarına tepki veren proje düzeyi kurallarla tekrar eden pano işlerini azaltın."
 slug: "automations/rules-basics"
 section: "automations"
-order: 60
+order: 510
 tags: ["otomasyon", "kurallar", "is-akisi"]
 updatedAt: "2026-03-20"
 ---
 
-## Tek bir acı tekrar ile başlayın
+## Otomasyon kuralları ne içindir
 
-Otomasyonlar, insanların sürekli unutup manuel yaptığı güncellemeleri ortadan kaldırdığında en fazla değer üretir.
+Otomasyon kuralları, proje içindeki dar ve tekrar eden kararları otomatikleştirmek için kullanılır. En iyi sonucu, her zaman aynı olaydan sonra aynı aksiyon gerekiyorsa verir.
 
-## İyi ilk otomasyon örnekleri
+## Desteklenen tetikleyici örnekleri
 
-- belirli bir kolona geçen görevlerde öncelik ayarlamak
-- belirli iş tiplerinde otomatik reviewer atamak
-- öngörülebilir tetikleyicilerde görev taşımak
+Mevcut kurallar şu tip tetikleyicilere bağlanabilir:
 
-### Aksiyonlar anlaşılır olmalı
+- görev belirli sütuna taşındığında
+- görev oluşturulduğunda
+- görev atandığında
 
-Bir kişi kuralın ne yaptığını tek cümlede anlatamıyorsa ilk sürüm için fazla karmaşıktır.
+## Desteklenen aksiyon örnekleri
 
-<WarningCallout title="Kural zincirlerinden kaçının">
-Bir otomasyonun başka bir otomasyonu tetiklemesi, hata ayıklamayı ve bildirim akışını gereksiz şekilde zorlaştırır.
+Kurallar şu tip sonuçlar üretebilir:
+
+- öncelik ayarlama
+- atanan kişi ayarlama
+- etiket ekleme
+- başka sütuna taşıma
+- görevi arşivleme
+
+## İyi ilk kurallar
+
+Başlangıç için şu örneklerden biri uygundur:
+
+- görev Review sütununa geldiğinde reviewer ata
+- görev oluşturulduğunda varsayılan etiket ekle
+- görev Done durumuna geldiğinde arşivle veya final sütununa taşı
+
+## İlk aşamada otomatikleştirmemeniz gerekenler
+
+Şunlardan kaçının:
+
+- ekip tarafından öngörülemeyen kurallar
+- birden fazla alanı sessizce değiştiren kurallar
+- süreç sorunlarını görünmez kılan kurallar
+
+<WarningCallout title="Kurallar görünür olmalı">
+Ekip bir kuralın ne yapacağını tahmin edemiyorsa, o kural fazla opaktır. Küçük başlayın ve sonucu izleyin.
 </WarningCallout>
+
+## Kurallar ve Akışlar farkı
+
+Tek tetikleyici tek operasyonel cevap üretiyorsa kural kullanın.
+
+Dallanma ve görsel zincir gerekiyorsa Akışlar tarafına geçin.
