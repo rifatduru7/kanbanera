@@ -1,0 +1,25 @@
+﻿            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Toggle subtask
+export function useToggleSubtask(projectId: string) {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({ taskId, subtaskId, isCompleted }: { taskId: string; subtaskId: string; isCompleted: boolean }) => {
+            const response = await tasksApi.toggleSubtask(taskId, subtaskId, isCompleted);
+            if (!response.success) {
+                throw new Error(response.message || 'Failed to toggle subtask');
+            }
+            return response.data?.subtask;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
+        },
+    });
+}
+
+// Delete subtask
+export function useDeleteSubtask(projectId: string) {

@@ -257,7 +257,40 @@ export function useAddSubtask(projectId: string) {
             }
             return response.data?.subtask;
         },
-        onSuccess: () => {
+        onMutate: async ({ taskId, title }) => {
+            await queryClient.cancelQueries({ queryKey: kanbanKeys.task(taskId) });
+            await queryClient.cancelQueries({ queryKey: kanbanKeys.project(projectId) });
+
+            const previousTask = queryClient.getQueryData<TaskDetail>(kanbanKeys.task(taskId));
+            
+            if (previousTask) {
+                const optimisticSubtask = {
+                    id: `temp-${Date.now()}`,
+                    taskId,
+                    title,
+                    isCompleted: false,
+                    position: (previousTask.subtasks?.length || 0) + 1,
+                    createdAt: new Date().toISOString()
+                };
+
+                queryClient.setQueryData<TaskDetail>(kanbanKeys.task(taskId), (old) => {
+                    if (!old) return old;
+                    return {
+                        ...old,
+                        subtasks: [...(old.subtasks || []), optimisticSubtask]
+                    };
+                });
+            }
+
+            return { previousTask };
+        },
+        onError: (_err, variables, context) => {
+            if (context?.previousTask) {
+                queryClient.setQueryData(kanbanKeys.task(variables.taskId), context.previousTask);
+            }
+        },
+        onSettled: (_data, _error, variables) => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.task(variables.taskId) });
             queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
         },
     });
@@ -275,7 +308,57 @@ export function useToggleSubtask(projectId: string) {
             }
             return response.data?.subtask;
         },
-        onSuccess: () => {
+        onMutate: async ({ taskId, subtaskId, isCompleted }) => {
+            await queryClient.cancelQueries({ queryKey: kanbanKeys.task(taskId) });
+            await queryClient.cancelQueries({ queryKey: kanbanKeys.project(projectId) });
+
+            const previousTask = queryClient.getQueryData<TaskDetail>(kanbanKeys.task(taskId));
+            const previousProject = queryClient.getQueryData(kanbanKeys.project(projectId));
+
+            if (previousTask) {
+                queryClient.setQueryData<TaskDetail>(kanbanKeys.task(taskId), (old) => {
+                    if (!old || !old.subtasks) return old;
+                    return {
+                        ...old,
+                        subtasks: old.subtasks.map((s) => 
+                            s.id === subtaskId ? { ...s, isCompleted } : s
+                        ),
+                    };
+                });
+            }
+
+            if (previousProject) {
+                queryClient.setQueryData(kanbanKeys.project(projectId), (old: any) => {
+                    if (!old || !old.tasks) return old;
+                    return {
+                        ...old,
+                        tasks: old.tasks.map((t: any) => {
+                            if (t.id === taskId && t.subtasks) {
+                                return {
+                                    ...t,
+                                    subtasks: t.subtasks.map((s: any) =>
+                                        s.id === subtaskId ? { ...s, isCompleted } : s
+                                    )
+                                };
+                            }
+                            return t;
+                        })
+                    };
+                });
+            }
+
+            return { previousTask, previousProject };
+        },
+        onError: (_err, variables, context) => {
+            if (context?.previousTask) {
+                queryClient.setQueryData(kanbanKeys.task(variables.taskId), context.previousTask);
+            }
+            if (context?.previousProject) {
+                queryClient.setQueryData(kanbanKeys.project(projectId), context.previousProject);
+            }
+        },
+        onSettled: (_data, _error, variables) => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.task(variables.taskId) });
             queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
         },
     });
@@ -293,7 +376,31 @@ export function useDeleteSubtask(projectId: string) {
             }
             return response;
         },
-        onSuccess: () => {
+        onMutate: async ({ taskId, subtaskId }) => {
+            await queryClient.cancelQueries({ queryKey: kanbanKeys.task(taskId) });
+            await queryClient.cancelQueries({ queryKey: kanbanKeys.project(projectId) });
+
+            const previousTask = queryClient.getQueryData<TaskDetail>(kanbanKeys.task(taskId));
+            
+            if (previousTask) {
+                queryClient.setQueryData<TaskDetail>(kanbanKeys.task(taskId), (old) => {
+                    if (!old || !old.subtasks) return old;
+                    return {
+                        ...old,
+                        subtasks: old.subtasks.filter((s) => s.id !== subtaskId)
+                    };
+                });
+            }
+
+            return { previousTask };
+        },
+        onError: (_err, variables, context) => {
+            if (context?.previousTask) {
+                queryClient.setQueryData(kanbanKeys.task(variables.taskId), context.previousTask);
+            }
+        },
+        onSettled: (_data, _error, variables) => {
+            queryClient.invalidateQueries({ queryKey: kanbanKeys.task(variables.taskId) });
             queryClient.invalidateQueries({ queryKey: kanbanKeys.project(projectId) });
         },
     });

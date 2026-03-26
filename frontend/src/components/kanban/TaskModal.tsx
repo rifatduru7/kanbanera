@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     X,
     Link as Link2,
@@ -379,11 +380,17 @@ export function TaskModal({
                                 </div>
 
                                 {/* Progress Bar */}
-                                <div className="h-1.5 w-full bg-surface-alt rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-primary rounded-full transition-all"
-                                        style={{ width: `${subtaskProgress}%` }}
-                                    />
+                                <div className="h-2 w-full bg-surface-dark/50 border border-white/5 rounded-full overflow-hidden shadow-inner relative">
+                                    <motion.div
+                                        className="h-full bg-gradient-to-r from-primary/80 via-primary to-[#4dd0e1] rounded-full relative"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${subtaskProgress}%` }}
+                                        transition={{ type: "spring", stiffness: 80, damping: 20 }}
+                                    >
+                                        {/* Vibrant Glow Effect */}
+                                        <div className="absolute inset-0 bg-white/20 blur-[2px]" />
+                                        <div className="absolute right-0 top-0 bottom-0 w-1 bg-white/40 shadow-[0_0_10px_2px_rgba(255,255,255,0.4)]" />
+                                    </motion.div>
                                 </div>
 
                                 {/* Checklist */}
@@ -937,24 +944,48 @@ function SubtaskItem({
 }) {
     const { t } = useTranslation();
     return (
-        <div className="group flex items-center justify-between p-3 rounded-lg hover:bg-surface-alt transition-colors cursor-pointer">
+        <motion.div 
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="group flex items-center justify-between p-3 rounded-lg hover:bg-surface-alt transition-colors cursor-pointer"
+        >
             <div onClick={onToggle} className="flex items-center gap-3 flex-1 min-w-0">
-                <div
-                    className={`relative flex items-center justify-center w-5 h-5 rounded border transition-colors shrink-0 ${subtask.isCompleted
-                        ? 'border-primary bg-primary text-black'
-                        : 'border-text-muted/50 group-hover:border-primary bg-transparent'
-                        }`}
+                <motion.div
+                    animate={{
+                        backgroundColor: subtask.isCompleted ? "var(--color-primary)" : "transparent",
+                        borderColor: subtask.isCompleted ? "var(--color-primary)" : "rgba(255, 255, 255, 0.2)",
+                        scale: subtask.isCompleted ? [1, 1.2, 1] : 1
+                    }}
+                    transition={{ duration: 0.2 }}
+                    className={`relative flex items-center justify-center w-5 h-5 rounded border shrink-0 ${
+                        subtask.isCompleted ? 'text-black' : 'group-hover:border-primary/50'
+                    }`}
                 >
-                    {subtask.isCompleted && <Check className="size-3" weight="bold" />}
-                </div>
-                <span
-                    className={`text-sm truncate ${subtask.isCompleted
-                        ? 'text-text-muted line-through decoration-primary decoration-2'
-                        : 'text-text'
-                        }`}
+                    <AnimatePresence>
+                        {subtask.isCompleted && (
+                            <motion.div
+                                initial={{ scale: 0, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0, opacity: 0 }}
+                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                            >
+                                <Check className="size-3" weight="bold" />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </motion.div>
+                <motion.span
+                    animate={{
+                        color: subtask.isCompleted ? "var(--color-text-muted)" : "var(--color-text)",
+                        opacity: subtask.isCompleted ? 0.6 : 1
+                    }}
+                    className={`text-sm truncate relative ${
+                        subtask.isCompleted ? 'line-through decoration-primary/50 decoration-2' : ''
+                    }`}
                 >
                     {subtask.title}
-                </span>
+                </motion.span>
             </div>
 
             {onDelete && (
@@ -966,7 +997,7 @@ function SubtaskItem({
                     <Trash2 className="size-4" />
                 </button>
             )}
-        </div>
+        </motion.div>
     );
 }
 
